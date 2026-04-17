@@ -1,0 +1,36 @@
+# Node modules (anywhere)
+node_modules/
+
+# Expo
+.expo/
+.expo-shared/
+
+# Build output
+dist/
+web-build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+
+# Metro bundler cache
+.cache/
+
+# TypeScript
+*.tsbuildinfo
+
+# Android / iOS
+android/
+ios/
+
+# Misc
+*.log
