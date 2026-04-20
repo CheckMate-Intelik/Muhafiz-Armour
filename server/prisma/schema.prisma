@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BookingStatus {
+  REQUESTED
+  PENDING_DRIVER
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  EXPIRED
+}
+
+enum VehicleType {
+  LA
+  MA
+  HA
+}
+
+model User {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  phone     String    @unique
+  email     String?   @unique
+  passwordHash String?
+  isBlocked Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  bookings  Booking[]
+}
+
+model Driver {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String
+  phone      String   @unique
+  email      String?  @unique
+  passwordHash String?
+  isApproved Boolean  @default(false)
+  isBlocked  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  vehicles  Vehicle[]
+  bookings  Booking[]
+}
+
+model Booking {
+  id              String           @id @default(uuid()) @db.Uuid
+  userId          String           @db.Uuid
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  driverId        String?          @db.Uuid
+  driver          Driver?          @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  vehicleId       String?          @db.Uuid
+  vehicle         Vehicle?         @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  pickupLocation  String
+  dropLocation    String
+  startTime       DateTime
+  endTime         DateTime
+  actualStartTime DateTime?
+  actualEndTime   DateTime?
+  status          BookingStatus    @default(REQUESTED)
+  totalPrice      Int?
+  overtimeMinutes Int?
+  createdAt       DateTime         @default(now())
+
+  @@index([userId])
+  @@index([status])
+  @@index([driverId])
+  @@index([vehicleId])
+}
+
+model Vehicle {
+  id              String      @id @default(uuid()) @db.Uuid
+  driverId        String      @db.Uuid
+  driver          Driver      @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  type            VehicleType
+  baseRatePerHour Int
+  location        String
+  isApproved      Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+
+  bookings Booking[]
+
+  @@index([driverId])
+}
+

@@ -1,0 +1,11 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/admin/bookings/page": "/admin/bookings",
+  "/admin/drivers/page": "/admin/drivers",
+  "/admin/page": "/admin",
+  "/admin/users/page": "/admin/users",
+  "/admin/vehicles/page": "/admin/vehicles",
+  "/login/page": "/login",
+  "/page": "/"
+}
