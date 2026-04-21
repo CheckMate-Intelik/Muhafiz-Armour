@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { JwtPayload } from '../auth/auth.types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -32,6 +32,11 @@ export class BookingController {
   @Get()
   async list(@AuthUser() user: JwtPayload) {
     return this.bookings.listForUser(user.sub);
+  }
+
+  @Patch(':id/cancel')
+  async cancel(@AuthUser() user: JwtPayload, @Param('id') id: string) {
+    return this.bookings.cancelForUser(user.sub, id);
   }
 }
 

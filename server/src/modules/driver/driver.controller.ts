@@ -47,5 +47,10 @@ export class DriverController {
   async complete(@AuthUser() user: JwtPayload, @Param('id') id: string) {
     return this.drivers.completeBooking(user.sub, id);
   }
+
+  @Patch('bookings/:id/cancel')
+  async cancel(@AuthUser() user: JwtPayload, @Param('id') id: string) {
+    return this.drivers.cancelBooking(user.sub, id);
+  }
 }
 

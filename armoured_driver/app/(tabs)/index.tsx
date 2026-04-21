@@ -1,12 +1,12 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { driverGet, driverPatch, ensureDriverSession } from '@/lib/api';
 
-type BookingTab = 'Booking Requests' | 'Active Bookings';
+type BookingTab = 'Booking Requests' | 'Booking History';
 
 type Booking = {
   id: string;
@@ -24,17 +24,20 @@ export default function BookingsScreen() {
   const [tab, setTab] = useState<BookingTab>('Booking Requests');
 
   const [requests, setRequests] = useState<Booking[]>([]);
+  const [history, setHistory] = useState<Booking[]>([]);
   const [active, setActive] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   async function refresh() {
     const s = await ensureDriverSession();
-    const [req, act] = await Promise.all([
+    const [req, done, act] = await Promise.all([
       driverGet<Booking[]>(`/driver/requests`, s.driverId),
+      driverGet<Booking[]>(`/driver/bookings/completed`, s.driverId),
       driverGet<Booking[]>(`/driver/bookings/active`, s.driverId),
     ]);
     setRequests(Array.isArray(req) ? req : []);
+    setHistory(Array.isArray(done) ? done : []);
     setActive(Array.isArray(act) ? act : []);
   }
 
@@ -57,8 +60,12 @@ export default function BookingsScreen() {
     };
   }, []);
 
-  const list = tab === 'Booking Requests' ? requests : active;
+  const list = tab === 'Booking Requests' ? requests : history;
   const emptyState = useMemo(() => !loading && list.length === 0, [list.length, loading]);
+  const ongoingCardBooking = useMemo(
+    () => active.find((b) => b.status === 'IN_PROGRESS') ?? active.find((b) => b.status === 'CONFIRMED') ?? null,
+    [active],
+  );
 
   function formatRange(startTime: string, endTime: string) {
     const s = new Date(startTime);
@@ -73,8 +80,8 @@ export default function BookingsScreen() {
       const s = await ensureDriverSession();
       await driverPatch(`/driver/bookings/${bookingId}/respond`, s.driverId, { accept });
       await refresh();
-    } catch {
-      // Ignore for now.
+    } catch (e) {
+      Alert.alert('Failed', e instanceof Error ? e.message : 'Request failed');
     } finally {
       setBusyId(null);
     }
@@ -85,22 +92,9 @@ export default function BookingsScreen() {
       setBusyId(bookingId);
       const s = await ensureDriverSession();
       await driverPatch(`/driver/bookings/${bookingId}/start`, s.driverId);
-      await refresh();
-    } catch {
-      // Ignore for now.
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function completeTrip(bookingId: string) {
-    try {
-      setBusyId(bookingId);
-      const s = await ensureDriverSession();
-      await driverPatch(`/driver/bookings/${bookingId}/complete`, s.driverId);
-      await refresh();
-    } catch {
-      // Ignore for now.
+      router.push({ pathname: '/ongoing-trip' as any, params: { bookingId } });
+    } catch (e) {
+      Alert.alert('Failed', e instanceof Error ? e.message : 'Start trip failed');
     } finally {
       setBusyId(null);
     }
@@ -118,7 +112,7 @@ export default function BookingsScreen() {
         </View>
 
         <View className="mt-4 flex-row rounded-2xl bg-gray-100 p-1">
-          {(['Booking Requests', 'Active Bookings'] as const).map((t) => {
+          {(['Booking Requests', 'Booking History'] as const).map((t) => {
             const isActive = tab === t;
             return (
               <Pressable
@@ -137,6 +131,39 @@ export default function BookingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
+        {!loading && ongoingCardBooking ? (
+          <View className="mb-4 rounded-3xl bg-white p-4" style={cardShadow}>
+            <View className="flex-row items-center justify-between">
+              <View className="flex-1">
+                <Text className="text-xs font-bold text-gray-400">Ongoing trip</Text>
+                <Text className="mt-1 text-base font-extrabold text-gray-900">
+                  {ongoingCardBooking.pickupLocation} <Text className="text-gray-400">→</Text> {ongoingCardBooking.dropLocation}
+                </Text>
+                <Text className="mt-1 text-xs font-semibold text-gray-500">
+                  {ongoingCardBooking.user?.name ?? '—'} • {ongoingCardBooking.vehicle?.type ?? '—'}
+                </Text>
+              </View>
+              <View className="rounded-full bg-gray-100 px-3 py-1">
+                <Text className="text-[10px] font-extrabold text-gray-800">{ongoingCardBooking.status}</Text>
+              </View>
+            </View>
+
+            <Pressable
+              onPress={() => {
+                if (ongoingCardBooking.status === 'CONFIRMED') {
+                  void startTrip(ongoingCardBooking.id);
+                  return;
+                }
+                router.push({ pathname: '/ongoing-trip' as any, params: { bookingId: ongoingCardBooking.id } });
+              }}
+              className="mt-4 items-center justify-center rounded-2xl bg-[#111827] py-3">
+              <Text className="text-xs font-extrabold text-white">
+                {ongoingCardBooking.status === 'CONFIRMED' ? 'Start trip' : 'Open ongoing trip'}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
+
         {loading ? (
           <View className="mt-10 items-center">
             <Text className="text-sm font-semibold text-gray-500">Loading…</Text>
@@ -208,25 +235,7 @@ export default function BookingsScreen() {
                     <Text className="text-xs font-extrabold text-white">{isBusy ? '...' : 'Accept'}</Text>
                   </Pressable>
                 </View>
-              ) : (
-                <View className="mt-4 flex-row gap-3">
-                  {b.status === 'CONFIRMED' ? (
-                    <Pressable
-                      disabled={isBusy}
-                      onPress={() => startTrip(b.id)}
-                      className="flex-1 items-center justify-center rounded-2xl bg-[#111827] py-3">
-                      <Text className="text-xs font-extrabold text-white">{isBusy ? '...' : 'Start trip'}</Text>
-                    </Pressable>
-                  ) : (
-                    <Pressable
-                      disabled={isBusy}
-                      onPress={() => completeTrip(b.id)}
-                      className="flex-1 items-center justify-center rounded-2xl bg-[#111827] py-3">
-                      <Text className="text-xs font-extrabold text-white">{isBusy ? '...' : 'Complete trip'}</Text>
-                    </Pressable>
-                  )}
-                </View>
-              )}
+              ) : null}
             </View>
           );
         })}

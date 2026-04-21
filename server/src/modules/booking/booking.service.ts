@@ -25,11 +25,38 @@ export class BookingService {
     }
     if (endTime <= startTime) throw new BadRequestException('endTime must be after startTime');
 
+    const pickupLocation = dto.pickupLocation.trim();
+    const dropLocation = dto.dropLocation.trim();
+    if (pickupLocation.length === 0) throw new BadRequestException('pickupLocation is required');
+    if (dropLocation.length === 0) throw new BadRequestException('dropLocation is required');
+
+    // Basic idempotency: if the same user submits the same request multiple times
+    // (double-tap, flaky networks, retries), reuse the most recent REQUESTED booking.
+    const recentWindowStart = new Date(Date.now() - 2 * 60 * 1000);
+    const existing = await this.prisma.booking.findFirst({
+      where: {
+        userId,
+        status: 'REQUESTED',
+        pickupLocation,
+        dropLocation,
+        startTime,
+        endTime,
+        createdAt: { gte: recentWindowStart },
+      },
+      orderBy: { createdAt: 'desc' },
+      include: { user: true, driver: true, vehicle: true },
+    });
+
+    if (existing) {
+      const options = await this.optionsForBooking(userId, existing.id);
+      return { booking: existing, options };
+    }
+
     const booking = await this.prisma.booking.create({
       data: {
         userId,
-        pickupLocation: dto.pickupLocation.trim(),
-        dropLocation: dto.dropLocation.trim(),
+        pickupLocation,
+        dropLocation,
         startTime,
         endTime,
         status: 'REQUESTED',
@@ -106,6 +133,24 @@ export class BookingService {
         driver: true,
         vehicle: true,
       },
+    });
+  }
+
+  async cancelForUser(userId: string, bookingId: string) {
+    const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId) throw new BadRequestException('Not your booking');
+    if (!['REQUESTED', 'PENDING_DRIVER', 'CONFIRMED', 'IN_PROGRESS'].includes(booking.status)) {
+      throw new BadRequestException('Booking is not cancellable');
+    }
+
+    return this.prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: 'REJECTED',
+        actualEndTime: booking.actualEndTime ?? (booking.status === 'IN_PROGRESS' ? new Date() : booking.actualEndTime),
+      },
+      include: { user: true, driver: true, vehicle: true },
     });
   }
 }

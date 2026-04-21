@@ -7,7 +7,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiGet, ensureUserSession } from '@/lib/api';
 
 type RideStatus = 'Schedule' | 'Recent' | 'Completed' | 'Canceled';
-type ActivityMode = 'Ride History' | 'Upcoming';
 
 type Booking = {
   id: string;
@@ -20,8 +19,11 @@ type Booking = {
   driver?: { name: string } | null;
 };
 
+function normalizeStatus(status: string | null | undefined) {
+  return (status ?? '').trim().toUpperCase();
+}
+
 export default function ActivitiesScreen() {
-  const [mode, setMode] = useState<ActivityMode>('Ride History');
   const [status, setStatus] = useState<RideStatus>('Schedule');
 
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -48,20 +50,24 @@ export default function ActivitiesScreen() {
   }, []);
 
   const rides = useMemo(() => {
-    if (mode === 'Upcoming') return bookings.filter((b) => b.status !== 'COMPLETED' && b.status !== 'REJECTED');
-
     switch (status) {
       case 'Completed':
-        return bookings.filter((b) => b.status === 'COMPLETED');
+        return bookings.filter((b) => normalizeStatus(b.status) === 'COMPLETED');
       case 'Canceled':
-        return bookings.filter((b) => b.status === 'REJECTED' || b.status === 'EXPIRED');
+        return bookings.filter((b) => {
+          const s = normalizeStatus(b.status);
+          return s === 'REJECTED' || s === 'EXPIRED';
+        });
       case 'Recent':
-        return bookings.filter((b) => b.status === 'CONFIRMED' || b.status === 'IN_PROGRESS');
+        return bookings.filter((b) => normalizeStatus(b.status) === 'IN_PROGRESS');
       case 'Schedule':
       default:
-        return bookings.filter((b) => b.status === 'REQUESTED' || b.status === 'PENDING_DRIVER');
+        return bookings.filter((b) => {
+          const s = normalizeStatus(b.status);
+          return s === 'REQUESTED' || s === 'PENDING_DRIVER' || s === 'CONFIRMED';
+        });
     }
-  }, [bookings, mode, status]);
+  }, [bookings, status]);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -71,33 +77,17 @@ export default function ActivitiesScreen() {
         </View>
 
         <View className="mt-4 flex-row rounded-2xl bg-gray-100 p-1">
-          {(['Ride History', 'Upcoming'] as const).map((m) => {
-            const active = mode === m;
-            return (
-              <Pressable
-                key={m}
-                onPress={() => setMode(m)}
-                className={`flex-1 items-center justify-center rounded-2xl py-3 ${active ? 'bg-[#1D2DD9]' : ''}`}>
-                <Text
-                  className={`text-xs font-extrabold ${active ? 'text-white' : 'text-gray-500'}`}>
-                  {m}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <View className="mt-4 flex-row justify-between">
           {(['Schedule', 'Recent', 'Completed', 'Canceled'] as const).map((s) => {
             const active = status === s;
             return (
-              <Pressable key={s} onPress={() => setStatus(s)} className="items-center">
-                <Text className={`text-xs font-bold ${active ? 'text-gray-900' : 'text-gray-500'}`}>
-                  {s}
+              <Pressable
+                key={s}
+                onPress={() => setStatus(s)}
+                className={`flex-1 items-center justify-center rounded-2xl py-3 ${active ? 'bg-[#1D2DD9]' : ''}`}>
+                <Text
+                  className={`text-xs font-extrabold ${active ? 'text-white' : 'text-gray-500'}`}>
+                  {s === 'Schedule' ? 'Scheduled' : s}
                 </Text>
-                <View
-                  className={`mt-2 h-[2px] w-10 rounded-full ${active ? 'bg-[#1D2DD9]' : 'bg-transparent'}`}
-                />
               </Pressable>
             );
           })}
@@ -117,7 +107,9 @@ export default function ActivitiesScreen() {
               <FontAwesome name="calendar" size={20} color="#111827" />
             </View>
             <Text className="mt-4 text-base font-extrabold text-gray-900">No activities</Text>
-            <Text className="mt-1 text-xs font-semibold text-gray-500">Your bookings will appear here.</Text>
+            <Text className="mt-1 text-xs font-semibold text-gray-500">
+              Your bookings will appear here.
+            </Text>
           </View>
         ) : null}
 

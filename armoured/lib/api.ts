@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
+const DEPLOYED_API_URL = 'https://muhafiz-armour.vercel.app';
 const API_BASE_URL = resolveApiBaseUrl();
 
 type UserSession = {
@@ -141,6 +142,16 @@ export async function apiPost<T>(path: string, userId: string, body: unknown): P
   return (await res.json()) as T;
 }
 
+export async function apiPatch<T>(path: string, userId: string, body?: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json', 'x-user-id': userId },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`PATCH ${path} failed`);
+  return (await res.json()) as T;
+}
+
 async function safeGetItem(key: string) {
   try {
     return await AsyncStorage.getItem(key);
@@ -179,19 +190,11 @@ async function safeReadError(res: Response) {
 function resolveApiBaseUrl() {
   const fromEnv = process.env.EXPO_PUBLIC_API_URL;
   if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) return fromEnv.trim();
-
-  const hostUri =
-    Constants.expoConfig?.hostUri ??
-    // Older manifests
-    (Constants as any).manifest?.hostUri ??
-    // Newer manifests
-    (Constants as any).manifest2?.extra?.expoClient?.hostUri;
-
+  const hostUri = Constants.expoConfig?.hostUri ?? (Constants as any).manifest?.hostUri ?? (Constants as any).manifest2?.extra?.expoClient?.hostUri;
   if (typeof hostUri === 'string' && hostUri.length > 0) {
     const host = hostUri.split(':')[0];
     if (host && host !== 'localhost') return `http://${host}:3001`;
   }
-
-  return 'http://localhost:3001';
+  return DEPLOYED_API_URL;
 }
 

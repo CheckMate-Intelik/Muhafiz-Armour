@@ -5,10 +5,10 @@ import DateTimePicker, {
   DateTimePickerEvent,
   DateTimePickerAndroid,
 } from '@react-native-community/datetimepicker';
-import { Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { AppState, Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { Button } from '@/components/Button';
-import { apiPost, ensureUserSession } from '@/lib/api';
+import { apiGet, apiPost, ensureUserSession } from '@/lib/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type VehicleType = string;
@@ -20,7 +20,6 @@ export default function Home() {
   const [mode, setMode] = useState<VehicleType>('LA');
   const [from, setFrom] = useState('PITX');
   const [to, setTo] = useState('Cubao');
-  const [query, setQuery] = useState('');
   const [startAt, setStartAt] = useState<Date>(() => new Date(Date.now() + 30 * 60 * 1000));
   const [endAt, setEndAt] = useState<Date>(() => new Date(Date.now() + 90 * 60 * 1000));
   const [picker, setPicker] = useState<null | 'start' | 'end'>(null);
@@ -29,6 +28,14 @@ export default function Home() {
 
   const balance = useMemo(() => 100, []);
   const [userId, setUserId] = useState<string | null>(null);
+  const [ongoingTrip, setOngoingTrip] = useState<null | {
+    id: string;
+    pickupLocation: string;
+    dropLocation: string;
+    status: string;
+    driverName: string;
+    vehicleType: string;
+  }>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,6 +72,46 @@ export default function Home() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let sub: any = null;
+
+    async function loadOngoing() {
+      if (!userId) return;
+      try {
+        const rows = await apiGet<any[]>(`/bookings`, userId);
+        const b = Array.isArray(rows) ? rows.find((x) => x?.status === 'IN_PROGRESS') : null;
+        if (cancelled) return;
+        if (!b) {
+          setOngoingTrip(null);
+          return;
+        }
+        setOngoingTrip({
+          id: String(b.id),
+          pickupLocation: String(b.pickupLocation ?? ''),
+          dropLocation: String(b.dropLocation ?? ''),
+          status: String(b.status ?? ''),
+          driverName: String(b.driver?.name ?? '—'),
+          vehicleType: String(b.vehicle?.type ?? '—'),
+        });
+      } catch {
+        // Ignore.
+      }
+    }
+
+    void (async () => {
+      await loadOngoing();
+      sub = AppState.addEventListener('change', (state) => {
+        if (state === 'active') void loadOngoing();
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+      if (sub) sub.remove();
+    };
+  }, [userId]);
 
   const typesToRender = vehicleTypes.length > 0 ? vehicleTypes : (['LA', 'MA', 'HA'] as const);
 
@@ -172,19 +219,28 @@ export default function Home() {
           <Text className="text-xl font-extrabold text-[#1D2DD9]">Where to go?</Text>
         </View>
 
-        <View className="mt-4 flex-row items-center rounded-2xl bg-gray-50 px-4 py-3">
-          <FontAwesome name="search" size={16} color="#6B7280" />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Enter destination"
-            placeholderTextColor="#9CA3AF"
-            className="ml-2 flex-1 text-base text-gray-900"
-          />
-          <View className="ml-2 h-9 w-9 items-center justify-center rounded-xl bg-white">
-            <FontAwesome name="map" size={16} color="#1D2DD9" />
+        {ongoingTrip ? (
+          <View className="mt-4 flex-row items-center rounded-2xl bg-gray-50 px-4 py-3">
+            <Pressable
+              onPress={() => router.push({ pathname: '/ongoing-trip' as any, params: { bookingId: ongoingTrip.id } })}
+              className="flex-1">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-1">
+                  <Text className="text-xs font-extrabold text-gray-900">Ongoing trip</Text>
+                  <Text className="mt-1 text-[11px] font-semibold text-gray-600">
+                    {ongoingTrip.pickupLocation} <Text className="text-gray-400">→</Text> {ongoingTrip.dropLocation}
+                  </Text>
+                  <Text className="mt-1 text-[11px] font-semibold text-gray-500">
+                    {ongoingTrip.driverName} • {ongoingTrip.vehicleType}
+                  </Text>
+                </View>
+                <View className="ml-3 h-9 w-9 items-center justify-center rounded-xl bg-white">
+                  <FontAwesome name="angle-right" size={18} color="#1D2DD9" />
+                </View>
+              </View>
+            </Pressable>
           </View>
-        </View>
+        ) : null}
 
         <View className="mt-4 flex-row justify-between">
           {typesToRender.map((t) => {

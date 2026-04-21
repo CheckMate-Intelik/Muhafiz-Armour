@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
+const DEPLOYED_API_URL = 'https://muhafiz-armour.vercel.app';
 const API_BASE_URL = resolveApiBaseUrl();
 
 type DriverSession = {
@@ -127,7 +128,10 @@ export async function driverGet<T>(path: string, driverId: string): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     headers: { 'x-driver-id': driverId },
   });
-  if (!res.ok) throw new Error(`GET ${path} failed`);
+  if (!res.ok) {
+    const details = await safeReadError(res);
+    throw new Error(details ?? `GET ${path} failed`);
+  }
   return (await res.json()) as T;
 }
 
@@ -137,7 +141,10 @@ export async function driverPost<T>(path: string, driverId: string, body: unknow
     headers: { 'content-type': 'application/json', 'x-driver-id': driverId },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`POST ${path} failed`);
+  if (!res.ok) {
+    const details = await safeReadError(res);
+    throw new Error(details ?? `POST ${path} failed`);
+  }
   return (await res.json()) as T;
 }
 
@@ -147,7 +154,10 @@ export async function driverPatch<T>(path: string, driverId: string, body?: unkn
     headers: { 'content-type': 'application/json', 'x-driver-id': driverId },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`PATCH ${path} failed`);
+  if (!res.ok) {
+    const details = await safeReadError(res);
+    throw new Error(details ?? `PATCH ${path} failed`);
+  }
   return (await res.json()) as T;
 }
 
@@ -189,19 +199,11 @@ async function safeReadError(res: Response) {
 function resolveApiBaseUrl() {
   const fromEnv = process.env.EXPO_PUBLIC_API_URL;
   if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) return fromEnv.trim();
-
-  const hostUri =
-    Constants.expoConfig?.hostUri ??
-    // Older manifests
-    (Constants as any).manifest?.hostUri ??
-    // Newer manifests
-    (Constants as any).manifest2?.extra?.expoClient?.hostUri;
-
+  const hostUri = Constants.expoConfig?.hostUri ?? (Constants as any).manifest?.hostUri ?? (Constants as any).manifest2?.extra?.expoClient?.hostUri;
   if (typeof hostUri === 'string' && hostUri.length > 0) {
     const host = hostUri.split(':')[0];
     if (host && host !== 'localhost') return `http://${host}:3001`;
   }
-
-  return 'http://localhost:3001';
+  return DEPLOYED_API_URL;
 }
 

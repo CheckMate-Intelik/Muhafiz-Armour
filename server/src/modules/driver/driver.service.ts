@@ -110,6 +110,22 @@ export class DriverService {
     });
   }
 
+  async cancelBooking(driverId: string, bookingId: string) {
+    const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.driverId !== driverId) throw new BadRequestException('Not your booking');
+    if (!['CONFIRMED', 'IN_PROGRESS'].includes(booking.status)) throw new BadRequestException('Booking is not cancellable');
+
+    return this.prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: 'REJECTED',
+        actualEndTime: booking.actualEndTime ?? (booking.status === 'IN_PROGRESS' ? new Date() : booking.actualEndTime),
+      },
+      include: { user: true, vehicle: true, driver: true },
+    });
+  }
+
   private calculateOvertimeMinutes(plannedEnd: Date, actualEnd: Date) {
     const diffMs = actualEnd.getTime() - plannedEnd.getTime();
     if (diffMs <= 0) return null;

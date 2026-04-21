@@ -1,8 +1,95 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Tabs } from 'expo-router';
-import { Pressable, View } from 'react-native';
+import { Tabs, router, usePathname } from 'expo-router';
+import { useEffect } from 'react';
+import { AppState, Pressable, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { driverGet, ensureDriverSession } from '@/lib/api';
+
+type ActiveBooking = { id: string; status: string };
+type Snooze = { untilMs: number };
+
+const SNOOZE_KEY = 'armoured_driver:ongoing-trip-snooze:v1';
+const IN_MEMORY_SNOOZE_KEY = '__armouredDriverOngoingTripSnoozeUntilMs';
 
 export default function TabLayout() {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    let cancelled = false;
+    let interval: any = null;
+    let snooze: Snooze | null = null;
+
+    async function readSnooze() {
+      const inMemoryUntil = Number((globalThis as any)[IN_MEMORY_SNOOZE_KEY] ?? 0);
+      if (Number.isFinite(inMemoryUntil) && inMemoryUntil > Date.now()) {
+        return { untilMs: inMemoryUntil };
+      }
+      try {
+        const raw = await AsyncStorage.getItem(SNOOZE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as Partial<Snooze>;
+        if (typeof parsed.untilMs !== 'number') return null;
+        if (Date.now() > parsed.untilMs) return null;
+        return { untilMs: parsed.untilMs };
+      } catch {
+        return null;
+      }
+    }
+
+    async function clearSnooze() {
+      (globalThis as any)[IN_MEMORY_SNOOZE_KEY] = 0;
+      try {
+        await AsyncStorage.removeItem(SNOOZE_KEY);
+      } catch {
+        // ignore
+      }
+    }
+
+    async function checkOngoing() {
+      if (pathname === '/login' || pathname === '/signup' || pathname === '/ongoing-trip') return;
+      try {
+        snooze = await readSnooze();
+        if (snooze) return;
+
+        const s = await ensureDriverSession();
+        const rows = await driverGet<ActiveBooking[]>(`/driver/bookings/active`, s.driverId);
+        const ongoing = Array.isArray(rows) ? rows.find((b) => b.status === 'IN_PROGRESS') : undefined;
+        if (cancelled) return;
+        if (!ongoing?.id) {
+          if (snooze) {
+            snooze = null;
+            await clearSnooze();
+          }
+          return;
+        }
+        if (ongoing?.id) router.replace({ pathname: '/ongoing-trip' as any, params: { bookingId: ongoing.id } });
+      } catch {
+        // Ignore: screens already handle login redirects.
+      }
+    }
+
+    let sub: any = null;
+    void (async () => {
+      snooze = await readSnooze();
+      await checkOngoing();
+      if (snooze) return;
+
+      sub = AppState.addEventListener('change', (state) => {
+        if (state === 'active') void checkOngoing();
+      });
+      interval = setInterval(() => {
+        void checkOngoing();
+      }, 5000);
+    })();
+
+    return () => {
+      cancelled = true;
+      if (interval) clearInterval(interval);
+      if (sub) sub.remove();
+    };
+  }, [pathname]);
+
   return (
     <Tabs
       screenOptions={{
