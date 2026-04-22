@@ -18,9 +18,10 @@ enum BookingStatus {
 }
 
 enum VehicleType {
-  LA
-  MA
-  HA
+  B4
+  B5
+  B6
+  B7
 }
 
 model User {
@@ -78,6 +79,14 @@ model Vehicle {
   driverId        String      @db.Uuid
   driver          Driver      @relation(fields: [driverId], references: [id], onDelete: Cascade)
   type            VehicleType
+  carModel        String?
+  manufacturer    String?
+  generation      String?
+  year            Int?
+  color           String?
+  numberPlate     String?
+  registrationNumber String?
+  imageUrls       String[]    @default([])
   baseRatePerHour Int
   location        String
   isApproved      Boolean     @default(false)

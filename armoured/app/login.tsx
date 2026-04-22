@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { loginUser } from '@/lib/api';
+import { AppRole, loginDriver, loginUser, setActiveRole } from '@/lib/api';
 
 export default function LoginScreen() {
+  const [role, setRole] = useState<AppRole>('USER');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -17,8 +18,15 @@ export default function LoginScreen() {
     if (!canSubmit) return;
     try {
       setSubmitting(true);
-      await loginUser({ email: email.trim(), password });
-      router.replace('/(tabs)');
+      if (role === 'DRIVER') {
+        await loginDriver({ email: email.trim(), password });
+        await setActiveRole('DRIVER');
+        router.replace('/(driver-tabs)');
+      } else {
+        await loginUser({ email: email.trim(), password });
+        await setActiveRole('USER');
+        router.replace('/(tabs)');
+      }
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Login failed';
       Alert.alert('Failed', message);
@@ -44,7 +52,23 @@ export default function LoginScreen() {
       <View className="px-5 pt-6">
         <View className="rounded-3xl bg-white p-4" style={cardShadow}>
           <Text className="text-sm font-extrabold text-gray-900">Welcome back</Text>
-          <Text className="mt-1 text-xs font-semibold text-gray-500">Login with your details</Text>
+          <Text className="mt-1 text-xs font-semibold text-gray-500">Login as {role === 'USER' ? 'user' : 'driver'}</Text>
+
+          <View className="mt-4 flex-row rounded-2xl bg-gray-100 p-1">
+            {(['USER', 'DRIVER'] as const).map((r) => {
+              const active = r === role;
+              return (
+                <Pressable
+                  key={r}
+                  onPress={() => setRole(r)}
+                  className={`flex-1 items-center justify-center rounded-2xl py-3 ${active ? 'bg-[#1D2DD9]' : ''}`}>
+                  <Text className={`text-xs font-extrabold ${active ? 'text-white' : 'text-gray-500'}`}>
+                    {r === 'USER' ? 'User' : 'Driver'}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
 
           <View className="mt-4">
             <Field label="Email" value={email} onChangeText={setEmail} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" />

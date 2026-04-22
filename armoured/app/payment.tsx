@@ -2,6 +2,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type PaymentMethod = 'Digital' | 'Cash';
 
@@ -16,22 +17,21 @@ export default function PaymentScreen() {
   const [method, setMethod] = useState<PaymentMethod>('Digital');
 
   return (
-    <View className="flex-1 bg-[#EEF2FF]">
+    <SafeAreaView className="flex-1 bg-white">
       <View className="px-5 pt-4">
         <View className="flex-row items-center justify-between">
           <Pressable
             onPress={() => router.back()}
-            className="h-10 w-10 items-center justify-center rounded-2xl bg-white"
-            style={shadow}>
+            className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
             <FontAwesome name="arrow-left" size={16} color="#111827" />
           </Pressable>
-          <Text className="text-base font-extrabold text-gray-900">Payment System</Text>
+          <Text className="text-base font-extrabold text-gray-900">Payment</Text>
           <View className="h-10 w-10" />
         </View>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 36 }} className="px-5 pt-4">
-        <View className="rounded-3xl bg-white p-4" style={shadow}>
+        <View className="rounded-3xl bg-white p-4" style={cardShadow}>
           <View className="flex-row items-start justify-between">
             <View className="flex-1">
               <View className="flex-row items-center gap-2">
@@ -59,14 +59,14 @@ export default function PaymentScreen() {
               </View>
             </View>
 
-            <Pressable className="ml-3 h-9 w-9 items-center justify-center rounded-2xl bg-gray-100">
+            <Pressable className="ml-3 h-9 w-9 items-center justify-center rounded-2xl bg-gray-50">
               <FontAwesome name="random" size={16} color="#111827" />
             </Pressable>
           </View>
         </View>
 
-        <View className="mt-4 rounded-3xl bg-white p-4" style={shadow}>
-          <Text className="text-base font-extrabold text-gray-900">Payment System</Text>
+        <View className="mt-4 rounded-3xl bg-white p-4" style={cardShadow}>
+          <Text className="text-base font-extrabold text-gray-900">Select payment method</Text>
 
           <View className="mt-4 gap-3">
             <MethodRow
@@ -84,19 +84,18 @@ export default function PaymentScreen() {
           </View>
 
           <View className="mt-5 flex-row items-center justify-between">
-            <Text className="text-sm font-bold text-gray-500">Total Amount:</Text>
+            <Text className="text-sm font-bold text-gray-500">Total amount</Text>
             <Text className="text-lg font-extrabold text-gray-900">${amount.toFixed(2)}</Text>
           </View>
         </View>
 
         <Pressable
-          className="mt-5 items-center justify-center rounded-2xl bg-[#1D2DD9] py-4"
-          style={shadow}
+          className="mt-5 items-center justify-center rounded-2xl bg-[#111827] py-4"
           onPress={() => router.replace('/(tabs)/activities')}>
-          <Text className="text-base font-extrabold text-white">Pay Now</Text>
+          <Text className="text-base font-extrabold text-white">Pay now</Text>
         </Pressable>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -131,7 +130,7 @@ function MethodRow({
   );
 }
 
-const shadow = {
+const cardShadow = {
   shadowColor: '#000',
   shadowOpacity: 0.06,
   shadowRadius: 12,

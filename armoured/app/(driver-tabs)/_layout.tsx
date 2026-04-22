@@ -4,17 +4,16 @@ import { useEffect } from 'react';
 import { AppState, Pressable, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { apiGet, ensureUserSession } from '@/lib/api';
+import { driverGet, ensureDriverSession } from '@/lib/api';
 import { useStore } from '@/store/store';
 
-type UserBooking = { id: string; status: string };
-
-const SNOOZE_KEY = 'armoured:ongoing-trip-snooze:v1';
-const IN_MEMORY_SNOOZE_KEY = '__armouredOngoingTripSnoozeUntilMs';
-
+type ActiveBooking = { id: string; status: string };
 type Snooze = { untilMs: number };
 
-export default function TabLayout() {
+const SNOOZE_KEY = 'armoured_driver:ongoing-trip-snooze:v1';
+const IN_MEMORY_SNOOZE_KEY = '__armouredDriverOngoingTripSnoozeUntilMs';
+
+export default function DriverTabLayout() {
   const pathname = usePathname();
   const activeRole = useStore((s) => s.activeRole);
   const hydrate = useStore((s) => s.hydrate);
@@ -24,8 +23,8 @@ export default function TabLayout() {
   }, [hydrate]);
 
   useEffect(() => {
-    if (activeRole === 'DRIVER') {
-      router.replace('/(driver-tabs)' as any);
+    if (activeRole === 'USER') {
+      router.replace('/(tabs)' as any);
     }
   }, [activeRole]);
 
@@ -61,16 +60,14 @@ export default function TabLayout() {
     }
 
     async function checkOngoing() {
-      if (activeRole !== 'USER') return;
-      if (pathname === '/login' || pathname === '/signup' || pathname === '/ongoing-trip') return;
+      if (activeRole !== 'DRIVER') return;
+      if (pathname === '/login' || pathname === '/signup' || pathname === '/driver-ongoing-trip') return;
       try {
-        // Re-read snooze each time because this layout stays mounted
-        // when the user dismisses the ongoing trip screen.
         snooze = await readSnooze();
         if (snooze) return;
 
-        const s = await ensureUserSession();
-        const rows = await apiGet<UserBooking[]>(`/bookings`, s.userId);
+        const s = await ensureDriverSession();
+        const rows = await driverGet<ActiveBooking[]>(`/driver/bookings/active`, s.driverId);
         const ongoing = Array.isArray(rows) ? rows.find((b) => b.status === 'IN_PROGRESS') : undefined;
         if (cancelled) return;
         if (!ongoing?.id) {
@@ -80,8 +77,7 @@ export default function TabLayout() {
           }
           return;
         }
-
-        router.replace({ pathname: '/ongoing-trip' as any, params: { bookingId: ongoing.id } });
+        router.replace({ pathname: '/driver-ongoing-trip' as any, params: { bookingId: ongoing.id } });
       } catch {
         // Ignore: screens already handle login redirects.
       }
@@ -91,8 +87,6 @@ export default function TabLayout() {
     void (async () => {
       snooze = await readSnooze();
       await checkOngoing();
-
-      // If user dismissed the ongoing trip screen, do not start polling/redirecting.
       if (snooze) return;
 
       sub = AppState.addEventListener('change', (state) => {
@@ -119,11 +113,7 @@ export default function TabLayout() {
         tabBarInactiveTintColor: '#111827',
         tabBarStyle: {
           position: 'absolute',
-          // left: 16,
-          // right: 16,
           bottom: 40,
-          // paddingHorizontal: 10,
-          // paddingVertical: 10,
           borderRadius: 28,
           alignItems: 'center',
           justifyContent: 'center',
@@ -141,46 +131,16 @@ export default function TabLayout() {
         tabBarItemStyle: {
           height: 52,
         },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'Bookings',
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
-                flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
-                // paddingHorizontal: focused ? 14 : 0,
-                // paddingVertical: 10,
-                borderRadius: 100,
-                backgroundColor: focused ? '#1D2DD9' : 'transparent',
-                height: 52,
-                width: 52,
-              }}>
-              <FontAwesome name="home" size={24} color={focused ? '#FFFFFF' : color} />
-            </View>
-          ),
-          tabBarButton: (props) => <Pressable {...(props as any)} />,
-        }}
-      />
-      <Tabs.Screen
-        name="activities"
-        options={{
-          title: 'Activities',
-          tabBarIcon: ({ color, focused }) => (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                // paddingHorizontal: focused ? 14 : 0,
-                // paddingVertical: 10,
                 borderRadius: 100,
                 backgroundColor: focused ? '#1D2DD9' : 'transparent',
                 height: 52,
@@ -193,17 +153,54 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="dashboard"
         options={{
-          title: 'Profile',
+          title: 'Dashboard',
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
-                flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
-                // paddingHorizontal: focused ? 14 : 0,
-                // paddingVertical: 10,
+                borderRadius: 100,
+                backgroundColor: focused ? '#1D2DD9' : 'transparent',
+                height: 52,
+                width: 52,
+              }}>
+              <FontAwesome name="bar-chart" size={24} color={focused ? '#FFFFFF' : color} />
+            </View>
+          ),
+          tabBarButton: (props) => <Pressable {...(props as any)} />,
+        }}
+      />
+      <Tabs.Screen
+        name="vehicles"
+        options={{
+          title: 'Vehicles',
+          tabBarIcon: ({ color, focused }) => (
+            <View
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 100,
+                backgroundColor: focused ? '#1D2DD9' : 'transparent',
+                height: 52,
+                width: 52,
+              }}>
+              <FontAwesome name="car" size={24} color={focused ? '#FFFFFF' : color} />
+            </View>
+          ),
+          tabBarButton: (props) => <Pressable {...(props as any)} />,
+        }}
+      />
+      <Tabs.Screen
+        name="driver"
+        options={{
+          title: 'Driver',
+          tabBarIcon: ({ color, focused }) => (
+            <View
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
                 borderRadius: 100,
                 backgroundColor: focused ? '#1D2DD9' : 'transparent',
                 height: 52,

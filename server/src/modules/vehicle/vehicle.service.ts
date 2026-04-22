@@ -18,8 +18,16 @@ export class VehicleService {
       data: {
         driverId,
         type: dto.type,
+        carModel: dto.carModel.trim(),
+        manufacturer: dto.manufacturer.trim(),
+        generation: dto.generation.trim(),
+        year: dto.year,
+        color: dto.color.trim(),
+        numberPlate: dto.numberPlate.trim(),
+        registrationNumber: dto.registrationNumber.trim(),
+        imageUrls: dto.imageUrls ?? [],
         baseRatePerHour: dto.baseRatePerHour,
-        location: dto.location,
+        location: dto.location.trim(),
         isApproved: false,
       },
     });

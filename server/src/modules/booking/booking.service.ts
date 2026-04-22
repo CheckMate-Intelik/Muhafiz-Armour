@@ -30,13 +30,15 @@ export class BookingService {
     if (pickupLocation.length === 0) throw new BadRequestException('pickupLocation is required');
     if (dropLocation.length === 0) throw new BadRequestException('dropLocation is required');
 
-    // Basic idempotency: if the same user submits the same request multiple times
-    // (double-tap, flaky networks, retries), reuse the most recent REQUESTED booking.
+    // Idempotency: if the same user submits the same request multiple times
+    // (double-tap, flaky networks, retries), reuse the most recent non-terminal booking.
+    // This also protects against races where the first request is already moved to
+    // PENDING_DRIVER before the second request arrives.
     const recentWindowStart = new Date(Date.now() - 2 * 60 * 1000);
     const existing = await this.prisma.booking.findFirst({
       where: {
         userId,
-        status: 'REQUESTED',
+        status: { in: ['REQUESTED', 'PENDING_DRIVER', 'CONFIRMED', 'IN_PROGRESS'] },
         pickupLocation,
         dropLocation,
         startTime,

@@ -1,13 +1,13 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { signupUser } from '@/lib/api';
-import { Alert } from 'react-native';
+import { AppRole, setActiveRole, signupDriver, signupUser } from '@/lib/api';
 
 export default function SignupScreen() {
+  const [role, setRole] = useState<AppRole>('USER');
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -20,14 +20,25 @@ export default function SignupScreen() {
     if (!canSubmit) return;
     try {
       setSubmitting(true);
-      await signupUser({
-        phone: phone.trim() || undefined,
-        name: name.trim() || undefined,
-        email: email.trim(),
-        password,
-      });
+      if (role === 'DRIVER') {
+        await signupDriver({
+          phone: phone.trim() || undefined,
+          name: name.trim() || undefined,
+          email: email.trim(),
+          password,
+        });
+        await setActiveRole('DRIVER');
+      } else {
+        await signupUser({
+          phone: phone.trim() || undefined,
+          name: name.trim() || undefined,
+          email: email.trim(),
+          password,
+        });
+        await setActiveRole('USER');
+      }
       Alert.alert('Success', 'Account created successfully.');
-      router.replace('/(tabs)');
+      router.replace(role === 'DRIVER' ? '/(driver-tabs)' : '/(tabs)');
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Could not create account.';
       Alert.alert('Failed', message);
@@ -53,7 +64,23 @@ export default function SignupScreen() {
       <View className="px-5 pt-6">
         <View className="rounded-3xl bg-white p-4" style={cardShadow}>
           <Text className="text-sm font-extrabold text-gray-900">Create your account</Text>
-          <Text className="mt-1 text-xs font-semibold text-gray-500">Sign up with your details</Text>
+          <Text className="mt-1 text-xs font-semibold text-gray-500">Sign up as {role === 'USER' ? 'user' : 'driver'}</Text>
+
+          <View className="mt-4 flex-row rounded-2xl bg-gray-100 p-1">
+            {(['USER', 'DRIVER'] as const).map((r) => {
+              const active = r === role;
+              return (
+                <Pressable
+                  key={r}
+                  onPress={() => setRole(r)}
+                  className={`flex-1 items-center justify-center rounded-2xl py-3 ${active ? 'bg-[#1D2DD9]' : ''}`}>
+                  <Text className={`text-xs font-extrabold ${active ? 'text-white' : 'text-gray-500'}`}>
+                    {r === 'USER' ? 'User' : 'Driver'}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
 
           <View className="mt-4">
             <Field label="Phone number" value={phone} onChangeText={setPhone} placeholder="+63 900 000 0000" keyboardType="phone-pad" />

@@ -65,7 +65,9 @@ export default function AdminVehiclesPage() {
           <table className="table">
             <thead>
               <tr>
-                <th>Type</th>
+                <th>Armour</th>
+                <th>Vehicle</th>
+                <th>Plate / Reg</th>
                 <th>Rate</th>
                 <th>Location</th>
                 <th>Driver</th>
@@ -77,6 +79,8 @@ export default function AdminVehiclesPage() {
               {rows.map((v) => (
                 <tr key={v.id}>
                   <td className="mono">{v.type}</td>
+                  <td>{[v.manufacturer, v.generation, v.carModel, v.year].filter(Boolean).join(' ') || '—'}</td>
+                  <td>{[v.numberPlate, v.registrationNumber].filter(Boolean).join(' / ') || '—'}</td>
                   <td className="mono">${v.baseRatePerHour}/hr</td>
                   <td>{v.location}</td>
                   <td>{v.driver?.name ?? '—'}</td>
@@ -90,7 +94,7 @@ export default function AdminVehiclesPage() {
               ))}
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="muted">
+                  <td colSpan={9} className="muted">
                     No vehicles.
                   </td>
                 </tr>

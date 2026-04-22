@@ -1,16 +1,17 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useEffect, useMemo } from 'react';
 import { useStore } from '@/store/store';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function ProfileScreen() {
+export default function DriverProfileScreen() {
   const hydrate = useStore((s) => s.hydrate);
+  const refreshProfile = useStore((s) => s.refreshProfile);
   const logout = useStore((s) => s.logout);
   const switchRole = useStore((s) => s.switchRole);
-  const profile = useStore((s) => s.profile);
+  const profile = useStore((s) => s.driverProfile);
   const loading = useStore((s) => s.loading);
 
   useEffect(() => {
@@ -18,9 +19,9 @@ export default function ProfileScreen() {
   }, [hydrate]);
 
   const memberSince = useMemo(() => {
-    if (!profile?.createdAt) return '—';
+    if (!profile?.createdAt) return '-';
     const d = new Date(profile.createdAt);
-    if (Number.isNaN(d.getTime())) return '—';
+    if (Number.isNaN(d.getTime())) return '-';
     return `${d.getFullYear()}`;
   }, [profile?.createdAt]);
 
@@ -28,45 +29,31 @@ export default function ProfileScreen() {
     <SafeAreaView className="flex-1 bg-white">
       <View className="px-5 pt-4 items-center justify-center">
         <View className="flex-row items-center justify-between">
-          <Text className="text-base font-extrabold text-gray-900">Profile</Text>
+          <Text className="text-base font-extrabold text-gray-900">Driver</Text>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-6">
         <View className="items-center">
-          <Image
-            source={{ uri: 'https://i.pravatar.cc/240?img=12' }}
-            style={{ width: 120, height: 120, borderRadius: 60 }}
-          />
-          <Text className="mt-4 text-lg font-extrabold text-gray-900">
-            {profile?.name ?? (loading ? 'Loading…' : '—')}
-          </Text>
-          <Text className="mt-1 text-xs font-semibold text-gray-500">
-            Member since {memberSince}
-          </Text>
+          <Image source={{ uri: 'https://i.pravatar.cc/240?img=12' }} style={{ width: 120, height: 120, borderRadius: 60 }} />
+          <Text className="mt-4 text-lg font-extrabold text-gray-900">{profile?.name ?? (loading ? 'Loading...' : '-')}</Text>
+          <Text className="mt-1 text-xs font-semibold text-gray-500">Member since {memberSince}</Text>
         </View>
 
         <View className="mt-6 rounded-3xl bg-white p-4" style={cardShadow}>
-          <DetailRow icon="phone" label="Phone" value={profile?.phone ?? '—'} />
+          <DetailRow icon="phone" label="Phone" value={profile?.phone ?? '-'} />
           <Divider />
-          <DetailRow icon="envelope" label="Email" value={profile?.email ?? '—'} />
+          <DetailRow icon="envelope" label="Email" value={profile?.email ?? '-'} />
+          <Divider />
+          <DetailRow icon="check" label="Approval" value={profile ? (profile.isApproved ? 'Approved' : 'Pending') : '-'} />
         </View>
 
         <View className="mt-5 rounded-3xl bg-white p-4" style={cardShadow}>
-          <ActionRow icon="credit-card" title="Payment Methods" />
+          <ActionRow icon="refresh" title="Refresh profile" onPress={() => void refreshProfile()} />
           <Divider />
-          <ActionRow icon="history" title="Ride History" />
+          <ActionRow icon="car" title="Vehicle management" onPress={() => router.push('/(driver-tabs)/vehicles' as any)} />
           <Divider />
-          <ActionRow icon="shield" title="Privacy & Security" />
-          <Divider />
-          <ActionRow
-            icon="exchange"
-            title="Switch to Driver mode"
-            onPress={async () => {
-              await switchRole('DRIVER');
-              router.replace('/(driver-tabs)' as any);
-            }}
-          />
+          <ActionRow icon="exchange" title="Switch to User mode" onPress={() => void switchRole('USER').then(() => router.replace('/(tabs)' as any))} />
           <Divider />
           <ActionRow
             icon="sign-out"
@@ -126,10 +113,7 @@ function ActionRow({
         <View className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
           <FontAwesome name={icon} size={16} color={destructive ? '#DC2626' : '#111827'} />
         </View>
-        <Text
-          className={`ml-3 text-sm font-extrabold ${destructive ? 'text-red-600' : 'text-gray-900'}`}>
-          {title}
-        </Text>
+        <Text className={`ml-3 text-sm font-extrabold ${destructive ? 'text-red-600' : 'text-gray-900'}`}>{title}</Text>
       </View>
       <FontAwesome name="angle-right" size={18} color="#9CA3AF" />
     </Pressable>

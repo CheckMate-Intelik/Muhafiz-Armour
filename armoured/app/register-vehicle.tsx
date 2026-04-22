@@ -12,7 +12,8 @@ const VEHICLE_TYPES = ['B4', 'B5', 'B6', 'B7'] as const;
 export default function RegisterVehicleScreen() {
   const [vehicleType, setVehicleType] = useState('B4');
   const [carModel, setCarModel] = useState('');
-  const [make, setMake] = useState('');
+  const [manufacturer, setManufacturer] = useState('');
+  const [generation, setGeneration] = useState('');
   const [year, setYear] = useState('');
   const [color, setColor] = useState('');
   const [numberPlate, setNumberPlate] = useState('');
@@ -26,7 +27,8 @@ export default function RegisterVehicleScreen() {
   const canSubmit =
     vehicleType.trim().length > 0 &&
     carModel.trim().length > 0 &&
-    make.trim().length > 0 &&
+    manufacturer.trim().length > 0 &&
+    generation.trim().length > 0 &&
     Number.isFinite(Number(year)) &&
     Number(year) >= 1980 &&
     Number(year) <= 2100 &&
@@ -58,7 +60,8 @@ export default function RegisterVehicleScreen() {
       await driverPost(`/driver/vehicles`, s.driverId, {
         type: vehicleType.trim(),
         carModel: carModel.trim(),
-        make: make.trim(),
+        manufacturer: manufacturer.trim(),
+        generation: generation.trim(),
         year: Math.round(Number(year)),
         color: color.trim(),
         numberPlate: numberPlate.trim().toUpperCase(),
@@ -83,9 +86,7 @@ export default function RegisterVehicleScreen() {
     <SafeAreaView className="flex-1 bg-white">
       <View className="px-5 pt-4">
         <View className="flex-row items-center justify-between">
-          <Pressable
-            onPress={() => router.back()}
-            className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
+          <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
             <FontAwesome name="arrow-left" size={16} color="#111827" />
           </Pressable>
           <Text className="text-base font-extrabold text-gray-900">Add vehicle</Text>
@@ -95,43 +96,35 @@ export default function RegisterVehicleScreen() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} className="px-5 pt-6">
         <View className="rounded-3xl bg-white p-4" style={cardShadow}>
-          <Text className="text-sm font-extrabold text-gray-900">Armoured vehicle details</Text>
-          <Text className="mt-1 text-xs font-semibold text-gray-500">
-            Add your vehicle information to accept bookings.
-          </Text>
+          <Text className="text-sm font-extrabold text-gray-900">Vehicle management details</Text>
+          <Text className="mt-1 text-xs font-semibold text-gray-500">Add your vehicle information to accept bookings.</Text>
 
           <View className="mt-4">
             <Pressable onPress={() => setTypePickerOpen(true)} className="mb-3 rounded-2xl bg-gray-50 px-4 py-3">
-              <Text className="text-[10px] font-bold text-gray-400">Vehicle type</Text>
+              <Text className="text-[10px] font-bold text-gray-400">Armour level</Text>
               <View className="mt-1 flex-row items-center justify-between">
                 <Text className="text-sm font-extrabold text-gray-900">{vehicleType}</Text>
                 <FontAwesome name="angle-down" size={18} color="#6B7280" />
               </View>
             </Pressable>
+            <Field label="Car model" value={carModel} onChangeText={setCarModel} placeholder="Land Cruiser" autoCapitalize="words" />
             <Field
-              label="Car model"
-              value={carModel}
-              onChangeText={setCarModel}
-              placeholder="Land Cruiser"
+              label="Manufacturer"
+              value={manufacturer}
+              onChangeText={setManufacturer}
+              placeholder="Toyota"
               autoCapitalize="words"
             />
-            <Field label="Make" value={make} onChangeText={setMake} placeholder="Toyota" autoCapitalize="words" />
             <Field
-              label="Year"
-              value={year}
-              onChangeText={setYear}
-              placeholder="2022"
-              keyboardType="number-pad"
-              autoCapitalize="none"
-            />
-            <Field label="Colour" value={color} onChangeText={setColor} placeholder="Black" autoCapitalize="words" />
-            <Field
-              label="Number plate"
-              value={numberPlate}
-              onChangeText={setNumberPlate}
-              placeholder="ABC-1234"
+              label="Generation"
+              value={generation}
+              onChangeText={setGeneration}
+              placeholder="LC300"
               autoCapitalize="characters"
             />
+            <Field label="Year" value={year} onChangeText={setYear} placeholder="2022" keyboardType="number-pad" autoCapitalize="none" />
+            <Field label="Colour" value={color} onChangeText={setColor} placeholder="Black" autoCapitalize="words" />
+            <Field label="Number plate" value={numberPlate} onChangeText={setNumberPlate} placeholder="ABC-1234" autoCapitalize="characters" />
             <Field
               label="Registration number"
               value={registrationNumber}
@@ -147,13 +140,7 @@ export default function RegisterVehicleScreen() {
               keyboardType="number-pad"
               autoCapitalize="none"
             />
-            <Field
-              label="Location"
-              value={location}
-              onChangeText={setLocation}
-              placeholder="Quezon City"
-              autoCapitalize="words"
-            />
+            <Field label="Location" value={location} onChangeText={setLocation} placeholder="Quezon City" autoCapitalize="words" />
             <View className="mb-3 rounded-2xl bg-gray-50 px-4 py-3">
               <Text className="text-[10px] font-bold text-gray-400">Images upload</Text>
               <Pressable onPress={pickImages} className="mt-2 flex-row items-center justify-center rounded-xl bg-white py-3">
@@ -179,11 +166,8 @@ export default function RegisterVehicleScreen() {
             className={`mt-4 items-center justify-center rounded-2xl py-3 ${
               canSubmit && !submitting ? 'bg-[#1D2DD9]' : 'bg-gray-200'
             }`}>
-            <Text
-              className={`text-xs font-extrabold ${
-                canSubmit && !submitting ? 'text-white' : 'text-gray-500'
-              }`}>
-              {submitting ? 'Saving…' : 'Add vehicle'}
+            <Text className={`text-xs font-extrabold ${canSubmit && !submitting ? 'text-white' : 'text-gray-500'}`}>
+              {submitting ? 'Saving...' : 'Add vehicle'}
             </Text>
           </Pressable>
         </View>
@@ -193,7 +177,7 @@ export default function RegisterVehicleScreen() {
         <Pressable className="flex-1 items-center justify-center bg-black/40 px-5" onPress={() => setTypePickerOpen(false)}>
           <Pressable className="w-full max-w-[420px] rounded-3xl bg-white p-4" style={cardShadow}>
             <View className="flex-row items-center justify-between">
-              <Text className="text-base font-extrabold text-gray-900">Select vehicle type</Text>
+              <Text className="text-base font-extrabold text-gray-900">Select armour level</Text>
               <Pressable onPress={() => setTypePickerOpen(false)}>
                 <Text className="text-sm font-extrabold text-[#1D2DD9]">Done</Text>
               </Pressable>
@@ -214,7 +198,7 @@ export default function RegisterVehicleScreen() {
                         <FontAwesome name="car" size={16} color={active ? '#FFFFFF' : '#111827'} />
                       </View>
                       <View>
-                        <Text className="text-xs font-bold text-gray-400">Type</Text>
+                        <Text className="text-xs font-bold text-gray-400">Level</Text>
                         <Text className="mt-1 text-sm font-extrabold text-gray-900">{t}</Text>
                       </View>
                     </View>
@@ -268,4 +252,3 @@ const cardShadow = {
   shadowOffset: { width: 0, height: 8 },
   elevation: 3,
 };
-

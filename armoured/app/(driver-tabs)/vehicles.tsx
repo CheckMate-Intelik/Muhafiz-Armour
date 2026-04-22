@@ -13,7 +13,8 @@ type Vehicle = {
   id: string;
   type: string;
   carModel?: string | null;
-  make?: string | null;
+  manufacturer?: string | null;
+  generation?: string | null;
   year?: number | null;
   color?: string | null;
   numberPlate?: string | null;
@@ -24,7 +25,7 @@ type Vehicle = {
   isApproved: boolean;
 };
 
-export default function VehiclesScreen() {
+export default function DriverVehiclesScreen() {
   const [tab, setTab] = useState<VehicleTab>('Approved');
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +66,6 @@ export default function VehiclesScreen() {
           <Text className="text-base font-extrabold text-gray-900">Vehicles</Text>
         </View>
 
-
         <View className="mt-4 flex-row rounded-2xl bg-gray-100 p-1">
           {(['Approved', 'Pending'] as const).map((t) => {
             const activeTab = tab === t;
@@ -91,7 +91,7 @@ export default function VehiclesScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
         {loading ? (
           <View className="mt-10 items-center">
-            <Text className="text-sm font-semibold text-gray-500">Loading…</Text>
+            <Text className="text-sm font-semibold text-gray-500">Loading...</Text>
           </View>
         ) : null}
 
@@ -114,15 +114,15 @@ export default function VehiclesScreen() {
                 <Text className="text-xs font-bold text-gray-400">Armour level</Text>
                 <Text className="mt-1 text-base font-extrabold text-gray-900">{v.type}</Text>
                 <Text className="mt-1 text-xs font-semibold text-gray-600">
-                  {v.make ?? '—'} {v.carModel ?? '—'} {v.year ? `(${v.year})` : ''}
+                  {v.manufacturer ?? '-'} {v.generation ?? ''} {v.carModel ?? '-'} {v.year ? `(${v.year})` : ''}
                 </Text>
                 <Text className="mt-2 text-xs font-semibold text-gray-500">
                   {v.location} • ${v.baseRatePerHour}/hr
                 </Text>
                 <Text className="mt-1 text-[11px] font-semibold text-gray-500">
-                  Plate: {v.numberPlate ?? '—'} • Reg: {v.registrationNumber ?? '—'}
+                  Plate: {v.numberPlate ?? '-'} • Reg: {v.registrationNumber ?? '-'}
                 </Text>
-                <Text className="mt-1 text-[11px] font-semibold text-gray-500">Colour: {v.color ?? '—'}</Text>
+                <Text className="mt-1 text-[11px] font-semibold text-gray-500">Colour: {v.color ?? '-'}</Text>
               </View>
               <View className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
                 <FontAwesome name="car" size={16} color="#111827" />
@@ -149,4 +149,3 @@ const cardShadow = {
   shadowOffset: { width: 0, height: 8 },
   elevation: 3,
 };
-

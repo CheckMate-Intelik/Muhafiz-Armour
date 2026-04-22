@@ -13,11 +13,17 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(driver-tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
         <Stack.Screen name="select-vehicle" options={{ headerShown: false }} />
+        <Stack.Screen name="car-details" options={{ headerShown: false }} />
+        <Stack.Screen name="book-vehicle" options={{ headerShown: false }} />
+        <Stack.Screen name="book-vehicle-schedule" options={{ headerShown: false }} />
         <Stack.Screen name="payment" options={{ headerShown: false }} />
         <Stack.Screen name="ongoing-trip" options={{ headerShown: false }} />
+        <Stack.Screen name="driver-ongoing-trip" options={{ headerShown: false }} />
+        <Stack.Screen name="register-vehicle" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </SafeAreaProvider>
