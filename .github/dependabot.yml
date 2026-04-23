@@ -1,16 +1,8 @@
 version: 2
-updates:
-  # Enable version updates for npm (Node.js)
-  - package-ecosystem: "npm"
-    directory: "/" # location of package.json
-    schedule:
-      interval: "daily"  # options: daily, weekly, monthly
-    open-pull-requests-limit: 10
-    allow:
-      - dependency-type: "all"
-    commit-message:
-      prefix: "deps"
-    labels:
-      - "dependencies"
-      - "automated"
 
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
