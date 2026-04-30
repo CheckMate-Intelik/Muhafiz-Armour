@@ -5,13 +5,15 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
+import { VehicleCard } from '@/components/VehicleCard';
 import { driverGet, ensureDriverSession } from '@/lib/api';
 
 type VehicleTab = 'Approved' | 'Pending';
 
 type Vehicle = {
   id: string;
-  type: string;
+  armourLevel: string;
+  vehicleType: string;
   carModel?: string | null;
   manufacturer?: string | null;
   generation?: string | null;
@@ -60,20 +62,20 @@ export default function DriverVehiclesScreen() {
   const list = tab === 'Approved' ? approved : pending;
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-[#F4F5F7]">
       <View className="px-5 pt-4">
         <View className="flex-row items-center justify-center">
           <Text className="text-base font-extrabold text-gray-900">Vehicles</Text>
         </View>
 
-        <View className="mt-4 flex-row rounded-2xl bg-gray-100 p-1">
+        <View className="mt-4 flex-row rounded-2xl bg-gray-200 p-1">
           {(['Approved', 'Pending'] as const).map((t) => {
             const activeTab = tab === t;
             return (
               <Pressable
                 key={t}
                 onPress={() => setTab(t)}
-                className={`flex-1 items-center justify-center rounded-2xl py-3 ${activeTab ? 'bg-[#1D2DD9]' : ''}`}>
+                className={`flex-1 items-center justify-center rounded-2xl py-3 ${activeTab ? 'bg-black' : ''}`}>
                 <Text className={`text-xs font-extrabold ${activeTab ? 'text-white' : 'text-gray-500'}`}>{t}</Text>
               </Pressable>
             );
@@ -83,12 +85,12 @@ export default function DriverVehiclesScreen() {
 
       <Pressable
         onPress={() => router.push('/register-vehicle')}
-        className="mt-4 mx-5 flex-row items-center justify-center rounded-2xl bg-[#1D2DD9] py-5">
+        className="absolute bottom-[120px] left-1/2 z-10 w-[150px] -translate-x-1/2 flex-row items-center justify-center rounded-full bg-black py-5">
         <FontAwesome name="plus" size={14} color="#FFFFFF" />
         <Text className="ml-2 text-xs font-extrabold text-white">Add vehicle</Text>
       </Pressable>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
+      <ScrollView contentContainerStyle={{ paddingBottom: 180 }} className="px-5 pt-4">
         {loading ? (
           <View className="mt-10 items-center">
             <Text className="text-sm font-semibold text-gray-500">Loading...</Text>
@@ -107,45 +109,24 @@ export default function DriverVehiclesScreen() {
           </View>
         ) : null}
 
-        {list.map((v) => (
-          <View key={v.id} className="mb-4 rounded-3xl bg-white p-4" style={cardShadow}>
-            <View className="flex-row items-start justify-between">
-              <View className="flex-1">
-                <Text className="text-xs font-bold text-gray-400">Armour level</Text>
-                <Text className="mt-1 text-base font-extrabold text-gray-900">{v.type}</Text>
-                <Text className="mt-1 text-xs font-semibold text-gray-600">
-                  {v.manufacturer ?? '-'} {v.generation ?? ''} {v.carModel ?? '-'} {v.year ? `(${v.year})` : ''}
-                </Text>
-                <Text className="mt-2 text-xs font-semibold text-gray-500">
-                  {v.location} • ${v.baseRatePerHour}/hr
-                </Text>
-                <Text className="mt-1 text-[11px] font-semibold text-gray-500">
-                  Plate: {v.numberPlate ?? '-'} • Reg: {v.registrationNumber ?? '-'}
-                </Text>
-                <Text className="mt-1 text-[11px] font-semibold text-gray-500">Colour: {v.color ?? '-'}</Text>
-              </View>
-              <View className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-                <FontAwesome name="car" size={16} color="#111827" />
-              </View>
-            </View>
-
-            <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-gray-50 px-4 py-3">
-              <Text className="text-xs font-extrabold text-gray-900">Status</Text>
-              <Text className={`text-xs font-extrabold ${v.isApproved ? 'text-green-600' : 'text-amber-600'}`}>
-                {v.isApproved ? 'Approved' : 'Pending'}
-              </Text>
-            </View>
-          </View>
-        ))}
+        <View className="flex-row flex-wrap justify-between">
+          {list.map((v) => (
+            <VehicleCard
+              key={v.id}
+              vehicle={v}
+              onPress={() =>
+                router.push({
+                  pathname: '/car-details' as any,
+                  params: { vehicleId: v.id, readonly: '1' },
+                })
+              }
+              className="mb-3 w-[48.5%] rounded-2xl bg-white p-2.5"
+              showStatus
+              showDriverHeader={false}
+            />
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const cardShadow = {
-  shadowColor: '#000',
-  shadowOpacity: 0.06,
-  shadowRadius: 12,
-  shadowOffset: { width: 0, height: 8 },
-  elevation: 3,
-};

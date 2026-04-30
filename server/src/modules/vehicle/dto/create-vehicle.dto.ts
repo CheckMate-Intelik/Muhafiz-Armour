@@ -1,15 +1,14 @@
-import { IsArray, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-
-enum VehicleTypeEnum {
-  B4 = 'B4',
-  B5 = 'B5',
-  B6 = 'B6',
-  B7 = 'B7',
-}
+import { IsArray, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateVehicleDto {
-  @IsEnum(VehicleTypeEnum)
-  type!: VehicleTypeEnum;
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toUpperCase() : value))
+  @IsString()
+  armourLevel!: string;
+
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toUpperCase() : value))
+  @IsString()
+  vehicleType!: string;
 
   @IsString()
   carModel!: string;

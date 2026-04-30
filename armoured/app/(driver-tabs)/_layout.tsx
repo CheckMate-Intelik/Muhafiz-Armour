@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs, router, usePathname } from 'expo-router';
 import { useEffect } from 'react';
-import { AppState, Pressable, View } from 'react-native';
+import { AppState, Pressable, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { driverGet, ensureDriverSession } from '@/lib/api';
@@ -117,11 +117,13 @@ export default function DriverTabLayout() {
           borderRadius: 28,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgba(255,255,255,0.92)',
+          backgroundColor: 'rgba(0, 0, 0, 0.92)',
           borderTopWidth: 0,
           shadowColor: '#000',
           shadowOpacity: 0.08,
-          height: 64,
+          height: 58,
+          width: '95%',
+          marginLeft: '2.5%',
           paddingTop: 10,
           paddingBottom: 10,
           shadowRadius: 14,
@@ -132,41 +134,69 @@ export default function DriverTabLayout() {
           height: 52,
         },
       }}>
-      <Tabs.Screen
+        <Tabs.Screen
         name="index"
         options={{
-          title: 'Bookings',
+          title: 'Dashboard',
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
+                flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 100,
-                backgroundColor: focused ? '#1D2DD9' : 'transparent',
-                height: 52,
-                width: 52,
+                backgroundColor: focused ? 'white' : 'transparent',
+                height: 46,
+                width: focused ? 120 : 52,
+                marginLeft: focused ? 30 : 0,
               }}>
-              <FontAwesome name="list-alt" size={24} color={focused ? '#FFFFFF' : color} />
+              <FontAwesome name="bar-chart" size={20} color={focused ? 'black' : 'white'} />
+              {focused && (
+                <Text
+                  style={{
+                    color: 'black',
+                    marginLeft: 8,
+                    fontSize: 13,
+                    fontWeight: '600',
+                  }}
+                >
+                  Dashboard
+                </Text>
+              )}
             </View>
           ),
           tabBarButton: (props) => <Pressable {...(props as any)} />,
         }}
       />
       <Tabs.Screen
-        name="dashboard"
+        name="bookings"
         options={{
-          title: 'Dashboard',
+          title: 'Bookings',
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
+                flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 100,
-                backgroundColor: focused ? '#1D2DD9' : 'transparent',
-                height: 52,
-                width: 52,
+                backgroundColor: focused ? 'white' : 'transparent',
+                height: 46,
+                // marginLeft: focused ? 20 : 0,
+                width: focused ? 110 : 52,
               }}>
-              <FontAwesome name="bar-chart" size={24} color={focused ? '#FFFFFF' : color} />
+              <FontAwesome name="list-alt" size={20} color={focused ? 'black' : 'white'} />
+              {focused && (
+                <Text
+                  style={{
+                    color: 'black',
+                    marginLeft: 8,
+                    fontSize: 13,
+                    fontWeight: '600',
+                  }}
+                >
+                  Bookings
+                </Text>
+              )}
             </View>
           ),
           tabBarButton: (props) => <Pressable {...(props as any)} />,
@@ -179,14 +209,27 @@ export default function DriverTabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
+                flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 100,
-                backgroundColor: focused ? '#1D2DD9' : 'transparent',
-                height: 52,
-                width: 52,
+                backgroundColor: focused ? 'white' : 'transparent',
+                height: 46,
+                width: focused ? 110 : 52,
               }}>
-              <FontAwesome name="car" size={24} color={focused ? '#FFFFFF' : color} />
+              <FontAwesome name="car" size={20} color={focused ? 'black' : 'white'} />
+              {focused && (
+                <Text
+                  style={{
+                    color: 'black',
+                    marginLeft: 8,
+                    fontSize: 13,
+                    fontWeight: '600',
+                  }}
+                >
+                  Vehicles
+                </Text>
+              )}
             </View>
           ),
           tabBarButton: (props) => <Pressable {...(props as any)} />,
@@ -199,14 +242,27 @@ export default function DriverTabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
+                flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 100,
-                backgroundColor: focused ? '#1D2DD9' : 'transparent',
-                height: 52,
-                width: 52,
+                backgroundColor: focused ? 'white' : 'transparent',
+                height: 46,
+                width: focused ? 90 : 52,
               }}>
-              <FontAwesome name="user" size={24} color={focused ? '#FFFFFF' : color} />
+              <FontAwesome name="user" size={20} color={focused ? 'black' : 'white'} />
+              {focused && (
+                <Text
+                  style={{
+                    color: 'black',
+                    marginLeft: 8,
+                    fontSize: 13,
+                    fontWeight: '600',
+                  }}
+                >
+                  Driver
+                </Text>
+              )}
             </View>
           ),
           tabBarButton: (props) => <Pressable {...(props as any)} />,

@@ -1,31 +1,38 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { AppState, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AppState, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import RBSheet from 'react-native-raw-bottom-sheet';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PUBLIC_API_BASE_URL, apiGet, ensureUserSession } from '@/lib/api';
-const ARMOUR_TYPES = ['B4', 'B5', 'B6', 'B7'] as const;
+import { VehicleCard } from '@/components/VehicleCard';
 
 type VehicleCard = {
   id: string;
   imageUrls: string[];
+  driverName?: string | null;
   manufacturer: string | null;
   generation: string | null;
   carModel: string | null;
-  type: string;
+  armourLevel: string;
+  vehicleType: string;
   rating: number;
   baseRatePerHour: number;
   location: string;
 };
 
 export default function Home() {
+  const filterSheetRef = useRef<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>('');
   const [search, setSearch] = useState('');
   const [selectedArmours, setSelectedArmours] = useState<string[]>([]);
-  const [filterOpen, setFilterOpen] = useState(false);
   const [city, setCity] = useState('');
-  const [carType, setCarType] = useState('');
+  const [selectedCarTypes, setSelectedCarTypes] = useState<string[]>(['ALL']);
+  const [armourTypes, setArmourTypes] = useState<string[]>([]);
+  const [vehicleTypeOptions, setVehicleTypeOptions] = useState<string[]>(['ALL']);
+  const [carTypePickerOpen, setCarTypePickerOpen] = useState(false);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [vehicles, setVehicles] = useState<VehicleCard[]>([]);
@@ -39,11 +46,56 @@ export default function Home() {
         const s = await ensureUserSession();
         if (cancelled) return;
         setUserId(s.userId);
+        const sessionName = (s.name ?? '').trim();
+        if (sessionName.length > 0 && sessionName.toLowerCase() !== 'user') {
+          setUserName(sessionName);
+          return;
+        }
+        const me = await apiGet<{ name?: string }>(`/users/me`, s.userId);
+        if (cancelled) return;
+        const profileName = (me?.name ?? '').trim();
+        if (profileName.length > 0) setUserName(profileName);
       } catch {
         router.replace('/login' as any);
       }
     }
     void loadSession();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadOptions() {
+      try {
+        const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/options`);
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          armourLevels?: { code: string; label: string }[];
+          vehicleTypes?: { code: string; label: string }[];
+        };
+        if (cancelled) return;
+        const nextArmours = Array.isArray(data.armourLevels) ? data.armourLevels.map((x) => x.code) : [];
+        const nextVehicleTypes = Array.isArray(data.vehicleTypes) ? data.vehicleTypes.map((x) => x.code) : [];
+        if (nextArmours.length > 0) {
+          setArmourTypes(nextArmours);
+          setSelectedArmours((prev) => prev.filter((x) => nextArmours.includes(x)));
+        }
+        if (nextVehicleTypes.length > 0) {
+          const allTypes = ['ALL', ...nextVehicleTypes];
+          setVehicleTypeOptions(allTypes);
+          setSelectedCarTypes((prev) => {
+            if (prev.includes('ALL')) return ['ALL'];
+            const filtered = prev.filter((x) => allTypes.includes(x));
+            return filtered.length > 0 ? filtered : ['ALL'];
+          });
+        }
+      } catch {
+        // fallback options already available
+      }
+    }
+    void loadOptions();
     return () => {
       cancelled = true;
     };
@@ -57,15 +109,28 @@ export default function Home() {
         const q = new URLSearchParams();
         if (selectedArmours.length > 0) q.set('types', selectedArmours.join(','));
         if (city.trim().length > 0) q.set('city', city.trim());
-        if (carType.trim().length > 0) q.set('carType', carType.trim());
+        if (!selectedCarTypes.includes('ALL')) q.set('carType', selectedCarTypes.join(','));
         if (minPrice.trim().length > 0) q.set('minPrice', minPrice.trim());
         if (maxPrice.trim().length > 0) q.set('maxPrice', maxPrice.trim());
         const suffix = q.toString() ? `?${q.toString()}` : '';
         const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/available${suffix}`);
         if (!res.ok) return;
-        const data = (await res.json()) as { vehicles?: VehicleCard[] };
+        const data = (await res.json()) as {
+          vehicles?: Array<
+            VehicleCard & {
+              owner?: { name?: string } | null;
+            }
+          >;
+        };
         if (cancelled) return;
-        setVehicles(Array.isArray(data.vehicles) ? data.vehicles : []);
+        setVehicles(
+          Array.isArray(data.vehicles)
+            ? data.vehicles.map((v) => ({
+                ...v,
+                driverName: v.driverName ?? v.owner?.name ?? 'Driver',
+              }))
+            : [],
+        );
       } catch {
         if (!cancelled) setVehicles([]);
       } finally {
@@ -76,7 +141,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [selectedArmours, city, carType, minPrice, maxPrice]);
+  }, [selectedArmours, city, selectedCarTypes, minPrice, maxPrice]);
 
   useEffect(() => {
     let cancelled = false;
@@ -96,7 +161,7 @@ export default function Home() {
           pickupLocation: String(b.pickupLocation ?? ''),
           dropLocation: String(b.dropLocation ?? ''),
           driverName: String(b.driver?.name ?? '—'),
-          vehicleType: String(b.vehicle?.type ?? '—'),
+          vehicleType: String(b.vehicle?.armourLevel ?? '—'),
         });
       } catch {
         // ignore
@@ -117,8 +182,9 @@ export default function Home() {
   const filteredVehicles = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return vehicles;
-    return vehicles
-      .filter((v) => `${v.manufacturer ?? ''} ${v.generation ?? ''} ${v.carModel ?? ''} ${v.location}`.toLowerCase().includes(q));
+    return vehicles.filter((v) =>
+      `${v.manufacturer ?? ''} ${v.generation ?? ''} ${v.carModel ?? ''} ${v.location}`.toLowerCase().includes(q),
+    );
   }, [vehicles, search]);
 
   function toggleArmour(type: string) {
@@ -126,7 +192,24 @@ export default function Home() {
   }
 
   function applyFilters() {
-    setFilterOpen(false);
+    filterSheetRef.current?.close();
+  }
+
+  function toggleCarType(type: string) {
+    setSelectedCarTypes((prev) => {
+      if (type === 'ALL') return ['ALL'];
+      const withoutAll = prev.filter((x) => x !== 'ALL');
+      const next = withoutAll.includes(type) ? withoutAll.filter((x) => x !== type) : [...withoutAll, type];
+      return next.length === 0 ? ['ALL'] : next;
+    });
+  }
+
+  function handleMinPriceChange(next: string) {
+    if (/^\d*$/.test(next)) setMinPrice(next);
+  }
+
+  function handleMaxPriceChange(next: string) {
+    if (/^\d*$/.test(next)) setMaxPrice(next);
   }
 
   return (
@@ -134,8 +217,8 @@ export default function Home() {
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
         <View className="flex-row items-center justify-between">
           <View>
-            <Text className="text-[11px] font-semibold text-gray-500">Location</Text>
-            <Text className="text-sm font-extrabold text-gray-900">{city.trim() || 'Colomadu, Surakarta'}</Text>
+            <Text className="text-[16px] font-semibold text-gray-500">Welcome!</Text>
+            <Text className="text-md font-extrabold text-gray-900">{userName || city.trim() || 'User'}</Text>
           </View>
           <View className="flex-row items-center gap-2">
             <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
@@ -156,7 +239,7 @@ export default function Home() {
               className="ml-2 flex-1 text-sm font-semibold text-gray-900"
             />
           </View>
-          <Pressable onPress={() => setFilterOpen(true)} className="ml-3 h-11 w-11 items-center justify-center rounded-2xl bg-[#111827]">
+          <Pressable onPress={() => filterSheetRef.current?.open()} className="ml-3 h-11 w-11 items-center justify-center rounded-2xl bg-[#111827]">
             <FontAwesome name="sliders" size={14} color="#FFFFFF" />
           </Pressable>
         </View>
@@ -164,28 +247,29 @@ export default function Home() {
         {ongoingTrip ? (
           <Pressable
             onPress={() => router.push({ pathname: '/ongoing-trip' as any, params: { bookingId: ongoingTrip.id } })}
-            className="mt-4 rounded-2xl bg-white px-4 py-3">
-            <Text className="text-xs font-extrabold text-gray-900">Ongoing trip</Text>
-            <Text className="mt-1 text-[11px] font-semibold text-gray-600">
+            className="mt-4 rounded-2xl bg-white px-4 py-3 border-2 border-green-500">
+            <Text className="text-sm font-extrabold text-green-600">Ongoing trip</Text>
+            <Text className="mt-1 text-[12px] font-semibold text-gray-600">
               {ongoingTrip.pickupLocation}
               {' -> '}
               {ongoingTrip.dropLocation}
             </Text>
-            <Text className="mt-1 text-[11px] font-semibold text-gray-500">
+            <Text className="text-[12px] font-semibold text-gray-500">
               {ongoingTrip.driverName} • {ongoingTrip.vehicleType}
             </Text>
           </Pressable>
         ) : null}
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4">
-          {ARMOUR_TYPES.map((type) => {
+        <Text className="text-lg font-extrabold text-gray-900 mt-2">Armour levels</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
+          {armourTypes.map((type) => {
             const active = selectedArmours.includes(type);
             return (
               <Pressable
                 key={type}
                 onPress={() => toggleArmour(type)}
-                className={`mr-2 rounded-full px-4 py-2 ${active ? 'bg-[#111827]' : 'bg-white'}`}>
-                <Text className={`text-xs font-extrabold ${active ? 'text-white' : 'text-gray-700'}`}>{type}</Text>
+                className={`h-[70px] w-[40%] border border-gray-600 justify-center rounded-2xl mr-2 px-4 py-2 ${active ? 'bg-[#111827]' : 'bg-white'}`}>
+                <Text className={`text-md font-extrabold text-center ${active ? 'text-white' : 'text-gray-700'}`}>{type}</Text>
               </Pressable>
             );
           })}
@@ -210,53 +294,64 @@ export default function Home() {
 
         <View className="mt-4 flex-row flex-wrap justify-between">
           {filteredVehicles.map((v) => (
-            <Pressable
+            <VehicleCard
               key={v.id}
+              vehicle={v}
               onPress={() => router.push({ pathname: '/car-details' as any, params: { vehicleId: v.id } })}
-              className="mb-3 w-[48.5%] rounded-2xl bg-white p-2.5">
-              <Image
-                source={{ uri: v.imageUrls?.[0] || 'https://images.pexels.com/photos/358070/pexels-photo-358070.jpeg' }}
-                style={{ width: '100%', height: 84, borderRadius: 12 }}
-                resizeMode="cover"
-              />
-              <View className="mt-2">
-                <Text className="text-[11px] font-extrabold text-gray-900" numberOfLines={1}>
-                  {`${v.manufacturer ?? 'Armoured'} ${v.carModel ?? 'Vehicle'}`.trim()}
-                </Text>
-                <Text className="mt-0.5 text-[9px] font-semibold text-gray-500" numberOfLines={1}>
-                  {v.location}
-                </Text>
-              </View>
-              <View className="mt-2 flex-row items-center justify-between">
-                <Text className="text-[9px] font-extrabold text-amber-500">★ {v.rating.toFixed(1)}</Text>
-                <Text className="text-[9px] font-extrabold text-gray-700">{v.type}</Text>
-              </View>
-              <Text className="mt-1 text-[10px] font-extrabold text-[#1D2DD9]">${v.baseRatePerHour}/hr</Text>
-            </Pressable>
+            />
           ))}
         </View>
       </ScrollView>
 
-      <Modal transparent visible={filterOpen} animationType="slide" onRequestClose={() => setFilterOpen(false)}>
-        <Pressable className="flex-1 bg-black/40 px-5 pt-20" onPress={() => setFilterOpen(false)}>
-          <Pressable className="rounded-3xl bg-white p-4">
-            <Text className="text-base font-extrabold text-gray-900">Filters</Text>
-            <Field label="City" value={city} onChangeText={setCity} placeholder="Karachi" />
-            <Field label="Car type" value={carType} onChangeText={setCarType} placeholder="SUV, Sedan..." />
-            <View className="mt-3 flex-row gap-3">
-              <View className="flex-1">
-                <Field label="Min price/hr" value={minPrice} onChangeText={setMinPrice} placeholder="100" keyboardType="number-pad" />
-              </View>
-              <View className="flex-1">
-                <Field label="Max price/hr" value={maxPrice} onChangeText={setMaxPrice} placeholder="500" keyboardType="number-pad" />
-              </View>
-            </View>
-            <Pressable onPress={applyFilters} className="mt-4 items-center justify-center rounded-2xl bg-[#111827] py-3">
-              <Text className="text-xs font-extrabold text-white">Apply filters</Text>
+      <RBSheet
+        ref={filterSheetRef}
+        closeOnPressMask
+        draggable
+        dragOnContent={false}
+        height={460}
+        customStyles={{
+          wrapper: { backgroundColor: 'rgba(0,0,0,0.4)' },
+          draggableIcon: { backgroundColor: '#D1D5DB' },
+          container: { borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 16, paddingBottom: 16 },
+        }}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <Text className="text-base font-extrabold text-gray-900">Filters</Text>
+          <Field label="City" value={city} onChangeText={setCity} placeholder="Karachi" />
+          <View className="mt-3 rounded-2xl bg-gray-50 px-4 py-3">
+            <Text className="text-[10px] font-bold text-gray-400">Car type</Text>
+            <Pressable onPress={() => setCarTypePickerOpen((prev) => !prev)} className="mt-2 flex-row items-center justify-between rounded-xl bg-white px-3 py-2.5">
+              <Text className="text-sm font-extrabold text-gray-900">
+                {selectedCarTypes.includes('ALL') ? 'ALL' : selectedCarTypes.join(', ')}
+              </Text>
+              <FontAwesome name={carTypePickerOpen ? 'angle-up' : 'angle-down'} size={16} color="#6B7280" />
             </Pressable>
+            {carTypePickerOpen ? (
+              <View className="mt-2 rounded-xl bg-white p-1">
+                {vehicleTypeOptions.map((type) => (
+                  <Pressable
+                    key={type}
+                    onPress={() => toggleCarType(type)}
+                    className="rounded-lg px-3 py-2 flex-row items-center justify-between">
+                    <Text className="text-sm font-bold text-gray-800">{type}</Text>
+                    {selectedCarTypes.includes(type) ? <FontAwesome name="check" size={14} color="#16A34A" /> : <View />}
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+          </View>
+          <View className="mt-3 flex-row gap-3">
+            <View className="flex-1">
+              <Field label="Min price/hr" value={minPrice} onChangeText={handleMinPriceChange} placeholder="100" keyboardType="number-pad" />
+            </View>
+            <View className="flex-1">
+              <Field label="Max price/hr" value={maxPrice} onChangeText={handleMaxPriceChange} placeholder="500" keyboardType="number-pad" />
+            </View>
+          </View>
+          <Pressable onPress={applyFilters} className="mt-4 items-center justify-center rounded-2xl bg-[#111827] py-3">
+            <Text className="text-xs font-extrabold text-white">Apply filters</Text>
           </Pressable>
-        </Pressable>
-      </Modal>
+        </ScrollView>
+      </RBSheet>
     </SafeAreaView>
   );
 }

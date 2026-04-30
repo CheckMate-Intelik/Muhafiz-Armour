@@ -11,7 +11,8 @@ type VehicleTab = 'Approved' | 'Pending';
 
 type Vehicle = {
   id: string;
-  type: string;
+  armourLevel: string;
+  vehicleType: string;
   carModel?: string | null;
   make?: string | null;
   year?: number | null;
@@ -112,7 +113,7 @@ export default function VehiclesScreen() {
             <View className="flex-row items-start justify-between">
               <View className="flex-1">
                 <Text className="text-xs font-bold text-gray-400">Armour level</Text>
-                <Text className="mt-1 text-base font-extrabold text-gray-900">{v.type}</Text>
+                <Text className="mt-1 text-base font-extrabold text-gray-900">{v.armourLevel} ({v.vehicleType})</Text>
                 <Text className="mt-1 text-xs font-semibold text-gray-600">
                   {v.make ?? '—'} {v.carModel ?? '—'} {v.year ? `(${v.year})` : ''}
                 </Text>

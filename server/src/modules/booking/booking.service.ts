@@ -89,7 +89,8 @@ export class BookingService {
     return options.map((v: (typeof options)[number]) => ({
       vehicleId: v.id,
       driverId: v.driverId,
-      type: v.type,
+      armourLevel: v.armourLevel,
+      vehicleType: v.vehicleType,
       baseRatePerHour: v.baseRatePerHour,
       location: v.location,
       driverName: v.driver.name,

@@ -25,6 +25,7 @@ export default function RootLayout() {
         <Stack.Screen name="driver-ongoing-trip" options={{ headerShown: false }} />
         <Stack.Screen name="register-vehicle" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="booking-details" options={{ headerShown: false }} />
       </Stack>
     </SafeAreaProvider>
   );

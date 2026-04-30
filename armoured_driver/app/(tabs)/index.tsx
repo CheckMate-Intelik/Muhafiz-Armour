@@ -17,7 +17,7 @@ type Booking = {
   endTime: string;
   totalPrice: number | null;
   user?: { name: string } | null;
-  vehicle?: { type: string; baseRatePerHour: number; location: string } | null;
+  vehicle?: { armourLevel: string; vehicleType: string; baseRatePerHour: number; location: string } | null;
 };
 
 export default function BookingsScreen() {
@@ -140,7 +140,7 @@ export default function BookingsScreen() {
                   {ongoingCardBooking.pickupLocation} <Text className="text-gray-400">→</Text> {ongoingCardBooking.dropLocation}
                 </Text>
                 <Text className="mt-1 text-xs font-semibold text-gray-500">
-                  {ongoingCardBooking.user?.name ?? '—'} • {ongoingCardBooking.vehicle?.type ?? '—'}
+                  {ongoingCardBooking.user?.name ?? '—'} • {ongoingCardBooking.vehicle?.armourLevel ?? '—'}
                 </Text>
               </View>
               <View className="rounded-full bg-gray-100 px-3 py-1">
@@ -185,7 +185,7 @@ export default function BookingsScreen() {
         {list.map((b) => {
           const isBusy = busyId === b.id;
           const customerName = b.user?.name ?? '—';
-          const vehicleType = b.vehicle?.type ?? '—';
+          const vehicleType = b.vehicle?.armourLevel ?? '—';
           const payout = b.totalPrice ?? 0;
 
           return (

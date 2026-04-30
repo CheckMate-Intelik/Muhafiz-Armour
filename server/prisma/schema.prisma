@@ -17,11 +17,18 @@ enum BookingStatus {
   EXPIRED
 }
 
-enum VehicleType {
+enum ArmourLevel {
   B4
   B5
   B6
   B7
+}
+
+enum VehicleType {
+  SEDAN
+  SUV
+  PICKUP
+  VAN
 }
 
 model User {
@@ -78,7 +85,8 @@ model Vehicle {
   id              String      @id @default(uuid()) @db.Uuid
   driverId        String      @db.Uuid
   driver          Driver      @relation(fields: [driverId], references: [id], onDelete: Cascade)
-  type            VehicleType
+  armourLevel     ArmourLevel
+  vehicleType     VehicleType
   carModel        String?
   manufacturer    String?
   generation      String?
@@ -95,5 +103,23 @@ model Vehicle {
   bookings Booking[]
 
   @@index([driverId])
+}
+
+model ArmourLevelOption {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  label     String
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model VehicleTypeOption {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  label     String
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 }
 

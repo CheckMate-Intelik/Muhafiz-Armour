@@ -19,7 +19,7 @@ type Booking = {
   endTime: string;
   totalPrice: number | null;
   user?: { name: string } | null;
-  vehicle?: { type: string; baseRatePerHour: number; location: string } | null;
+  vehicle?: { armourLevel: string; vehicleType: string; baseRatePerHour: number; location: string } | null;
 };
 
 export default function OngoingTripScreen() {
@@ -175,7 +175,7 @@ export default function OngoingTripScreen() {
   }
 
   const customerName = booking.user?.name ?? '—';
-  const vehicleType = booking.vehicle?.type ?? '—';
+  const vehicleType = booking.vehicle?.armourLevel ?? '—';
 
   return (
     <SafeAreaView className="flex-1 bg-white">

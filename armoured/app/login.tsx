@@ -44,15 +44,15 @@ export default function LoginScreen() {
             className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
             <FontAwesome name="arrow-left" size={16} color="#111827" />
           </Pressable>
-          <Text className="text-base font-extrabold text-gray-900">Login</Text>
+          <Text className="text-lg font-extrabold text-gray-900">Login</Text>
           <View className="h-10 w-10" />
         </View>
       </View>
 
       <View className="px-5 pt-6">
         <View className="rounded-3xl bg-white p-4" style={cardShadow}>
-          <Text className="text-sm font-extrabold text-gray-900">Welcome back</Text>
-          <Text className="mt-1 text-xs font-semibold text-gray-500">Login as {role === 'USER' ? 'user' : 'driver'}</Text>
+          <Text className="text-md font-extrabold text-gray-900">Welcome back</Text>
+          <Text className="mt-1 text-sm font-semibold text-gray-500">Login as {role === 'USER' ? 'user' : 'driver'}</Text>
 
           <View className="mt-4 flex-row rounded-2xl bg-gray-100 p-1">
             {(['USER', 'DRIVER'] as const).map((r) => {
@@ -62,7 +62,7 @@ export default function LoginScreen() {
                   key={r}
                   onPress={() => setRole(r)}
                   className={`flex-1 items-center justify-center rounded-2xl py-3 ${active ? 'bg-[#1D2DD9]' : ''}`}>
-                  <Text className={`text-xs font-extrabold ${active ? 'text-white' : 'text-gray-500'}`}>
+                  <Text className={`text-sm font-extrabold ${active ? 'text-white' : 'text-gray-500'}`}>
                     {r === 'USER' ? 'User' : 'Driver'}
                   </Text>
                 </Pressable>
@@ -80,13 +80,13 @@ export default function LoginScreen() {
             className={`mt-4 items-center justify-center rounded-2xl py-3 ${
               canSubmit && !submitting ? 'bg-[#1D2DD9]' : 'bg-gray-200'
             }`}>
-            <Text className={`text-xs font-extrabold ${canSubmit && !submitting ? 'text-white' : 'text-gray-500'}`}>
+            <Text className={`text-sm font-extrabold ${canSubmit && !submitting ? 'text-white' : 'text-gray-500'}`}>
               {submitting ? 'Logging in…' : 'Login'}
             </Text>
           </Pressable>
 
           <Pressable onPress={() => router.replace('/signup' as any)} className="mt-4 items-center">
-            <Text className="text-xs font-bold text-gray-500">
+            <Text className="text-sm font-bold text-gray-500">
               Don’t have an account? <Text className="text-[#1D2DD9]">Sign up</Text>
             </Text>
           </Pressable>
@@ -115,7 +115,7 @@ function Field({
 }) {
   return (
     <View className="mb-3 rounded-2xl bg-gray-50 px-4 py-3">
-      <Text className="text-[10px] font-bold text-gray-400">{label}</Text>
+      <Text className="text-[14px] font-bold text-gray-400">{label}</Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -124,7 +124,7 @@ function Field({
         keyboardType={keyboardType}
         secureTextEntry={secureTextEntry}
         autoCapitalize={autoCapitalize ?? 'none'}
-        className="mt-1 text-sm font-extrabold text-gray-900"
+        className="mt-1 text-md font-extrabold text-gray-900"
       />
     </View>
   );

@@ -9,7 +9,8 @@ import { apiGet, apiPost, ensureUserSession } from '@/lib/api';
 type Option = {
   vehicleId: string;
   driverId: string;
-  type: string;
+  armourLevel: string;
+  vehicleType: string;
   baseRatePerHour: number;
   location: string;
   driverName: string;
@@ -50,7 +51,7 @@ export default function SelectVehicleScreen() {
 
   const visibleOptions = useMemo(() => {
     if (!selectedType) return options;
-    return options.filter((o) => o.type === selectedType);
+    return options.filter((o) => o.armourLevel === selectedType);
   }, [options, selectedType]);
   const visibleEmptyState = useMemo(() => !loading && visibleOptions.length === 0, [loading, visibleOptions.length]);
 
@@ -117,7 +118,10 @@ export default function SelectVehicleScreen() {
                 <Text className="mt-1 text-base font-extrabold text-gray-900">{o.driverName}</Text>
                 <View className="mt-2 flex-row items-center gap-2">
                   <View className="rounded-full bg-gray-100 px-3 py-1">
-                    <Text className="text-[10px] font-extrabold text-gray-800">{o.type}</Text>
+                    <Text className="text-[10px] font-extrabold text-gray-800">{o.armourLevel}</Text>
+                  </View>
+                  <View className="rounded-full bg-gray-100 px-3 py-1">
+                    <Text className="text-[10px] font-extrabold text-gray-800">{o.vehicleType}</Text>
                   </View>
                   <View className="rounded-full bg-gray-100 px-3 py-1">
                     <Text className="text-[10px] font-extrabold text-gray-800">{o.location}</Text>

@@ -19,7 +19,7 @@ type Booking = {
   status: string;
   totalPrice: number | null;
   driver?: { name: string } | null;
-  vehicle?: { type: string } | null;
+  vehicle?: { armourLevel: string; vehicleType: string } | null;
 };
 
 export default function OngoingTripScreen() {
@@ -158,7 +158,7 @@ export default function OngoingTripScreen() {
   }
 
   const driverName = booking.driver?.name ?? '—';
-  const vehicleType = booking.vehicle?.type ?? '—';
+  const vehicleType = booking.vehicle?.armourLevel ?? '—';
 
   return (
     <SafeAreaView className="flex-1 bg-white">

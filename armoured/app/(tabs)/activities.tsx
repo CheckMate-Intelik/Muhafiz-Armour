@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BookingSummaryCard } from '@/components/BookingSummaryCard';
 import { apiGet, ensureUserSession } from '@/lib/api';
 
 type RideStatus = 'Schedule' | 'Recent' | 'Completed' | 'Canceled';
@@ -17,6 +18,7 @@ type Booking = {
   status: string;
   totalPrice: number | null;
   driver?: { name: string } | null;
+  vehicle?: { armourLevel: string; vehicleType: string; manufacturer?: string | null; carModel?: string | null } | null;
 };
 
 function normalizeStatus(status: string | null | undefined) {
@@ -83,7 +85,7 @@ export default function ActivitiesScreen() {
               <Pressable
                 key={s}
                 onPress={() => setStatus(s)}
-                className={`flex-1 items-center justify-center rounded-2xl py-3 ${active ? 'bg-[#1D2DD9]' : ''}`}>
+                className={`flex-1 items-center justify-center rounded-2xl py-3 ${active ? 'bg-black' : ''}`}>
                 <Text
                   className={`text-xs font-extrabold ${active ? 'text-white' : 'text-gray-500'}`}>
                   {s === 'Schedule' ? 'Scheduled' : s}
@@ -114,66 +116,38 @@ export default function ActivitiesScreen() {
         ) : null}
 
         {rides.map((r) => (
-          <View key={r.id} className="mb-4 rounded-3xl bg-white p-4" style={cardShadow}>
-            <View className="flex-row items-start justify-between">
-              <View className="flex-1">
-                <View className="flex-row items-center gap-2">
-                  <View className="h-9 w-9 items-center justify-center rounded-2xl bg-gray-100">
-                    <FontAwesome name="location-arrow" size={16} color="#111827" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-[10px] font-bold text-gray-400">Pick up</Text>
-                    <Text className="text-sm font-extrabold text-gray-900">{r.pickupLocation}</Text>
-                  </View>
-                </View>
-
-                <View className="mt-4 flex-row items-center gap-2">
-                  <View className="h-9 w-9 items-center justify-center rounded-2xl bg-gray-100">
-                    <FontAwesome name="map-marker" size={16} color="#111827" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-[10px] font-bold text-gray-400">Destination</Text>
-                    <Text className="text-sm font-extrabold text-gray-900">{r.dropLocation}</Text>
-                  </View>
-                </View>
-              </View>
-
-              <Pressable className="ml-3 h-9 w-9 items-center justify-center rounded-2xl bg-gray-100">
-                <FontAwesome name="random" size={16} color="#111827" />
-              </Pressable>
-            </View>
-
-            <View className="mt-4 h-[1px] bg-gray-100" />
-
-            <View className="mt-4">
-              <Row label="Status" value={r.status} />
-              <Row label="Driver" value={r.driver?.name ?? '—'} />
-              <Row
-                label="Planned time"
-                value={`${new Date(r.startTime).toLocaleString()} → ${new Date(r.endTime).toLocaleString()}`}
-              />
-              <Row label="Price" value={r.totalPrice ? `$${r.totalPrice}` : '—'} />
-            </View>
-          </View>
+          (() => {
+            const vehicleName = `${r.vehicle?.manufacturer ?? ''} ${r.vehicle?.carModel ?? ''}`.trim();
+            return (
+          <BookingSummaryCard
+            key={r.id}
+            pickupLocation={r.pickupLocation}
+            dropLocation={r.dropLocation}
+            payout={r.totalPrice}
+            onPress={() =>
+              router.push({
+                pathname: '/booking-details' as any,
+                params: {
+                  id: r.id,
+                  pickupLocation: r.pickupLocation,
+                  dropLocation: r.dropLocation,
+                  status: r.status,
+                  startTime: r.startTime,
+                  endTime: r.endTime,
+                  totalPrice: r.totalPrice == null ? '' : String(r.totalPrice),
+                  driverName: r.driver?.name ?? '',
+                  customerName: '',
+                  vehicleArmour: r.vehicle?.armourLevel ?? '',
+                  vehicleType: r.vehicle?.vehicleType ?? '',
+                  vehicleName: vehicleName || '',
+                },
+              })
+            }
+          />
+            );
+          })()
         ))}
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="mb-3 flex-row items-center justify-between">
-      <Text className="text-xs font-bold text-gray-400">{label}</Text>
-      <Text className="text-xs font-extrabold text-gray-900">{value}</Text>
-    </View>
-  );
-}
-
-const cardShadow = {
-  shadowColor: '#000',
-  shadowOpacity: 0.06,
-  shadowRadius: 12,
-  shadowOffset: { width: 0, height: 8 },
-  elevation: 3,
-};

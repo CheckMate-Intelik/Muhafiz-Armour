@@ -1,10 +1,11 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
+import { Dimensions } from 'react-native';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { PUBLIC_API_BASE_URL } from '@/lib/api';
+import { PUBLIC_API_BASE_URL, driverGet, ensureDriverSession } from '@/lib/api';
 
 type VehicleDetails = {
   id: string;
@@ -16,7 +17,8 @@ type VehicleDetails = {
   color: string | null;
   numberPlate: string | null;
   registrationNumber: string | null;
-  type: string;
+  armourLevel: string;
+  vehicleType: string;
   location: string;
   baseRatePerHour: number;
   certification: string;
@@ -25,9 +27,12 @@ type VehicleDetails = {
   owner: { id: string; name: string; rating: number };
 };
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+
 export default function CarDetailsScreen() {
-  const params = useLocalSearchParams<{ vehicleId?: string }>();
+  const params = useLocalSearchParams<{ vehicleId?: string; readonly?: string }>();
   const vehicleId = params.vehicleId ?? '';
+  const isReadonly = params.readonly === '1';
   const [vehicle, setVehicle] = useState<VehicleDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -40,11 +45,17 @@ export default function CarDetailsScreen() {
         return;
       }
       try {
-        const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/${vehicleId}`);
-        if (!res.ok) return;
-        const data = (await res.json()) as { vehicle?: VehicleDetails | null };
+        let data: { vehicle?: VehicleDetails | null } | null = null;
+        if (isReadonly) {
+          const s = await ensureDriverSession();
+          data = await driverGet<{ vehicle?: VehicleDetails | null }>(`/driver/vehicles/${vehicleId}`, s.driverId);
+        } else {
+          const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/${vehicleId}`);
+          if (!res.ok) return;
+          data = (await res.json()) as { vehicle?: VehicleDetails | null };
+        }
         if (cancelled) return;
-        setVehicle(data.vehicle ?? null);
+        setVehicle(data?.vehicle ?? null);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -53,14 +64,14 @@ export default function CarDetailsScreen() {
     return () => {
       cancelled = true;
     };
-  }, [vehicleId]);
+  }, [vehicleId, isReadonly]);
 
   const title = useMemo(() => {
     if (!vehicle) return 'Vehicle details';
     return `${vehicle.manufacturer ?? 'Armoured'} ${vehicle.generation ?? ''} ${vehicle.carModel ?? 'Vehicle'}`.trim();
   }, [vehicle]);
   const images = vehicle?.imageUrls?.length ? vehicle.imageUrls : ['https://images.pexels.com/photos/358070/pexels-photo-358070.jpeg'];
-  const IMAGE_WIDTH = 300;
+  const IMAGE_WIDTH = SCREEN_WIDTH;
   const specificationCards = useMemo(() => {
     if (!vehicle) return [];
     return [
@@ -71,15 +82,24 @@ export default function CarDetailsScreen() {
   }, [vehicle]);
 
   function onGalleryScrollEnd(offsetX: number) {
-    const nextIndex = Math.max(0, Math.min(images.length - 1, Math.round(offsetX / (IMAGE_WIDTH + 10))));
+    const nextIndex = Math.max(0, Math.min(images.length - 1, Math.round(offsetX / IMAGE_WIDTH)));
     setActiveImageIndex(nextIndex);
   }
 
   return (
     <SafeAreaView className="flex-1 bg-[#F4F5F7]">
-      <ScrollView contentContainerStyle={{ paddingBottom: 130 }} className="pt-4">
+      <ScrollView contentContainerStyle={{ paddingBottom: 130 }}>
         
         {loading ? <Text className="mt-8 text-sm font-semibold text-gray-500">Loading...</Text> : null}
+
+        {!loading && !vehicle ? (
+          <View className="mt-8 items-center px-5">
+            <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-xl bg-white">
+              <FontAwesome name="angle-left" size={18} color="#111827" />
+            </Pressable>
+            <Text className="mt-4 text-sm font-semibold text-gray-600">Vehicle details are unavailable.</Text>
+          </View>
+        ) : null}
 
         {vehicle ? (
           <View className="mt-4 rounded-3xl bg-white pb-4">
@@ -94,16 +114,16 @@ export default function CarDetailsScreen() {
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
-                className="mt-6 px-4"
+                className="mt-6"
                 onMomentumScrollEnd={(e) => onGalleryScrollEnd(e.nativeEvent.contentOffset.x)}>
                 {images.map((img) => (
-                  <Image key={img} source={{ uri: img }} style={{ width: IMAGE_WIDTH, height: 180, borderRadius: 16, marginRight: 10 }} />
+                  <Image key={img} source={{ uri: img }} style={{ width: IMAGE_WIDTH, height: 220 }} resizeMode="cover" />
                 ))}
               </ScrollView>
               <View className="mt-3 flex-row items-center justify-center">
                 {images.map((img, index) => {
                   const active = index === activeImageIndex;
-                  return <View key={`${img}-${index}`} className={`mx-1 h-3 w-3 rounded-full ${active ? 'bg-black' : 'bg-gray-500'}`} />;
+                  return <View key={`${img}-${index}`} className={`mx-1 h-2 w-2 rounded-full ${active ? 'bg-black' : 'bg-gray-500'}`} />;
                 })}
               </View>
 
@@ -130,14 +150,17 @@ export default function CarDetailsScreen() {
 
                   <View className="flex-row mt-4">
                     <View className="flex-1 pr-2">
-                      <Row label="Armour level" value={vehicle.type} />
+                      <Row label="Armour level" value={vehicle.armourLevel} />
                     </View>
                     <View className="flex-1 px-2">
-                      <Row label="Number plate" value={vehicle.numberPlate ?? '—'} />
+                      <Row label="Vehicle type" value={vehicle.vehicleType} />
                     </View>
                     <View className="flex-1 pl-2">
-                      <Row label="Registration" value={vehicle.registrationNumber ?? '—'} />
+                      <Row label="Number plate" value={vehicle.numberPlate ?? '—'} />
                     </View>
+                  </View>
+                  <View className="mt-4">
+                    <Row label="Registration" value={vehicle.registrationNumber ?? '—'} />
                   </View>
                 </View>
               </View>
@@ -167,10 +190,10 @@ export default function CarDetailsScreen() {
 
             <View className="mt-5 flex-row items-center justify-between rounded-2xl bg-gray-50 px-4 mx-4 py-3">
               <View>
-                <Text className="text-[10px] font-bold text-gray-400">Owner</Text>
-                <Text className="text-sm font-extrabold text-gray-900">{vehicle.owner.name}</Text>
+                <Text className="text-[12px] font-bold text-gray-400">Owner</Text>
+                <Text className="text-[14px] font-extrabold text-gray-900">{vehicle.owner.name}</Text>
               </View>
-              <Text className="text-xs font-extrabold text-amber-500">★ {vehicle.owner.rating.toFixed(1)}</Text>
+              <Text className="text-sm font-extrabold text-amber-500">★ {vehicle.owner.rating.toFixed(1)}</Text>
             </View>
 
           </View>
@@ -192,14 +215,16 @@ export default function CarDetailsScreen() {
             elevation: 10,
           }}>
           <View>
-            <Text className="text-[10px] font-bold text-gray-400">Price details</Text>
+            <Text className="text-[12px] font-bold text-gray-400">Price details</Text>
             <Text className="text-xl font-extrabold text-gray-900">${vehicle.baseRatePerHour}/hr</Text>
           </View>
-          <Pressable
-            onPress={() => router.push({ pathname: '/book-vehicle' as any, params: { vehicleId: vehicle.id } })}
-            className="rounded-2xl bg-[#111827] px-6 py-3">
-            <Text className="text-sm font-extrabold text-white">Book Now</Text>
-          </Pressable>
+          {!isReadonly ? (
+            <Pressable
+              onPress={() => router.push({ pathname: '/book-vehicle' as any, params: { vehicleId: vehicle.id } })}
+              className="rounded-2xl bg-[#111827] px-6 py-3">
+              <Text className="text-sm font-extrabold text-white">Book Now</Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
     </SafeAreaView>

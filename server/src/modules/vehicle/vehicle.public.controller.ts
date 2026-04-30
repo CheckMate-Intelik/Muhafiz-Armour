@@ -7,16 +7,36 @@ export class VehiclePublicController {
 
   @Get('types')
   async listVehicleTypes() {
-    const rows = await this.prisma.vehicle.findMany({
-      where: { isApproved: true },
-      select: { type: true },
-      distinct: ['type'],
+    const rows = await this.prisma.armourLevelOption.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { code: 'asc' }],
+      select: { code: true },
     });
 
-    const types = rows.map((r) => r.type).sort();
+    const types = rows.map((r: (typeof rows)[number]) => r.code);
 
     return {
-      types: types.length > 0 ? types : (['B4', 'B5', 'B6', 'B7'] as const),
+      types,
+    };
+  }
+
+  @Get('options')
+  async listVehicleOptions() {
+    const [armourLevels, vehicleTypes] = await this.prisma.$transaction([
+      this.prisma.armourLevelOption.findMany({
+        where: { isActive: true },
+        orderBy: [{ sortOrder: 'asc' }, { code: 'asc' }],
+        select: { code: true, label: true },
+      }),
+      this.prisma.vehicleTypeOption.findMany({
+        where: { isActive: true },
+        orderBy: [{ sortOrder: 'asc' }, { code: 'asc' }],
+        select: { code: true, label: true },
+      }),
+    ]);
+    return {
+      armourLevels,
+      vehicleTypes,
     };
   }
 
@@ -28,10 +48,21 @@ export class VehiclePublicController {
     @Query('minPrice') minPrice?: string,
     @Query('maxPrice') maxPrice?: string,
   ) {
+    const [armourLevels, vehicleTypesRows] = await this.prisma.$transaction([
+      this.prisma.armourLevelOption.findMany({ where: { isActive: true }, select: { code: true } }),
+      this.prisma.vehicleTypeOption.findMany({ where: { isActive: true }, select: { code: true } }),
+    ]);
+    const validArmourLevels = new Set(armourLevels.map((x: (typeof armourLevels)[number]) => x.code));
+    const validVehicleTypes = new Set(vehicleTypesRows.map((x: (typeof vehicleTypesRows)[number]) => x.code));
+
     const types = (typesParam ?? '')
       .split(',')
       .map((t) => t.trim())
-      .filter((t) => ['B4', 'B5', 'B6', 'B7'].includes(t));
+      .filter((t) => validArmourLevels.has(t));
+    const vehicleTypes = (carType ?? '')
+      .split(',')
+      .map((t) => t.trim().toUpperCase())
+      .filter((t) => validVehicleTypes.has(t));
 
     const min = Number(minPrice);
     const max = Number(maxPrice);
@@ -41,17 +72,9 @@ export class VehiclePublicController {
     const rows = await this.prisma.vehicle.findMany({
       where: {
         isApproved: true,
-        ...(types.length > 0 ? { type: { in: types as any } } : {}),
+        ...(types.length > 0 ? { armourLevel: { in: types as any } } : {}),
         ...(city && city.trim().length > 0 ? { location: { contains: city.trim(), mode: 'insensitive' } } : {}),
-        ...(carType && carType.trim().length > 0
-          ? {
-              OR: [
-                { manufacturer: { contains: carType.trim(), mode: 'insensitive' } },
-                { generation: { contains: carType.trim(), mode: 'insensitive' } },
-                { carModel: { contains: carType.trim(), mode: 'insensitive' } },
-              ],
-            }
-          : {}),
+        ...(vehicleTypes.length > 0 ? { vehicleType: { in: vehicleTypes as any } } : {}),
         ...(hasMin || hasMax
           ? {
               baseRatePerHour: {
@@ -70,7 +93,7 @@ export class VehiclePublicController {
     });
 
     return {
-      vehicles: rows.map((v) => ({
+      vehicles: rows.map((v: (typeof rows)[number]) => ({
         id: v.id,
         imageUrls: Array.isArray(v.imageUrls) ? v.imageUrls : [],
         manufacturer: v.manufacturer,
@@ -80,7 +103,8 @@ export class VehiclePublicController {
         color: v.color,
         numberPlate: v.numberPlate,
         registrationNumber: v.registrationNumber,
-        type: v.type,
+        armourLevel: v.armourLevel,
+        vehicleType: v.vehicleType,
         location: v.location,
         baseRatePerHour: v.baseRatePerHour,
         rating: 4.8,
@@ -124,12 +148,13 @@ export class VehiclePublicController {
         color: v.color,
         numberPlate: v.numberPlate,
         registrationNumber: v.registrationNumber,
-        type: v.type,
+        armourLevel: v.armourLevel,
+        vehicleType: v.vehicleType,
         location: v.location,
         baseRatePerHour: v.baseRatePerHour,
-        certification: v.registrationNumber ? `Certified (${v.registrationNumber})` : `Certified (${v.type})`,
+        certification: v.registrationNumber ? `Certified (${v.registrationNumber})` : `Certified (${v.armourLevel})`,
         condition: v.year && v.year >= new Date().getFullYear() - 2 ? 'Excellent condition' : 'Operational condition',
-        features: featuresByLevel[v.type] ?? ['Bullet-resistant body', 'Secured transport'],
+        features: featuresByLevel[v.armourLevel] ?? ['Bullet-resistant body', 'Secured transport'],
         owner: {
           id: v.driver?.id ?? '',
           name: v.driver?.name ?? 'Owner',
