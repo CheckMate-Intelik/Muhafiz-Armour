@@ -214,7 +214,7 @@ export default function OngoingTripScreen() {
             <Row label="Pick up" value={booking.pickupLocation} />
             <Row label="Destination" value={booking.dropLocation} />
             <Row label="Planned" value={`${new Date(booking.startTime).toLocaleString()} → ${new Date(booking.endTime).toLocaleString()}`} />
-            <Row label="Payout" value={booking.totalPrice != null ? `$${booking.totalPrice}` : '—'} />
+            <Row label="Payout" value={booking.totalPrice != null ? `Rs ${booking.totalPrice}` : '—'} />
           </View>
 
           <Pressable

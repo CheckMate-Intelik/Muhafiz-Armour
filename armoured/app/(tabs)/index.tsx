@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { PUBLIC_API_BASE_URL, apiGet, ensureUserSession } from '@/lib/api';
 import { VehicleCard } from '@/components/VehicleCard';
@@ -213,20 +214,26 @@ export default function Home() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F4F5F7]">
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
-        <View className="flex-row items-center justify-between">
-          <View>
-            <Text className="text-[16px] font-semibold text-gray-500">Welcome!</Text>
-            <Text className="text-md font-extrabold text-gray-900">{userName || city.trim() || 'User'}</Text>
+    <LinearGradient 
+      colors={['rgb(77, 76, 76)', 'rgb(112, 112, 112)','rgb(202, 202, 202)','rgb(247, 248, 255)']} 
+      start={{ x: 1, y: 0 }} 
+      end={{ x: 1, y: 1 }}
+      locations={[0, 0.3, 0.6, 1]}
+      style={{ flex: 1 }}>
+      <SafeAreaView className="flex-1">
+        <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text className="text-[18px] font-semibold text-gray-200">Welcome!</Text>
+              <Text className="text-lg font-semibold text-gray-200">{userName || city.trim() || 'User'}</Text>
+            </View>
+            <View className="flex-row items-center gap-2">
+              <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
+                <FontAwesome name="bell-o" size={16} color="#111827" />
+              </Pressable>
+              <Image source={{ uri: 'https://i.pravatar.cc/96?img=12' }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+            </View>
           </View>
-          <View className="flex-row items-center gap-2">
-            <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
-              <FontAwesome name="bell-o" size={16} color="#111827" />
-            </Pressable>
-            <Image source={{ uri: 'https://i.pravatar.cc/96?img=12' }} style={{ width: 36, height: 36, borderRadius: 18 }} />
-          </View>
-        </View>
 
         <View className="mt-4 flex-row items-center">
           <View className="flex-1 flex-row items-center rounded-2xl bg-white px-4 py-3">
@@ -247,20 +254,20 @@ export default function Home() {
         {ongoingTrip ? (
           <Pressable
             onPress={() => router.push({ pathname: '/ongoing-trip' as any, params: { bookingId: ongoingTrip.id } })}
-            className="mt-4 rounded-2xl bg-white px-4 py-3 border-2 border-green-500">
-            <Text className="text-sm font-extrabold text-green-600">Ongoing trip</Text>
-            <Text className="mt-1 text-[12px] font-semibold text-gray-600">
+            className="mt-4 rounded-2xl bg-[rgb(71,138,44)] px-4 py-3">
+            <Text className="text-md font-bold text-gray-200">Ongoing trip</Text>
+            <Text className="mt-1 text-[12px] font-semibold text-gray-300">
               {ongoingTrip.pickupLocation}
               {' -> '}
               {ongoingTrip.dropLocation}
             </Text>
-            <Text className="text-[12px] font-semibold text-gray-500">
+            <Text className="text-[12px] font-semibold text-gray-300">
               {ongoingTrip.driverName} • {ongoingTrip.vehicleType}
             </Text>
           </Pressable>
         ) : null}
 
-        <Text className="text-lg font-extrabold text-gray-900 mt-2">Armour levels</Text>
+        <Text className="text-lg font-bold text-gray-200 mt-2">Armour levels</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
           {armourTypes.map((type) => {
             const active = selectedArmours.includes(type);
@@ -268,7 +275,8 @@ export default function Home() {
               <Pressable
                 key={type}
                 onPress={() => toggleArmour(type)}
-                className={`h-[70px] w-[40%] border border-gray-600 justify-center rounded-2xl mr-2 px-4 py-2 ${active ? 'bg-[#111827]' : 'bg-white'}`}>
+                className={`h-[70px] w-[40%] justify-center rounded-2xl mr-2 px-4 py-2 ${active ? 'bg-[#111827]' : 'bg-white'}`}
+                >
                 <Text className={`text-md font-extrabold text-center ${active ? 'text-white' : 'text-gray-700'}`}>{type}</Text>
               </Pressable>
             );
@@ -276,7 +284,7 @@ export default function Home() {
         </ScrollView>
 
         <View className="mt-6 flex-row items-center justify-between">
-          <Text className="text-lg font-extrabold text-gray-900">Available Vehicles</Text>
+          <Text className="text-lg font-bold text-gray-200">Available Vehicles</Text>
           <Text className="text-xs font-bold text-gray-400">{filteredVehicles.length} cars</Text>
         </View>
 
@@ -301,58 +309,59 @@ export default function Home() {
             />
           ))}
         </View>
-      </ScrollView>
-
-      <RBSheet
-        ref={filterSheetRef}
-        closeOnPressMask
-        draggable
-        dragOnContent={false}
-        height={460}
-        customStyles={{
-          wrapper: { backgroundColor: 'rgba(0,0,0,0.4)' },
-          draggableIcon: { backgroundColor: '#D1D5DB' },
-          container: { borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 16, paddingBottom: 16 },
-        }}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <Text className="text-base font-extrabold text-gray-900">Filters</Text>
-          <Field label="City" value={city} onChangeText={setCity} placeholder="Karachi" />
-          <View className="mt-3 rounded-2xl bg-gray-50 px-4 py-3">
-            <Text className="text-[10px] font-bold text-gray-400">Car type</Text>
-            <Pressable onPress={() => setCarTypePickerOpen((prev) => !prev)} className="mt-2 flex-row items-center justify-between rounded-xl bg-white px-3 py-2.5">
-              <Text className="text-sm font-extrabold text-gray-900">
-                {selectedCarTypes.includes('ALL') ? 'ALL' : selectedCarTypes.join(', ')}
-              </Text>
-              <FontAwesome name={carTypePickerOpen ? 'angle-up' : 'angle-down'} size={16} color="#6B7280" />
-            </Pressable>
-            {carTypePickerOpen ? (
-              <View className="mt-2 rounded-xl bg-white p-1">
-                {vehicleTypeOptions.map((type) => (
-                  <Pressable
-                    key={type}
-                    onPress={() => toggleCarType(type)}
-                    className="rounded-lg px-3 py-2 flex-row items-center justify-between">
-                    <Text className="text-sm font-bold text-gray-800">{type}</Text>
-                    {selectedCarTypes.includes(type) ? <FontAwesome name="check" size={14} color="#16A34A" /> : <View />}
-                  </Pressable>
-                ))}
-              </View>
-            ) : null}
-          </View>
-          <View className="mt-3 flex-row gap-3">
-            <View className="flex-1">
-              <Field label="Min price/hr" value={minPrice} onChangeText={handleMinPriceChange} placeholder="100" keyboardType="number-pad" />
-            </View>
-            <View className="flex-1">
-              <Field label="Max price/hr" value={maxPrice} onChangeText={handleMaxPriceChange} placeholder="500" keyboardType="number-pad" />
-            </View>
-          </View>
-          <Pressable onPress={applyFilters} className="mt-4 items-center justify-center rounded-2xl bg-[#111827] py-3">
-            <Text className="text-xs font-extrabold text-white">Apply filters</Text>
-          </Pressable>
         </ScrollView>
-      </RBSheet>
-    </SafeAreaView>
+
+        <RBSheet
+          ref={filterSheetRef}
+          closeOnPressMask
+          draggable
+          dragOnContent={false}
+          height={460}
+          customStyles={{
+            wrapper: { backgroundColor: 'rgba(0,0,0,0.4)' },
+            draggableIcon: { backgroundColor: '#D1D5DB' },
+            container: { borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 16, paddingBottom: 16 },
+          }}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text className="text-base font-extrabold text-gray-900">Filters</Text>
+            <Field label="City" value={city} onChangeText={setCity} placeholder="Karachi" />
+            <View className="mt-3 rounded-2xl bg-gray-50 px-4 py-3">
+              <Text className="text-[10px] font-bold text-gray-400">Car type</Text>
+              <Pressable onPress={() => setCarTypePickerOpen((prev) => !prev)} className="mt-2 flex-row items-center justify-between rounded-xl bg-white px-3 py-2.5">
+                <Text className="text-sm font-extrabold text-gray-900">
+                  {selectedCarTypes.includes('ALL') ? 'ALL' : selectedCarTypes.join(', ')}
+                </Text>
+                <FontAwesome name={carTypePickerOpen ? 'angle-up' : 'angle-down'} size={16} color="#6B7280" />
+              </Pressable>
+              {carTypePickerOpen ? (
+                <View className="mt-2 rounded-xl bg-white p-1">
+                  {vehicleTypeOptions.map((type) => (
+                    <Pressable
+                      key={type}
+                      onPress={() => toggleCarType(type)}
+                      className="rounded-lg px-3 py-2 flex-row items-center justify-between">
+                      <Text className="text-sm font-bold text-gray-800">{type}</Text>
+                      {selectedCarTypes.includes(type) ? <FontAwesome name="check" size={14} color="#16A34A" /> : <View />}
+                    </Pressable>
+                  ))}
+                </View>
+              ) : null}
+            </View>
+            <View className="mt-3 flex-row gap-3">
+              <View className="flex-1">
+                <Field label="Min price/hr" value={minPrice} onChangeText={handleMinPriceChange} placeholder="100" keyboardType="number-pad" />
+              </View>
+              <View className="flex-1">
+                <Field label="Max price/hr" value={maxPrice} onChangeText={handleMaxPriceChange} placeholder="500" keyboardType="number-pad" />
+              </View>
+            </View>
+            <Pressable onPress={applyFilters} className="mt-4 items-center justify-center rounded-2xl bg-[#111827] py-3">
+              <Text className="text-xs font-extrabold text-white">Apply filters</Text>
+            </Pressable>
+          </ScrollView>
+        </RBSheet>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
@@ -383,3 +392,11 @@ function Field({
     </View>
   );
 }
+
+const cardShadow = {
+  shadowColor: '#000',
+  shadowOpacity: 0.06,
+  shadowRadius: 12,
+  shadowOffset: { width: 0, height: 8 },
+  elevation: 3,
+};

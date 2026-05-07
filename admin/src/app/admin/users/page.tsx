@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
@@ -54,7 +55,7 @@ export default function AdminUsersPage() {
       <div className="page-header">
         <div>
           <h1 className="h1">Users</h1>
-          <div className="muted">Block/unblock demand</div>
+          <div className="muted">Click a row for user details and recent bookings</div>
         </div>
       </div>
       {error ? <div className="error">{error}</div> : null}
@@ -65,6 +66,7 @@ export default function AdminUsersPage() {
           <table className="table">
             <thead>
               <tr>
+                <th className="right">Open</th>
                 <th>Name</th>
                 <th>Phone</th>
                 <th>Blocked</th>
@@ -73,11 +75,27 @@ export default function AdminUsersPage() {
             </thead>
             <tbody>
               {rows.map((u) => (
-                <tr key={u.id}>
+                <tr
+                  key={u.id}
+                  className="row-click"
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => router.push(`/admin/users/${u.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      router.push(`/admin/users/${u.id}`);
+                    }
+                  }}>
+                  <td className="right row-link" onClick={(e) => e.stopPropagation()}>
+                    <Link className="link" href={`/admin/users/${u.id}`}>
+                      Open
+                    </Link>
+                  </td>
                   <td>{u.name}</td>
                   <td className="mono">{u.phone}</td>
                   <td>{u.isBlocked ? 'Yes' : 'No'}</td>
-                  <td className="right">
+                  <td className="right row-actions" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                     <button className="button button-secondary" disabled={busyId === u.id} onClick={() => toggleBlock(u.id, !u.isBlocked)}>
                       {u.isBlocked ? 'Unblock' : 'Block'}
                     </button>
@@ -86,7 +104,7 @@ export default function AdminUsersPage() {
               ))}
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="muted">
+                  <td colSpan={5} className="muted">
                     No users.
                   </td>
                 </tr>

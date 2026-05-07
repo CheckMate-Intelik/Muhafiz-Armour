@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { ArmourLevel, VehicleType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 
@@ -26,8 +25,8 @@ export class VehicleService {
     return this.prisma.vehicle.create({
       data: {
         driverId,
-        armourLevel: dto.armourLevel as ArmourLevel,
-        vehicleType: dto.vehicleType as VehicleType,
+        armourLevel: dto.armourLevel,
+        vehicleType: dto.vehicleType,
         carModel: dto.carModel.trim(),
         manufacturer: dto.manufacturer.trim(),
         generation: dto.generation.trim(),

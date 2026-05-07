@@ -118,7 +118,7 @@ export default function VehiclesScreen() {
                   {v.make ?? '—'} {v.carModel ?? '—'} {v.year ? `(${v.year})` : ''}
                 </Text>
                 <Text className="mt-2 text-xs font-semibold text-gray-500">
-                  {v.location} • ${v.baseRatePerHour}/hr
+                  {v.location} • Rs {v.baseRatePerHour}/hr
                 </Text>
                 <Text className="mt-1 text-[11px] font-semibold text-gray-500">
                   Plate: {v.numberPlate ?? '—'} • Reg: {v.registrationNumber ?? '—'}

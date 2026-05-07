@@ -208,7 +208,7 @@ export default function BookingsScreen() {
 
                 <View className="items-end">
                   <Text className="text-xs font-bold text-gray-400">Payout</Text>
-                  <Text className="mt-1 text-base font-extrabold text-[#1D2DD9]">${payout.toFixed(2)}</Text>
+                  <Text className="mt-1 text-base font-extrabold text-[#1D2DD9]">Rs {payout.toFixed(2)}</Text>
                 </View>
               </View>
 

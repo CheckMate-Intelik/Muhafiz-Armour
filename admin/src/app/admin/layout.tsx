@@ -26,6 +26,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link className="sidebar-link" href="/admin/users">
             Users
           </Link>
+          <div className="sidebar-section-label">Configuration</div>
+          <Link className="sidebar-link" href="/admin/catalog">
+            Catalog
+          </Link>
         </nav>
 
         <div className="sidebar-footer">

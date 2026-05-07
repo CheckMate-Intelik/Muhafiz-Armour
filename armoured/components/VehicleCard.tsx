@@ -1,3 +1,4 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Image, Pressable, Text, View } from 'react-native';
 
 export type VehicleCardData = {
@@ -30,45 +31,74 @@ export function VehicleCard({ vehicle, onPress, className, showStatus = false, s
   const Wrapper = onPress ? Pressable : View;
   const statusLabel = vehicle.isApproved ? 'Approved' : 'Pending';
   const statusClass = vehicle.isApproved ? 'text-green-600' : 'text-amber-600';
+  const vehicleName = `${vehicle.manufacturer ?? ''} ${vehicle.generation ?? ''} ${vehicle.carModel ?? ''}`.trim() || 'Vehicle';
+  const firstImage = vehicle.imageUrls?.[0] || FALLBACK_IMAGE;
+  const city = (vehicle.location ?? '').trim();
 
   return (
     <Wrapper
       onPress={onPress}
-      className={className ?? 'mb-3 w-[48.5%] rounded-2xl bg-white p-2.5'}
-      style={onPress ? undefined : cardShadow}>
-      {showDriverHeader ? (
-        <View className="mb-4 flex-row items-center justify-between gap-2">
-          <Image source={{ uri: vehicle.imageUrls?.[0] || FALLBACK_IMAGE }} className="h-10 w-10 rounded-full" resizeMode="cover" />
-          <View className="flex-1">
-            <Text className="text-[13px] font-extrabold text-gray-900" numberOfLines={1}>{vehicle.driverName ?? 'Driver'}</Text>
-            <Text className="text-[11px] font-extrabold text-amber-500">★ {rating?.toFixed(1) ?? 'N/A'}</Text>
+      className={className ?? `mb-3 w-[100%] rounded-2xl bg-white p-2.5`}
+      style={cardShadow}>
+      <View className="relative overflow-hidden rounded-xl bg-gray-100">
+        <Image source={{ uri: firstImage }} style={{ width: '100%', height: 160 }} resizeMode="cover" />
+
+        {rating !== null ? (
+          <View className="absolute left-2 top-2 flex-row items-center rounded-full bg-white px-2 py-1">
+            <FontAwesome name="star" size={12} color="#111827" />
+            <Text className="ml-1 text-[11px] font-extrabold text-gray-900">{rating.toFixed(1)}</Text>
           </View>
-          <View className="rounded-lg bg-gray-800 px-2 py-1">
-            <Text className="text-[12px] font-extrabold text-white">${vehicle.baseRatePerHour}/hr</Text>
-          </View>
+        ) : null}
+
+        <Pressable className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-white">
+          <FontAwesome name="heart-o" size={14} color="#111827" />
+        </Pressable>
+      </View>
+
+      <View className="mt-4 flex-row items-center justify-between">
+        <View className="flex-1 pr-2">
+          {/* <Text className="text-[11px] font-bold text-gray-500" numberOfLines={1}>
+            {vehicle.vehicleType}
+          </Text> */}
+          <Text className="mt-0.5 text-lg font-bold text-gray-800" numberOfLines={1}>
+            {vehicleName}
+          </Text>
+        </View>
+
+        <View className="items-end">
+          <Text className="text-lg font-bold text-gray-600">Rs {vehicle.baseRatePerHour.toFixed(0)} /hr</Text>
+          {/* <Text className="text-[11px] font-bold text-gray-500">/hr</Text> */}
+        </View>
+      </View>
+
+      <View className="mt-3 flex-row items-center justify-between px-3 py-2 border-t border-gray-200">
+        <View className="flex-row items-center">
+          <FontAwesome name="map-marker" size={15} color="rgb(126, 126, 126)" />
+          <Text className="ml-2 text-sm font-bold text-gray-500" numberOfLines={1}>
+            {city || '—'}
+          </Text>
+        </View>
+
+        <View className="flex-row items-center">
+          <FontAwesome name="shield" size={15} color="rgb(126, 126, 126)" />
+          <Text className="ml-2 text-sm font-bold text-gray-500" numberOfLines={1}>
+            {vehicle.armourLevel || '—'}
+          </Text>
+        </View>
+
+        <View className="flex-row items-center">
+          <FontAwesome name="car" size={15} color="rgb(126, 126, 126)" />
+          <Text className="ml-2 text-sm font-bold text-gray-500" numberOfLines={1}>
+            {vehicle.vehicleType || '—'}
+          </Text>
+        </View>
+      </View>
+
+      {showStatus ? (
+        <View className="mt-2 flex-row justify-end">
+          <Text className={`text-[10px] font-extrabold ${statusClass}`}>{statusLabel}</Text>
         </View>
       ) : null}
-      <Image
-        source={{ uri: vehicle.imageUrls?.[0] || FALLBACK_IMAGE }}
-        style={{ width: '100%', height: 120, borderRadius: 12 }}
-        resizeMode="cover"
-      />
-      <View className="mt-2">
-        <Text className="text-[14px] font-bold text-gray-900" numberOfLines={1}>
-          {`${vehicle.manufacturer ?? 'Armoured'} ${vehicle.generation ?? ''} ${vehicle.carModel ?? 'Vehicle'}`.trim()}
-        </Text>
-        <Text className="mt-0.5 text-[12px] font-semibold text-gray-500" numberOfLines={1}>
-          {vehicle.location}
-        </Text>
-      </View>
-      <View className="mt-2 flex-row items-center justify-between">
-        {/* <Text className="text-[9px] font-extrabold text-amber-500">★ {rating?.toFixed(1) ?? 'N/A'}</Text> */}
-        {/* <Text className="text-[10px] font-extrabold text-[#1D2DD9]">${vehicle.baseRatePerHour}/hr</Text> */}
-      </View>
-      <View className="mt-1 flex-row items-center justify-between">
-        <Text className="text-[11px] font-extrabold text-gray-700">{vehicle.armourLevel} • {vehicle.vehicleType}</Text>
-        {showStatus ? <Text className={`text-[10px] font-extrabold ${statusClass}`}>{statusLabel}</Text> : null}
-      </View>
     </Wrapper>
   );
 }
@@ -76,7 +106,7 @@ export function VehicleCard({ vehicle, onPress, className, showStatus = false, s
 const cardShadow = {
   shadowColor: '#000',
   shadowOpacity: 0.06,
-  shadowRadius: 12,
+  shadowRadius: 16,
   shadowOffset: { width: 0, height: 8 },
   elevation: 3,
 };

@@ -2,6 +2,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Pooled Neon URL should include `pgbouncer=true` (see prisma.service.ts). Use DIRECT_URL for CLI migrate if you add it.
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -15,20 +16,6 @@ enum BookingStatus {
   COMPLETED
   REJECTED
   EXPIRED
-}
-
-enum ArmourLevel {
-  B4
-  B5
-  B6
-  B7
-}
-
-enum VehicleType {
-  SEDAN
-  SUV
-  PICKUP
-  VAN
 }
 
 model User {
@@ -85,8 +72,8 @@ model Vehicle {
   id              String      @id @default(uuid()) @db.Uuid
   driverId        String      @db.Uuid
   driver          Driver      @relation(fields: [driverId], references: [id], onDelete: Cascade)
-  armourLevel     ArmourLevel
-  vehicleType     VehicleType
+  armourLevel     String   @db.Text
+  vehicleType     String   @db.Text
   carModel        String?
   manufacturer    String?
   generation      String?

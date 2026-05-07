@@ -117,7 +117,7 @@ export default function DriverTabLayout() {
           borderRadius: 28,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.92)',
+          backgroundColor: 'rgb(31, 41, 55)',
           borderTopWidth: 0,
           shadowColor: '#000',
           shadowOpacity: 0.08,
@@ -150,11 +150,11 @@ export default function DriverTabLayout() {
                 width: focused ? 120 : 52,
                 marginLeft: focused ? 30 : 0,
               }}>
-              <FontAwesome name="bar-chart" size={20} color={focused ? 'black' : 'white'} />
+              <FontAwesome name="bar-chart" size={20} color={focused ? 'rgb(31, 41, 55)' : 'white'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'black',
+                    color: 'rgb(31, 41, 55)',
                     marginLeft: 8,
                     fontSize: 13,
                     fontWeight: '600',
@@ -184,11 +184,11 @@ export default function DriverTabLayout() {
                 // marginLeft: focused ? 20 : 0,
                 width: focused ? 110 : 52,
               }}>
-              <FontAwesome name="list-alt" size={20} color={focused ? 'black' : 'white'} />
+              <FontAwesome name="list-alt" size={20} color={focused ? 'rgb(31, 41, 55)' : 'white'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'black',
+                    color: 'rgb(31, 41, 55)',
                     marginLeft: 8,
                     fontSize: 13,
                     fontWeight: '600',
@@ -217,11 +217,11 @@ export default function DriverTabLayout() {
                 height: 46,
                 width: focused ? 110 : 52,
               }}>
-              <FontAwesome name="car" size={20} color={focused ? 'black' : 'white'} />
+              <FontAwesome name="car" size={20} color={focused ? 'rgb(31, 41, 55)' : 'white'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'black',
+                    color: 'rgb(31, 41, 55)',
                     marginLeft: 8,
                     fontSize: 13,
                     fontWeight: '600',
@@ -250,11 +250,11 @@ export default function DriverTabLayout() {
                 height: 46,
                 width: focused ? 90 : 52,
               }}>
-              <FontAwesome name="user" size={20} color={focused ? 'black' : 'white'} />
+              <FontAwesome name="user" size={20} color={focused ? 'rgb(31, 41, 55)' : 'white'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'black',
+                    color: 'rgb(31, 41, 55)',
                     marginLeft: 8,
                     fontSize: 13,
                     fontWeight: '600',

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
@@ -54,7 +55,7 @@ export default function AdminVehiclesPage() {
       <div className="page-header">
         <div>
           <h1 className="h1">Vehicles</h1>
-          <div className="muted">Approve vehicle listings</div>
+          <div className="muted">Click a row for full vehicle details</div>
         </div>
       </div>
       {error ? <div className="error">{error}</div> : null}
@@ -65,7 +66,8 @@ export default function AdminVehiclesPage() {
           <table className="table">
             <thead>
               <tr>
-                <th>Armour</th>
+                <th className="right">Open</th>
+                <th>Armour / type</th>
                 <th>Vehicle</th>
                 <th>Plate / Reg</th>
                 <th>Rate</th>
@@ -77,15 +79,33 @@ export default function AdminVehiclesPage() {
             </thead>
             <tbody>
               {rows.map((v) => (
-                <tr key={v.id}>
-                  <td className="mono">{v.type}</td>
+                <tr
+                  key={v.id}
+                  className="row-click"
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => router.push(`/admin/vehicles/${v.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      router.push(`/admin/vehicles/${v.id}`);
+                    }
+                  }}>
+                  <td className="right row-link" onClick={(e) => e.stopPropagation()}>
+                    <Link className="link" href={`/admin/vehicles/${v.id}`}>
+                      Open
+                    </Link>
+                  </td>
+                  <td className="mono">
+                    {v.armourLevel} / {v.vehicleType}
+                  </td>
                   <td>{[v.manufacturer, v.generation, v.carModel, v.year].filter(Boolean).join(' ') || '—'}</td>
                   <td>{[v.numberPlate, v.registrationNumber].filter(Boolean).join(' / ') || '—'}</td>
-                  <td className="mono">${v.baseRatePerHour}/hr</td>
+                  <td className="mono">Rs {v.baseRatePerHour}/hr</td>
                   <td>{v.location}</td>
                   <td>{v.driver?.name ?? '—'}</td>
                   <td>{v.isApproved ? 'Yes' : 'No'}</td>
-                  <td className="right">
+                  <td className="right row-actions" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                     <button className="button button-secondary" disabled={busyId === v.id} onClick={() => toggleApprove(v.id, !v.isApproved)}>
                       {v.isApproved ? 'Unapprove' : 'Approve'}
                     </button>

@@ -1,10 +1,11 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { BookingDetailsBody } from '@/components/BookingDetailsBody';
 import { driverGet, driverPatch, ensureDriverSession } from '@/lib/api';
 
 const SNOOZE_KEY = 'armoured_driver:ongoing-trip-snooze:v1';
@@ -19,7 +20,14 @@ type Booking = {
   endTime: string;
   totalPrice: number | null;
   user?: { name: string } | null;
-  vehicle?: { armourLevel: string; vehicleType: string; baseRatePerHour: number; location: string } | null;
+  vehicle?: {
+    armourLevel: string;
+    vehicleType: string;
+    baseRatePerHour: number;
+    location: string;
+    manufacturer?: string | null;
+    carModel?: string | null;
+  } | null;
 };
 
 export default function DriverOngoingTripScreen() {
@@ -29,13 +37,6 @@ export default function DriverOngoingTripScreen() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [busy, setBusy] = useState(false);
   const canComplete = booking?.status === 'IN_PROGRESS';
-
-  const title = useMemo(() => {
-    if (!booking) return 'Ongoing trip';
-    if (booking.status === 'IN_PROGRESS') return 'Trip in progress';
-    if (booking.status === 'CONFIRMED') return 'Trip ready';
-    return 'Trip';
-  }, [booking]);
 
   useEffect(() => {
     if (!booking) return;
@@ -57,7 +58,7 @@ export default function DriverOngoingTripScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    let interval: any = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     async function boot() {
       if (!bookingId) {
         router.replace('/(driver-tabs)' as any);
@@ -168,8 +169,11 @@ export default function DriverOngoingTripScreen() {
     );
   }
 
-  const customerName = booking.user?.name ?? '-';
-  const vehicleType = booking.vehicle?.armourLevel ?? '-';
+  const payout = booking.totalPrice ?? NaN;
+  const payoutLabel = Number.isFinite(payout) ? `Rs ${payout.toFixed(2)}` : '—';
+  const v = booking.vehicle;
+  const vehicleName =
+    [v?.manufacturer, v?.carModel].filter(Boolean).join(' ').trim() || v?.vehicleType || '—';
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -178,77 +182,49 @@ export default function DriverOngoingTripScreen() {
           <Pressable onPress={dismissToTabs} className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
             <FontAwesome name="arrow-left" size={16} color="#111827" />
           </Pressable>
-          <Text className="text-base font-extrabold text-gray-900">{title}</Text>
+          <Text className="text-base font-extrabold text-gray-900">Ongoing trip</Text>
           <Pressable onPress={() => void load()} className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
             <FontAwesome name="refresh" size={16} color="#111827" />
           </Pressable>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} className="px-5 pt-6">
-        <View className="rounded-3xl bg-white p-4" style={cardShadow}>
-          <View className="flex-row items-start justify-between">
-            <View className="flex-1">
-              <Text className="text-xs font-bold text-gray-400">Customer</Text>
-              <Text className="mt-1 text-base font-extrabold text-gray-900">{customerName}</Text>
-              <View className="mt-2 flex-row items-center gap-2">
-                <View className="rounded-full bg-gray-100 px-3 py-1">
-                  <Text className="text-[10px] font-extrabold text-gray-800">{vehicleType}</Text>
-                </View>
-                <View className="rounded-full bg-gray-100 px-3 py-1">
-                  <Text className="text-[10px] font-extrabold text-gray-800">{booking.status}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
+      <ScrollView contentContainerStyle={{ paddingBottom: 48 }} className="px-5 pt-4">
+        <BookingDetailsBody
+          personLabel="Customer"
+          personName={booking.user?.name ?? '—'}
+          statusLabel={booking.status}
+          payoutLabel={payoutLabel}
+          vehicleName={vehicleName}
+          vehicleType={v?.vehicleType ?? '—'}
+          vehicleArmour={v?.armourLevel ?? '—'}
+          bookingId={booking.id}
+          pickupLocation={booking.pickupLocation}
+          dropLocation={booking.dropLocation}
+          startTime={booking.startTime}
+          endTime={booking.endTime}
+        />
 
-          <View className="mt-4 h-[1px] bg-gray-100" />
+        <Pressable
+          disabled={!canComplete || busy}
+          onPress={complete}
+          className={`mt-4 items-center justify-center rounded-2xl py-3 ${canComplete && !busy ? 'bg-gray-800' : 'bg-gray-200'}`}>
+          <Text className={`text-xs font-extrabold ${canComplete && !busy ? 'text-white' : 'text-gray-500'}`}>
+            {busy ? 'Completing...' : 'Complete trip'}
+          </Text>
+        </Pressable>
 
-          <View className="mt-4">
-            <Row label="Pick up" value={booking.pickupLocation} />
-            <Row label="Destination" value={booking.dropLocation} />
-            <Row label="Planned" value={`${new Date(booking.startTime).toLocaleString()} -> ${new Date(booking.endTime).toLocaleString()}`} />
-            <Row label="Payout" value={booking.totalPrice != null ? `$${booking.totalPrice}` : '-'} />
-          </View>
-
+        {booking.status !== 'IN_PROGRESS' ? (
           <Pressable
-            disabled={!canComplete || busy}
-            onPress={complete}
-            className={`mt-4 items-center justify-center rounded-2xl py-3 ${canComplete && !busy ? 'bg-[#111827]' : 'bg-gray-200'}`}>
-            <Text className={`text-xs font-extrabold ${canComplete && !busy ? 'text-white' : 'text-gray-500'}`}>
-              {busy ? 'Completing...' : 'Complete trip'}
+            disabled={busy}
+            onPress={cancel}
+            className={`mt-3 items-center justify-center rounded-2xl py-3 ${busy ? 'bg-gray-200' : 'bg-red-600'}`}>
+            <Text className={`text-xs font-extrabold ${busy ? 'text-gray-500' : 'text-white'}`}>
+              {busy ? 'Please wait...' : 'Cancel trip'}
             </Text>
           </Pressable>
-
-          {booking.status !== 'IN_PROGRESS' ? (
-            <Pressable
-              disabled={busy}
-              onPress={cancel}
-              className={`mt-3 items-center justify-center rounded-2xl py-3 ${busy ? 'bg-gray-200' : 'bg-red-600'}`}>
-              <Text className={`text-xs font-extrabold ${busy ? 'text-gray-500' : 'text-white'}`}>
-                {busy ? 'Please wait...' : 'Cancel trip'}
-              </Text>
-            </Pressable>
-          ) : null}
-        </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="mb-3">
-      <Text className="text-[10px] font-bold text-gray-400">{label}</Text>
-      <Text className="mt-1 text-sm font-extrabold text-gray-900">{value}</Text>
-    </View>
-  );
-}
-
-const cardShadow = {
-  shadowColor: '#000',
-  shadowOpacity: 0.06,
-  shadowRadius: 12,
-  shadowOffset: { width: 0, height: 8 },
-  elevation: 3,
-};

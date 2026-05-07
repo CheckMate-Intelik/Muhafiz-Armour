@@ -29,12 +29,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     cache: 'no-store',
   });
 
+  const text = await res.text().catch(() => '');
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
     throw new ApiError(text || res.statusText, res.status);
   }
-
-  return (await res.json()) as T;
+  if (!text.trim()) return undefined as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new ApiError('Invalid JSON response', res.status);
+  }
 }
 
 export const api = {
@@ -47,19 +51,37 @@ export const api = {
   metrics: () => request<AdminMetrics>('/admin/metrics'),
 
   listBookings: () => request<any[]>('/admin/bookings'),
+  getBooking: (id: string) => request<any>(`/admin/bookings/lookup?id=${encodeURIComponent(id)}`),
 
   listDrivers: () => request<any[]>('/admin/drivers'),
+  getDriver: (id: string) => request<any>(`/admin/drivers/lookup?id=${encodeURIComponent(id)}`),
   approveDriver: (id: string, isApproved: boolean) =>
     request<any>(`/admin/drivers/${id}/approve`, { method: 'PATCH', body: JSON.stringify({ isApproved }) }),
   blockDriver: (id: string, isBlocked: boolean) =>
     request<any>(`/admin/drivers/${id}/block`, { method: 'PATCH', body: JSON.stringify({ isBlocked }) }),
 
   listVehicles: () => request<any[]>('/admin/vehicles'),
+  getVehicle: (id: string) => request<any>(`/admin/vehicles/lookup?id=${encodeURIComponent(id)}`),
   approveVehicle: (id: string, isApproved: boolean) =>
     request<any>(`/admin/vehicles/${id}/approve`, { method: 'PATCH', body: JSON.stringify({ isApproved }) }),
 
   listUsers: () => request<any[]>('/admin/users'),
+  getUser: (id: string) => request<any>(`/admin/users/lookup?id=${encodeURIComponent(id)}`),
   blockUser: (id: string, isBlocked: boolean) =>
     request<any>(`/admin/users/${id}/block`, { method: 'PATCH', body: JSON.stringify({ isBlocked }) }),
+
+  listArmourLevelOptions: () => request<any[]>('/admin/armour-level-options'),
+  createArmourLevelOption: (body: { code: string; label: string; sortOrder?: number; isActive?: boolean }) =>
+    request<any>('/admin/armour-level-options', { method: 'POST', body: JSON.stringify(body) }),
+  updateArmourLevelOption: (id: string, body: { label?: string; sortOrder?: number; isActive?: boolean }) =>
+    request<any>(`/admin/armour-level-options/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  deleteArmourLevelOption: (id: string) => request<any>(`/admin/armour-level-options/${id}`, { method: 'DELETE' }),
+
+  listVehicleTypeOptions: () => request<any[]>('/admin/vehicle-type-options'),
+  createVehicleTypeOption: (body: { code: string; label: string; sortOrder?: number; isActive?: boolean }) =>
+    request<any>('/admin/vehicle-type-options', { method: 'POST', body: JSON.stringify(body) }),
+  updateVehicleTypeOption: (id: string, body: { label?: string; sortOrder?: number; isActive?: boolean }) =>
+    request<any>(`/admin/vehicle-type-options/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  deleteVehicleTypeOption: (id: string) => request<any>(`/admin/vehicle-type-options/${id}`, { method: 'DELETE' }),
 };
 

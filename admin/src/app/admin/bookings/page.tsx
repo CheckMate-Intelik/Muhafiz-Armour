@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
@@ -46,7 +47,7 @@ export default function AdminBookingsPage() {
       <div className="page-header">
         <div>
           <h1 className="h1">Bookings</h1>
-          <div className="muted">Read-only view</div>
+          <div className="muted">Click a row for full details</div>
         </div>
       </div>
       {error ? <div className="error">{error}</div> : null}
@@ -57,9 +58,10 @@ export default function AdminBookingsPage() {
           <table className="table">
             <thead>
               <tr>
+                <th className="right">Open</th>
                 <th>User</th>
                 <th>Driver</th>
-                <th>Vehicle</th>
+                <th>Armour / type</th>
                 <th>Time</th>
                 <th>Status</th>
                 <th>Total</th>
@@ -67,22 +69,40 @@ export default function AdminBookingsPage() {
             </thead>
             <tbody>
               {rows.map((b) => (
-                <tr key={b.id}>
+                <tr
+                  key={b.id}
+                  className="row-click"
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => router.push(`/admin/bookings/${b.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      router.push(`/admin/bookings/${b.id}`);
+                    }
+                  }}>
+                  <td className="right row-link" onClick={(e) => e.stopPropagation()}>
+                    <Link className="link" href={`/admin/bookings/${b.id}`}>
+                      Open
+                    </Link>
+                  </td>
                   <td>{b.user?.name ?? '—'}</td>
                   <td>{b.driver?.name ?? '—'}</td>
-                  <td>{b.vehicle?.type ?? '—'}</td>
+                  <td className="mono">
+                    {b.vehicle ? `${b.vehicle.armourLevel} / ${b.vehicle.vehicleType}` : '—'}
+                  </td>
                   <td className="mono">
                     {new Date(b.startTime).toLocaleString()} <span className="muted">→</span> {new Date(b.endTime).toLocaleString()}
                   </td>
                   <td>
                     <StatusBadge status={b.status} />
                   </td>
-                  <td className="mono">{b.totalPrice != null ? `$${b.totalPrice}` : '—'}</td>
+                  <td className="mono">{b.totalPrice != null ? `Rs ${b.totalPrice}` : '—'}</td>
                 </tr>
               ))}
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="muted">
+                  <td colSpan={7} className="muted">
                     No bookings.
                   </td>
                 </tr>

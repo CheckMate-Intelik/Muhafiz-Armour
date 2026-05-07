@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { BookingSummaryCard } from '@/components/BookingSummaryCard';
 import { apiGet, ensureUserSession } from '@/lib/api';
@@ -72,22 +73,28 @@ export default function ActivitiesScreen() {
   }, [bookings, status]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <LinearGradient 
+      colors={['rgb(77, 76, 76)', 'rgb(133, 133, 133)','rgb(202, 202, 202)','rgb(247, 248, 255)']} 
+      start={{ x: 1, y: 0 }} 
+      end={{ x: 1, y: 1 }}
+      locations={[0, 0.3, 0.6, 1]}
+      style={{ flex: 1 }}>
+    <SafeAreaView className="flex-1">
       <View className="px-5 pt-4">
         <View className="flex-row items-center justify-center">
-          <Text className="text-base font-extrabold text-gray-900">Activities</Text>
+          <Text className="text-lg font-bold text-gray-200">Activities</Text>
         </View>
 
-        <View className="mt-4 flex-row rounded-2xl bg-gray-100 p-1">
+        <View className="mt-4 flex-row rounded-xl bg-gray-100 p-1">
           {(['Schedule', 'Recent', 'Completed', 'Canceled'] as const).map((s) => {
             const active = status === s;
             return (
               <Pressable
                 key={s}
                 onPress={() => setStatus(s)}
-                className={`flex-1 items-center justify-center rounded-2xl py-3 ${active ? 'bg-black' : ''}`}>
+                className={`flex-1 items-center justify-center rounded-xl py-3 ${active ? 'bg-black' : ''}`}>
                 <Text
-                  className={`text-xs font-extrabold ${active ? 'text-white' : 'text-gray-500'}`}>
+                  className={`text-sm font-extrabold ${active ? 'text-white' : 'text-gray-500'}`}>
                   {s === 'Schedule' ? 'Scheduled' : s}
                 </Text>
               </Pressable>
@@ -108,8 +115,8 @@ export default function ActivitiesScreen() {
             <View className="h-14 w-14 items-center justify-center rounded-3xl bg-gray-100">
               <FontAwesome name="calendar" size={20} color="#111827" />
             </View>
-            <Text className="mt-4 text-base font-extrabold text-gray-900">No activities</Text>
-            <Text className="mt-1 text-xs font-semibold text-gray-500">
+            <Text className="mt-4 text-lg font-extrabold text-gray-200">No activities</Text>
+            <Text className="mt-1 text-sm font-semibold text-gray-200">
               Your bookings will appear here.
             </Text>
           </View>
@@ -149,5 +156,6 @@ export default function ActivitiesScreen() {
         ))}
       </ScrollView>
     </SafeAreaView>
+    </LinearGradient>
   );
 }

@@ -75,7 +75,7 @@ export default function DriverVehiclesScreen() {
               <Pressable
                 key={t}
                 onPress={() => setTab(t)}
-                className={`flex-1 items-center justify-center rounded-2xl py-3 ${activeTab ? 'bg-black' : ''}`}>
+                className={`flex-1 items-center justify-center rounded-2xl py-3 ${activeTab ? 'bg-gray-800' : ''}`}>
                 <Text className={`text-xs font-extrabold ${activeTab ? 'text-white' : 'text-gray-500'}`}>{t}</Text>
               </Pressable>
             );
@@ -85,9 +85,9 @@ export default function DriverVehiclesScreen() {
 
       <Pressable
         onPress={() => router.push('/register-vehicle')}
-        className="absolute bottom-[120px] left-1/2 z-10 w-[150px] -translate-x-1/2 flex-row items-center justify-center rounded-full bg-black py-5">
+        className="absolute bottom-[120px] left-1/2 z-10 w-[150px] -translate-x-1/2 flex-row items-center justify-center rounded-full bg-gray-800 py-5">
         <FontAwesome name="plus" size={14} color="#FFFFFF" />
-        <Text className="ml-2 text-xs font-extrabold text-white">Add vehicle</Text>
+        <Text className="ml-2 text-xs font-bold text-white">Add vehicle</Text>
       </Pressable>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 180 }} className="px-5 pt-4">
@@ -120,7 +120,7 @@ export default function DriverVehiclesScreen() {
                   params: { vehicleId: v.id, readonly: '1' },
                 })
               }
-              className="mb-3 w-[48.5%] rounded-2xl bg-white p-2.5"
+              // className="mb-3 w-[48.5%] rounded-2xl bg-white p-2.5"
               showStatus
               showDriverHeader={false}
             />

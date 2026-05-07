@@ -85,7 +85,7 @@ export default function PaymentScreen() {
 
           <View className="mt-5 flex-row items-center justify-between">
             <Text className="text-sm font-bold text-gray-500">Total amount</Text>
-            <Text className="text-lg font-extrabold text-gray-900">${amount.toFixed(2)}</Text>
+            <Text className="text-lg font-extrabold text-gray-900">Rs {amount.toFixed(2)}</Text>
           </View>
         </View>
 

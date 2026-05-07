@@ -72,9 +72,9 @@ export class VehiclePublicController {
     const rows = await this.prisma.vehicle.findMany({
       where: {
         isApproved: true,
-        ...(types.length > 0 ? { armourLevel: { in: types as any } } : {}),
+        ...(types.length > 0 ? { armourLevel: { in: types } } : {}),
         ...(city && city.trim().length > 0 ? { location: { contains: city.trim(), mode: 'insensitive' } } : {}),
-        ...(vehicleTypes.length > 0 ? { vehicleType: { in: vehicleTypes as any } } : {}),
+        ...(vehicleTypes.length > 0 ? { vehicleType: { in: vehicleTypes } } : {}),
         ...(hasMin || hasMax
           ? {
               baseRatePerHour: {

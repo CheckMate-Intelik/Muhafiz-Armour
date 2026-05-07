@@ -131,7 +131,7 @@ export default function SelectVehicleScreen() {
               <View className="items-end">
                 <Text className="text-xs font-bold text-gray-400">Estimated</Text>
                 <Text className="mt-1 text-base font-extrabold text-[#1D2DD9]">
-                  ${o.estimatedPrice.toFixed(2)}
+                  Rs {o.estimatedPrice.toFixed(2)}
                 </Text>
               </View>
             </View>

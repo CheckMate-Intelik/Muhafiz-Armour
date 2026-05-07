@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useEffect, useMemo } from 'react';
 import { useStore } from '@/store/store';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen() {
   const hydrate = useStore((s) => s.hydrate);
@@ -25,7 +26,13 @@ export default function ProfileScreen() {
   }, [profile?.createdAt]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <LinearGradient 
+      colors={['rgb(77, 76, 76)', 'rgb(112, 112, 112)','rgb(202, 202, 202)','rgb(247, 248, 255)']} 
+      start={{ x: 1, y: 0 }} 
+      end={{ x: 1, y: 1 }}
+      locations={[0, 0.3, 0.6, 1]}
+      style={{ flex: 1 }}>
+    <SafeAreaView className="flex-1">
       <View className="px-5 pt-4 items-center justify-center">
         <View className="flex-row items-center justify-between">
           <Text className="text-base font-extrabold text-gray-900">Profile</Text>
@@ -38,10 +45,10 @@ export default function ProfileScreen() {
             source={{ uri: 'https://i.pravatar.cc/240?img=12' }}
             style={{ width: 120, height: 120, borderRadius: 60 }}
           />
-          <Text className="mt-4 text-lg font-extrabold text-gray-900">
+          <Text className="mt-4 text-xl font-bold text-gray-200">
             {profile?.name ?? (loading ? 'Loading…' : '—')}
           </Text>
-          <Text className="mt-1 text-xs font-semibold text-gray-500">
+          <Text className="mt-1 text-sm font-semibold text-gray-200">
             Member since {memberSince}
           </Text>
         </View>
@@ -80,6 +87,7 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </LinearGradient>
   );
 }
 

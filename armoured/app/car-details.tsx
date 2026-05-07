@@ -104,7 +104,7 @@ export default function CarDetailsScreen() {
         {vehicle ? (
           <View className="mt-4 rounded-3xl bg-white pb-4">
             
-            <View className="bg-gray-200 rounded-t-3xl pt-4">
+            <View className="bg-gray-300 rounded-t-3xl pt-4">
               <View className="flex-row items-center justify-between mx-4">
                 <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-xl bg-white">
                   <FontAwesome name="angle-left" size={18} color="#111827" />
@@ -114,7 +114,7 @@ export default function CarDetailsScreen() {
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
-                className="mt-6"
+                className="mt-4"
                 onMomentumScrollEnd={(e) => onGalleryScrollEnd(e.nativeEvent.contentOffset.x)}>
                 {images.map((img) => (
                   <Image key={img} source={{ uri: img }} style={{ width: IMAGE_WIDTH, height: 220 }} resizeMode="cover" />
@@ -131,11 +131,11 @@ export default function CarDetailsScreen() {
 
                 {/* <Text className="mt-5 text-base font-extrabold text-gray-900">Overview</Text> */}
                 <Text className="text-2xl font-bold text-gray-900">{vehicle.carModel}</Text>
-                <Text className="mb-5 text-md font-semibold text-gray-500">
+                <Text className="mb-3 text-md font-semibold text-gray-500">
                   {vehicle.generation ?? '—'}
                 </Text>
 
-                <View>
+                <View className="border-t border-gray-400 pt-4">
                   <View className="flex-row">
                     <View className="flex-1 pr-2">
                       <Row label="Brand" value={vehicle.manufacturer ?? '—'} />
@@ -148,7 +148,7 @@ export default function CarDetailsScreen() {
                     </View>
                   </View>
 
-                  <View className="flex-row mt-4">
+                  <View className="flex-row mt-4 mb-2">
                     <View className="flex-1 pr-2">
                       <Row label="Armour level" value={vehicle.armourLevel} />
                     </View>
@@ -159,9 +159,9 @@ export default function CarDetailsScreen() {
                       <Row label="Number plate" value={vehicle.numberPlate ?? '—'} />
                     </View>
                   </View>
-                  <View className="mt-4">
+                  {/* <View className="mt-4">
                     <Row label="Registration" value={vehicle.registrationNumber ?? '—'} />
-                  </View>
+                  </View> */}
                 </View>
               </View>
             </View>
@@ -216,7 +216,7 @@ export default function CarDetailsScreen() {
           }}>
           <View>
             <Text className="text-[12px] font-bold text-gray-400">Price details</Text>
-            <Text className="text-xl font-extrabold text-gray-900">${vehicle.baseRatePerHour}/hr</Text>
+            <Text className="text-xl font-extrabold text-gray-900">Rs {vehicle.baseRatePerHour}/hr</Text>
           </View>
           {!isReadonly ? (
             <Pressable

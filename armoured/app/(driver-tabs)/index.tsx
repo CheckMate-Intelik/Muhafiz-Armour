@@ -63,26 +63,26 @@ export default function DriverDashboardScreen() {
         </View>
 
         <View className="mt-5 flex-row gap-3">
-          <View className="flex-1 rounded-3xl bg-white p-4" style={cardShadow}>
+          <View className="flex-1 rounded-3xl bg-gray-800 p-4" style={cardShadow}>
             <View className="flex-row items-center justify-between">
-              <Text className="text-xs font-bold text-gray-400">Total earnings</Text>
+              <Text className="text-sm font-bold text-gray-200">Total earnings</Text>
               <View className="h-9 w-9 items-center justify-center rounded-2xl bg-gray-100">
                 <FontAwesome name="money" size={16} color="#111827" />
               </View>
             </View>
-            <Text className="mt-3 text-2xl font-extrabold text-[#1D2DD9]">${totalEarnings.toFixed(2)}</Text>
-            <Text className="mt-1 text-xs font-semibold text-gray-500">This period</Text>
+            <Text className="mt-3 text-2xl font-bold text-gray-200">Rs {totalEarnings.toFixed(2)}</Text>
+            <Text className="mt-1 text-xs font-semibold text-gray-400">This period</Text>
           </View>
 
-          <View className="flex-1 rounded-3xl bg-white p-4" style={cardShadow}>
+          <View className="flex-1 rounded-3xl bg-gray-800 p-4" style={cardShadow}>
             <View className="flex-row items-center justify-between">
-              <Text className="text-xs font-bold text-gray-400">Completed trips</Text>
+              <Text className="text-xs font-bold text-gray-200">Completed trips</Text>
               <View className="h-9 w-9 items-center justify-center rounded-2xl bg-gray-100">
                 <FontAwesome name="check" size={16} color="#111827" />
               </View>
             </View>
-            <Text className="mt-3 text-2xl font-extrabold text-gray-900">{completedTrips}</Text>
-            <Text className="mt-1 text-xs font-semibold text-gray-500">All time</Text>
+            <Text className="mt-3 text-2xl font-extrabold text-gray-200">{completedTrips}</Text>
+            <Text className="mt-1 text-xs font-semibold text-gray-400">All time</Text>
           </View>
         </View>
 
@@ -109,7 +109,7 @@ export default function DriverDashboardScreen() {
                     {t.destination}
                   </Text>
                 </View>
-                <Text className="text-sm font-extrabold text-[#1D2DD9]">${t.earning.toFixed(2)}</Text>
+                <Text className="text-sm font-extrabold text-[#1D2DD9]">Rs {t.earning.toFixed(2)}</Text>
               </View>
             </View>
           ))}

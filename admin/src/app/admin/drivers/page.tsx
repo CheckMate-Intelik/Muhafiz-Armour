@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
@@ -64,7 +65,7 @@ export default function AdminDriversPage() {
       <div className="page-header">
         <div>
           <h1 className="h1">Drivers</h1>
-          <div className="muted">Approve and block supply</div>
+          <div className="muted">Click a row for details · Use actions without leaving the list</div>
         </div>
       </div>
       {error ? <div className="error">{error}</div> : null}
@@ -75,6 +76,7 @@ export default function AdminDriversPage() {
           <table className="table">
             <thead>
               <tr>
+                <th className="right">Open</th>
                 <th>Name</th>
                 <th>Phone</th>
                 <th>Approved</th>
@@ -84,12 +86,28 @@ export default function AdminDriversPage() {
             </thead>
             <tbody>
               {rows.map((d) => (
-                <tr key={d.id}>
+                <tr
+                  key={d.id}
+                  className="row-click"
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => router.push(`/admin/drivers/${d.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      router.push(`/admin/drivers/${d.id}`);
+                    }
+                  }}>
+                  <td className="right row-link" onClick={(e) => e.stopPropagation()}>
+                    <Link className="link" href={`/admin/drivers/${d.id}`}>
+                      Open
+                    </Link>
+                  </td>
                   <td>{d.name}</td>
                   <td className="mono">{d.phone}</td>
                   <td>{d.isApproved ? 'Yes' : 'No'}</td>
                   <td>{d.isBlocked ? 'Yes' : 'No'}</td>
-                  <td className="right">
+                  <td className="right row-actions" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                     <button className="button button-secondary" disabled={busyId === d.id} onClick={() => toggleApprove(d.id, !d.isApproved)}>
                       {d.isApproved ? 'Unapprove' : 'Approve'}
                     </button>{' '}
@@ -101,7 +119,7 @@ export default function AdminDriversPage() {
               ))}
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="muted">
+                  <td colSpan={6} className="muted">
                     No drivers.
                   </td>
                 </tr>

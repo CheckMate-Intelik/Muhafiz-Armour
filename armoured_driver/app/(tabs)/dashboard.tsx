@@ -70,7 +70,7 @@ export default function DashboardScreen() {
                 <FontAwesome name="money" size={16} color="#111827" />
               </View>
             </View>
-            <Text className="mt-3 text-2xl font-extrabold text-[#1D2DD9]">${totalEarnings.toFixed(2)}</Text>
+            <Text className="mt-3 text-2xl font-extrabold text-[#1D2DD9]">Rs {totalEarnings.toFixed(2)}</Text>
             <Text className="mt-1 text-xs font-semibold text-gray-500">This period</Text>
           </View>
 
@@ -107,7 +107,7 @@ export default function DashboardScreen() {
                     {t.pickup} → {t.destination}
                   </Text>
                 </View>
-                <Text className="text-sm font-extrabold text-[#1D2DD9]">${t.earning.toFixed(2)}</Text>
+                <Text className="text-sm font-extrabold text-[#1D2DD9]">Rs {t.earning.toFixed(2)}</Text>
               </View>
             </View>
           ))}
