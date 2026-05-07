@@ -35,9 +35,17 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+      }
     },
     "android": {
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        }
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -46,6 +54,7 @@
     },
     "extra": {
       "router": {},
+      "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY",
       "eas": {
         "projectId": "72b49bb3-b63f-42c8-9c51-ae97960d2edf"
       }

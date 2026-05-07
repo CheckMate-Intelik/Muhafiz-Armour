@@ -39,27 +39,27 @@ export function BookingDetailsBody({
   return (
     <>
       <View className="flex-row items-stretch gap-2">
-        <View className="flex-1 rounded-3xl bg-gray-800 p-3" style={cardShadow}>
+        <View className="flex-1 rounded-2xl bg-gray-800 p-3" style={cardShadow}>
           <Text className="text-[11px] font-bold text-gray-300">{personLabel}</Text>
           <View className="mt-2 flex-row items-center">
             <View className="h-10 w-10 items-center justify-center rounded-full bg-gray-300">
               <FontAwesome name="user" size={14} color="rgb(31,41,55)" />
             </View>
-            <Text className="ml-2 flex-1 text-sm font-extrabold text-gray-200" numberOfLines={1}>
+            <Text className="ml-2 flex-1 text-md font-semibold text-gray-200" numberOfLines={1}>
               {personName}
             </Text>
           </View>
         </View>
         <View className="flex-col gap-2 w-[40%]">
-          <View className="rounded-3xl bg-gray-600 p-3" style={cardShadow}>
+          <View className="rounded-2xl bg-gray-600 p-3" style={cardShadow}>
             <Text className="text-[11px] font-bold text-gray-300">Status</Text>
-            <Text className={`mt-2 text-xs font-extrabold ${statusTextClassName}`} numberOfLines={2}>
+            <Text className={`mt-2 text-xs font-semibold ${statusTextClassName}`} numberOfLines={2}>
               {statusLabel}
             </Text>
           </View>
-          <View className="h-[80px] rounded-3xl bg-gray-800 p-3" style={cardShadow}>
+          <View className="h-[80px] rounded-2xl bg-gray-800 p-3" style={cardShadow}>
             <Text className="text-[11px] font-bold text-gray-300">Payout</Text>
-            <Text className="mt-2 text-sm font-extrabold text-gray-200" numberOfLines={2}>
+            <Text className="mt-2 text-sm font-semibold text-gray-200" numberOfLines={2}>
               {payoutLabel}
             </Text>
           </View>
