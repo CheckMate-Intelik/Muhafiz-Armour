@@ -7,7 +7,35 @@ import { Alert, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
+import { findPakistanCityByName, PAKISTAN_CITIES, type PakistanCity } from '@/constants/pakistanCities';
+import { useTripDraftStore } from '@/store/tripDraft';
+
 type Mode = 'pickup' | 'drop';
+
+function cityLineFromGeocode(r: Location.LocationGeocodedAddress | null): string {
+  if (!r) return '';
+  for (const k of [r.city, r.district, r.subregion] as const) {
+    if (typeof k === 'string' && k.trim()) return k.trim();
+  }
+  return '';
+}
+
+function resolvePakistanCityFromGeocode(r: Location.LocationGeocodedAddress | null): PakistanCity | undefined {
+  if (!r) return undefined;
+  const candidates: string[] = [];
+  for (const k of [r.city, r.district, r.subregion, r.region] as const) {
+    if (typeof k === 'string' && k.trim()) candidates.push(k.trim());
+  }
+  for (const c of candidates) {
+    const exact = findPakistanCityByName(c);
+    if (exact) return exact;
+  }
+  const haystack = candidates.join(' ').toLowerCase();
+  for (const pc of PAKISTAN_CITIES) {
+    if (haystack.includes(pc.name.toLowerCase())) return pc;
+  }
+  return undefined;
+}
 
 type Params = {
   mode?: Mode;
@@ -18,6 +46,8 @@ type Params = {
   fromLng?: string;
   toLat?: string;
   toLng?: string;
+  centerLat?: string;
+  centerLng?: string;
 };
 
 function parseNum(x: string | undefined) {
@@ -66,9 +96,12 @@ export default function PickLocationScreen() {
 
   const initialLat = parseNum(mode === 'pickup' ? params.fromLat : params.toLat);
   const initialLng = parseNum(mode === 'pickup' ? params.fromLng : params.toLng);
+  const centerLat = parseNum(params.centerLat);
+  const centerLng = parseNum(params.centerLng);
 
   const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(() => {
     if (initialLat != null && initialLng != null) return { lat: initialLat, lng: initialLng };
+    if (centerLat != null && centerLng != null) return { lat: centerLat, lng: centerLng };
     return { lat: 24.8607, lng: 67.0011 };
   });
   const [address, setAddress] = useState<string>(mode === 'pickup' ? from : to);
@@ -88,6 +121,10 @@ export default function PickLocationScreen() {
 
   const [region, setRegion] = useState<Region>(initialRegion);
 
+  const flowTrip = String((params as any).flow ?? '') === 'trip';
+  const hasExplicitMapStart =
+    (initialLat != null && initialLng != null) || (centerLat != null && centerLng != null);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -99,11 +136,22 @@ export default function PickLocationScreen() {
           setReady(true);
           return;
         }
+        if (flowTrip && hasExplicitMapStart) {
+          setReady(true);
+          return;
+        }
         const pos = await Location.getCurrentPositionAsync({});
         if (cancelled) return;
-        if (!marker) {
-          setMarker({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        }
+        setMarker({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        mapRef.current?.animateToRegion(
+          {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            latitudeDelta: 0.02,
+            longitudeDelta: 0.02,
+          },
+          350,
+        );
       } catch {
         // ignore
       } finally {
@@ -149,29 +197,60 @@ export default function PickLocationScreen() {
   }
 
   async function confirm() {
-    if (!vehicleId) {
-      router.back();
-      return;
-    }
     const picked = marker;
-    if (!address.trim()) {
-      if (!picked) {
-        Alert.alert('Missing location', 'Please select a location first.');
-        return;
-      }
+    let line = address.trim();
+    let geoRow: Location.LocationGeocodedAddress | null = null;
+
+    if (picked) {
       try {
         const rows = await Location.reverseGeocodeAsync({ latitude: picked.lat, longitude: picked.lng });
-        const r = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-        const line = r
-          ? [r.name, r.street, r.city, r.region, r.country].filter((x) => typeof x === 'string' && x.trim().length > 0).join(', ')
-          : '';
-        if (line) {
-          setAddress(line);
-          placesRef.current?.setAddressText?.(line);
+        geoRow = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+        if (!line && geoRow) {
+          line = [geoRow.name, geoRow.street, geoRow.city, geoRow.region, geoRow.country]
+            .filter((x) => typeof x === 'string' && x.trim().length > 0)
+            .join(', ');
+          if (line) {
+            setAddress(line);
+            placesRef.current?.setAddressText?.(line);
+          }
         }
       } catch {
         // ignore
       }
+    }
+    if (!line && picked) line = 'Selected location';
+
+    const flowTrip = String((params as any).flow ?? '') === 'trip';
+    if (flowTrip) {
+      if (!picked) {
+        Alert.alert('Missing location', 'Please select a location first.');
+        return;
+      }
+      const trip = useTripDraftStore.getState();
+      const pk = resolvePakistanCityFromGeocode(geoRow);
+      const looseCity = cityLineFromGeocode(geoRow);
+
+      if (mode === 'pickup') {
+        trip.setPickupMap(line, picked.lat, picked.lng);
+        const cityName = (pk?.name ?? looseCity) || trip.serviceCity.trim();
+        trip.setPickupCity(cityName);
+        if (pk) trip.setServiceCity(pk.name, pk.lat, pk.lng);
+      } else {
+        trip.setDropMap(line, picked.lat, picked.lng);
+        const cityName = (pk?.name ?? looseCity) || trip.dropCity.trim() || trip.serviceCity.trim();
+        trip.setDropCity(cityName);
+      }
+      router.back();
+      return;
+    }
+
+    if (!vehicleId) {
+      router.back();
+      return;
+    }
+    if (!picked) {
+      Alert.alert('Missing location', 'Please select a location first.');
+      return;
     }
 
     const nextParams: any = {
@@ -185,17 +264,13 @@ export default function PickLocationScreen() {
     };
 
     if (mode === 'pickup') {
-      nextParams.from = address.trim() || 'Selected location';
-      if (picked) {
-        nextParams.fromLat = String(picked.lat);
-        nextParams.fromLng = String(picked.lng);
-      }
+      nextParams.from = line;
+      nextParams.fromLat = String(picked.lat);
+      nextParams.fromLng = String(picked.lng);
     } else {
-      nextParams.to = address.trim() || 'Selected location';
-      if (picked) {
-        nextParams.toLat = String(picked.lat);
-        nextParams.toLng = String(picked.lng);
-      }
+      nextParams.to = line;
+      nextParams.toLat = String(picked.lat);
+      nextParams.toLng = String(picked.lng);
     }
 
     router.replace({ pathname: '/book-vehicle' as any, params: nextParams });
@@ -337,7 +412,7 @@ export default function PickLocationScreen() {
 
         <View className="flex-1 overflow-hidden rounded-3xl bg-gray-100" style={{ marginTop: 70, zIndex: 0 }}>
           <maps.MapView
-            ref={(r) => {
+            ref={(r: any) => {
               mapRef.current = r;
             }}
             style={{ flex: 1 }}

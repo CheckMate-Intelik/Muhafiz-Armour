@@ -4,32 +4,75 @@ import { PrismaService } from '../../prisma/prisma.service';
 export type MatchRequest = {
   startTime: Date;
   endTime: Date;
+  bufferMinutes?: number | null;
+};
+
+type ActiveBookingSlice = {
+  startTime: Date;
+  endTime: Date;
+  bufferMinutes: number | null;
 };
 
 @Injectable()
 export class MatchingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAvailableVehicles(req: MatchRequest, limit = 5) {
+  /** True if [start,end] expanded by bufferMinutes conflicts with any active booking (each expanded by its own buffer). */
+  bookingsConflict(bookings: ActiveBookingSlice[], start: Date, end: Date, bufferMinutes: number): boolean {
+    const pad = bufferMinutes * 60 * 1000;
+    const ns = new Date(start.getTime() - pad);
+    const ne = new Date(end.getTime() + pad);
+    for (const b of bookings) {
+      const ob = (b.bufferMinutes ?? 120) * 60 * 1000;
+      const os = new Date(b.startTime.getTime() - ob);
+      const oe = new Date(b.endTime.getTime() + ob);
+      if (ns < oe && ne > os) return true;
+    }
+    return false;
+  }
+
+  async assertVehicleAvailableForWindow(
+    vehicleId: string,
+    start: Date,
+    end: Date,
+    bufferMinutes: number,
+    excludeBookingId?: string,
+  ): Promise<boolean> {
+    const rows = await this.prisma.booking.findMany({
+      where: {
+        vehicleId,
+        ...(excludeBookingId ? { id: { not: excludeBookingId } } : {}),
+        status: { in: ['PENDING_DRIVER', 'CONFIRMED', 'IN_PROGRESS'] },
+      },
+      select: { startTime: true, endTime: true, bufferMinutes: true },
+    });
+    return !this.bookingsConflict(rows, start, end, bufferMinutes);
+  }
+
+  async findAvailableVehicles(req: MatchRequest, limit = 50) {
     const { startTime, endTime } = req;
+    const bufferMinutes = req.bufferMinutes ?? 120;
 
     const enforceApprovals = process.env.NODE_ENV === 'production';
 
-    return this.prisma.vehicle.findMany({
+    const rows = await this.prisma.vehicle.findMany({
       where: {
         isApproved: true,
+        status: 'AVAILABLE',
         driver: enforceApprovals ? { isApproved: true, isBlocked: false } : { isBlocked: false },
+      },
+      include: {
+        driver: true,
         bookings: {
-          none: {
-            status: { in: ['PENDING_DRIVER', 'CONFIRMED', 'IN_PROGRESS'] },
-            AND: [{ startTime: { lt: endTime } }, { endTime: { gt: startTime } }],
-          },
+          where: { status: { in: ['PENDING_DRIVER', 'CONFIRMED', 'IN_PROGRESS'] } },
+          select: { startTime: true, endTime: true, bufferMinutes: true },
         },
       },
-      include: { driver: true },
-      orderBy: [{ baseRatePerHour: 'asc' }],
-      take: Math.max(1, Math.min(5, limit)),
+      orderBy: [{ baseRatePerHour: 'asc' }, { createdAt: 'desc' }],
+      take: Math.max(1, Math.min(200, limit * 10)),
     });
+
+    const filtered = rows.filter((v) => !this.bookingsConflict(v.bookings, startTime, endTime, bufferMinutes));
+    return filtered.slice(0, Math.max(1, Math.min(50, limit)));
   }
 }
-

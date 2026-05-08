@@ -1,9 +1,14 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { bufferMinutesForTrip } from '../../common/trip-planning';
+import { MatchingService } from '../matching/matching.service';
 
 @Controller('vehicles')
 export class VehiclePublicController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly matching: MatchingService,
+  ) {}
 
   @Get('types')
   async listVehicleTypes() {
@@ -47,6 +52,10 @@ export class VehiclePublicController {
     @Query('carType') carType?: string,
     @Query('minPrice') minPrice?: string,
     @Query('maxPrice') maxPrice?: string,
+    @Query('startTime') startTime?: string,
+    @Query('endTime') endTime?: string,
+    @Query('pickupCity') pickupCity?: string,
+    @Query('dropCity') dropCity?: string,
   ) {
     const [armourLevels, vehicleTypesRows] = await this.prisma.$transaction([
       this.prisma.armourLevelOption.findMany({ where: { isActive: true }, select: { code: true } }),
@@ -69,9 +78,15 @@ export class VehiclePublicController {
     const hasMin = Number.isFinite(min);
     const hasMax = Number.isFinite(max);
 
+    const start = startTime ? new Date(startTime) : null;
+    const end = endTime ? new Date(endTime) : null;
+    const hasWindow = start && end && !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end > start;
+    const bufferMinutes = hasWindow ? bufferMinutesForTrip(pickupCity, dropCity) : null;
+
     const rows = await this.prisma.vehicle.findMany({
       where: {
         isApproved: true,
+        status: 'AVAILABLE',
         ...(types.length > 0 ? { armourLevel: { in: types } } : {}),
         ...(city && city.trim().length > 0 ? { location: { contains: city.trim(), mode: 'insensitive' } } : {}),
         ...(vehicleTypes.length > 0 ? { vehicleType: { in: vehicleTypes } } : {}),
@@ -88,12 +103,28 @@ export class VehiclePublicController {
         driver: {
           select: { id: true, name: true },
         },
+        bookings: {
+          where: { status: { in: ['PENDING_DRIVER', 'CONFIRMED', 'IN_PROGRESS'] } },
+          select: { startTime: true, endTime: true, bufferMinutes: true },
+        },
       },
       orderBy: [{ baseRatePerHour: 'asc' }, { createdAt: 'desc' }],
     });
 
+    const filtered = hasWindow
+      ? rows.filter(
+          (v) =>
+            !this.matching.bookingsConflict(
+              v.bookings,
+              start!,
+              end!,
+              bufferMinutes ?? 120,
+            ),
+        )
+      : rows;
+
     return {
-      vehicles: rows.map((v: (typeof rows)[number]) => ({
+      vehicles: filtered.map((v: (typeof filtered)[number]) => ({
         id: v.id,
         imageUrls: Array.isArray(v.imageUrls) ? v.imageUrls : [],
         manufacturer: v.manufacturer,
@@ -107,6 +138,7 @@ export class VehiclePublicController {
         vehicleType: v.vehicleType,
         location: v.location,
         baseRatePerHour: v.baseRatePerHour,
+        seatingCapacity: v.seatingCapacity,
         rating: 4.8,
         owner: {
           id: v.driver?.id ?? '',
@@ -152,6 +184,7 @@ export class VehiclePublicController {
         vehicleType: v.vehicleType,
         location: v.location,
         baseRatePerHour: v.baseRatePerHour,
+        seatingCapacity: v.seatingCapacity,
         certification: v.registrationNumber ? `Certified (${v.registrationNumber})` : `Certified (${v.armourLevel})`,
         condition: v.year && v.year >= new Date().getFullYear() - 2 ? 'Excellent condition' : 'Operational condition',
         features: featuresByLevel[v.armourLevel] ?? ['Bullet-resistant body', 'Secured transport'],
@@ -164,4 +197,3 @@ export class VehiclePublicController {
     };
   }
 }
-

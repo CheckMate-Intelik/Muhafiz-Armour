@@ -53,10 +53,20 @@ export class DriverService {
     if (booking.status !== 'PENDING_DRIVER') throw new BadRequestException('Booking is not pending driver');
 
     if (!accept) {
-      return this.prisma.booking.update({
-        where: { id: bookingId },
-        data: { status: 'REJECTED' },
-        include: { user: true, vehicle: true, driver: true },
+      const vid = booking.vehicleId;
+      return this.prisma.$transaction(async (tx) => {
+        const updated = await tx.booking.update({
+          where: { id: bookingId },
+          data: { status: 'REJECTED', vehicleId: null, driverId: null },
+          include: { user: true, vehicle: true, driver: true },
+        });
+        if (vid) {
+          await tx.vehicle.updateMany({
+            where: { id: vid, status: 'BOOKED' },
+            data: { status: 'AVAILABLE' },
+          });
+        }
+        return updated;
       });
     }
 
@@ -98,15 +108,25 @@ export class DriverService {
     const overtimeHours = overtimeMinutes ? overtimeMinutes / 60 : 0;
     const totalPrice = Math.round(booking.vehicle.baseRatePerHour * (plannedHours + overtimeHours));
 
-    return this.prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: 'COMPLETED',
-        actualEndTime,
-        overtimeMinutes,
-        totalPrice,
-      },
-      include: { user: true, vehicle: true, driver: true },
+    const vid = booking.vehicleId;
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: 'COMPLETED',
+          actualEndTime,
+          overtimeMinutes,
+          totalPrice,
+        },
+        include: { user: true, vehicle: true, driver: true },
+      });
+      if (vid) {
+        await tx.vehicle.updateMany({
+          where: { id: vid, status: 'BOOKED' },
+          data: { status: 'AVAILABLE' },
+        });
+      }
+      return updated;
     });
   }
 
@@ -116,13 +136,25 @@ export class DriverService {
     if (booking.driverId !== driverId) throw new BadRequestException('Not your booking');
     if (!['CONFIRMED', 'IN_PROGRESS'].includes(booking.status)) throw new BadRequestException('Booking is not cancellable');
 
-    return this.prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: 'REJECTED',
-        actualEndTime: booking.actualEndTime ?? (booking.status === 'IN_PROGRESS' ? new Date() : booking.actualEndTime),
-      },
-      include: { user: true, vehicle: true, driver: true },
+    const vid = booking.vehicleId;
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: 'REJECTED',
+          actualEndTime: booking.actualEndTime ?? (booking.status === 'IN_PROGRESS' ? new Date() : booking.actualEndTime),
+          vehicleId: null,
+          driverId: null,
+        },
+        include: { user: true, vehicle: true, driver: true },
+      });
+      if (vid) {
+        await tx.vehicle.updateMany({
+          where: { id: vid, status: 'BOOKED' },
+          data: { status: 'AVAILABLE' },
+        });
+      }
+      return updated;
     });
   }
 

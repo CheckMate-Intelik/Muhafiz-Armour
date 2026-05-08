@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { BookingDetailsBody } from '@/components/BookingDetailsBody';
-import { apiGet, apiPatch, ensureUserSession } from '@/lib/api';
+import { apiGet, apiPatch, apiPost, ensureUserSession } from '@/lib/api';
 
 const SNOOZE_KEY = 'armoured:ongoing-trip-snooze:v1';
 const IN_MEMORY_SNOOZE_KEY = '__armouredOngoingTripSnoozeUntilMs';
@@ -47,6 +47,20 @@ export default function OngoingTripScreen() {
     const rows = await apiGet<Booking[]>(`/bookings`, s.userId);
     const match = Array.isArray(rows) ? rows.find((b) => b.id === bookingId) : undefined;
     setBooking(match ?? null);
+  }
+
+  async function extend(mode: 'ADD_2_HOURS' | 'ADD_1_DAY') {
+    if (!booking) return;
+    try {
+      setBusy(true);
+      const s = await ensureUserSession();
+      const updated = await apiPost<Booking>(`/bookings/${booking.id}/extend`, s.userId, { mode });
+      setBooking(updated);
+    } catch (e) {
+      Alert.alert('Extension denied', e instanceof Error ? e.message : 'Conflict or error');
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function cancel() {
@@ -190,6 +204,26 @@ export default function OngoingTripScreen() {
             You’ll be notified here once the driver completes the trip.
           </Text>
         </View>
+
+        {booking.status === 'IN_PROGRESS' || booking.status === 'CONFIRMED' ? (
+          <View className="mt-4 gap-3">
+            <Text className="text-xs font-extrabold text-gray-900">Extend booking</Text>
+            <View className="flex-row gap-3">
+              <Pressable
+                disabled={busy}
+                onPress={() => void extend('ADD_2_HOURS')}
+                className={`flex-1 items-center rounded-2xl py-3 ${busy ? 'bg-gray-200' : 'bg-[#1D2DD9]'}`}>
+                <Text className={`text-xs font-extrabold ${busy ? 'text-gray-500' : 'text-white'}`}>+2 hours</Text>
+              </Pressable>
+              <Pressable
+                disabled={busy}
+                onPress={() => void extend('ADD_1_DAY')}
+                className={`flex-1 items-center rounded-2xl py-3 ${busy ? 'bg-gray-200' : 'bg-[#1D2DD9]'}`}>
+                <Text className={`text-xs font-extrabold ${busy ? 'text-gray-500' : 'text-white'}`}>+1 day</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
 
         {booking.status !== 'IN_PROGRESS' ? (
           <Pressable

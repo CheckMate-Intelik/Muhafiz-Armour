@@ -117,7 +117,8 @@ export default function DriverTabLayout() {
           borderRadius: 28,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgb(31, 41, 55)',
+          // backgroundColor: 'rgb(31, 41, 55)',
+          backgroundColor: 'rgba(0, 0, 0, 0.92)',
           borderTopWidth: 0,
           shadowColor: '#000',
           shadowOpacity: 0.08,
@@ -147,7 +148,7 @@ export default function DriverTabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'white' : 'transparent',
                 height: 46,
-                width: focused ? 120 : 52,
+                width: focused ? '370%' : 52,
                 marginLeft: focused ? 30 : 0,
               }}>
               <FontAwesome name="bar-chart" size={20} color={focused ? 'rgb(31, 41, 55)' : 'white'} />
@@ -182,7 +183,7 @@ export default function DriverTabLayout() {
                 backgroundColor: focused ? 'white' : 'transparent',
                 height: 46,
                 // marginLeft: focused ? 20 : 0,
-                width: focused ? 110 : 52,
+                width: focused ? '350%' : 52,
               }}>
               <FontAwesome name="list-alt" size={20} color={focused ? 'rgb(31, 41, 55)' : 'white'} />
               {focused && (
@@ -215,7 +216,7 @@ export default function DriverTabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'white' : 'transparent',
                 height: 46,
-                width: focused ? 110 : 52,
+                width: focused ? '350%' : 52,
               }}>
               <FontAwesome name="car" size={20} color={focused ? 'rgb(31, 41, 55)' : 'white'} />
               {focused && (
@@ -248,7 +249,7 @@ export default function DriverTabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'white' : 'transparent',
                 height: 46,
-                width: focused ? 90 : 52,
+                width: focused ? '275%' : 52,
               }}>
               <FontAwesome name="user" size={20} color={focused ? 'rgb(31, 41, 55)' : 'white'} />
               {focused && (

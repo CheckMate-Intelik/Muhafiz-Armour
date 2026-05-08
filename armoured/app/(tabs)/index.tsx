@@ -1,44 +1,51 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import RBSheet from 'react-native-raw-bottom-sheet';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Alert,
+  AppState,
+  FlatList,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { PUBLIC_API_BASE_URL, apiGet, ensureUserSession } from '@/lib/api';
-import { VehicleCard } from '@/components/VehicleCard';
-
-type VehicleCard = {
-  id: string;
-  imageUrls: string[];
-  driverName?: string | null;
-  manufacturer: string | null;
-  generation: string | null;
-  carModel: string | null;
-  armourLevel: string;
-  vehicleType: string;
-  rating: number;
-  baseRatePerHour: number;
-  location: string;
-};
+import { filterPakistanCities, findPakistanCityByName, type PakistanCity } from '@/constants/pakistanCities';
+import { apiGet, ensureUserSession } from '@/lib/api';
+import { useTripDraftStore } from '@/store/tripDraft';
 
 export default function Home() {
-  const filterSheetRef = useRef<any>(null);
+  const draft = useTripDraftStore();
+  const setServiceCity = useTripDraftStore((s) => s.setServiceCity);
+  const setDropCity = useTripDraftStore((s) => s.setDropCity);
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>('');
-  const [search, setSearch] = useState('');
-  const [selectedArmours, setSelectedArmours] = useState<string[]>([]);
-  const [city, setCity] = useState('');
-  const [selectedCarTypes, setSelectedCarTypes] = useState<string[]>(['ALL']);
-  const [armourTypes, setArmourTypes] = useState<string[]>([]);
-  const [vehicleTypeOptions, setVehicleTypeOptions] = useState<string[]>(['ALL']);
-  const [carTypePickerOpen, setCarTypePickerOpen] = useState(false);
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [vehicles, setVehicles] = useState<VehicleCard[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [ongoingTrip, setOngoingTrip] = useState<null | { id: string; pickupLocation: string; dropLocation: string; driverName: string; vehicleType: string }>(null);
+  const [ongoingTrip, setOngoingTrip] = useState<null | {
+    id: string;
+    pickupLocation: string;
+    dropLocation: string;
+    driverName: string;
+    vehicleType: string;
+  }>(null);
+  const [cityModalOpen, setCityModalOpen] = useState(false);
+  const [cityModalKind, setCityModalKind] = useState<'service' | 'drop' | null>(null);
+  const [citySearch, setCitySearch] = useState('');
+
+  const filteredCities = useMemo(() => filterPakistanCities(citySearch), [citySearch]);
+
+  const hasBothLocations =
+    draft.pickupLat != null &&
+    draft.pickupLng != null &&
+    draft.dropLat != null &&
+    draft.dropLng != null &&
+    draft.pickupCity.trim().length > 0 &&
+    draft.dropCity.trim().length > 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -65,84 +72,6 @@ export default function Home() {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadOptions() {
-      try {
-        const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/options`);
-        if (!res.ok) return;
-        const data = (await res.json()) as {
-          armourLevels?: { code: string; label: string }[];
-          vehicleTypes?: { code: string; label: string }[];
-        };
-        if (cancelled) return;
-        const nextArmours = Array.isArray(data.armourLevels) ? data.armourLevels.map((x) => x.code) : [];
-        const nextVehicleTypes = Array.isArray(data.vehicleTypes) ? data.vehicleTypes.map((x) => x.code) : [];
-        if (nextArmours.length > 0) {
-          setArmourTypes(nextArmours);
-          setSelectedArmours((prev) => prev.filter((x) => nextArmours.includes(x)));
-        }
-        if (nextVehicleTypes.length > 0) {
-          const allTypes = ['ALL', ...nextVehicleTypes];
-          setVehicleTypeOptions(allTypes);
-          setSelectedCarTypes((prev) => {
-            if (prev.includes('ALL')) return ['ALL'];
-            const filtered = prev.filter((x) => allTypes.includes(x));
-            return filtered.length > 0 ? filtered : ['ALL'];
-          });
-        }
-      } catch {
-        // fallback options already available
-      }
-    }
-    void loadOptions();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadVehicles() {
-      try {
-        setLoading(true);
-        const q = new URLSearchParams();
-        if (selectedArmours.length > 0) q.set('types', selectedArmours.join(','));
-        if (city.trim().length > 0) q.set('city', city.trim());
-        if (!selectedCarTypes.includes('ALL')) q.set('carType', selectedCarTypes.join(','));
-        if (minPrice.trim().length > 0) q.set('minPrice', minPrice.trim());
-        if (maxPrice.trim().length > 0) q.set('maxPrice', maxPrice.trim());
-        const suffix = q.toString() ? `?${q.toString()}` : '';
-        const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/available${suffix}`);
-        if (!res.ok) return;
-        const data = (await res.json()) as {
-          vehicles?: Array<
-            VehicleCard & {
-              owner?: { name?: string } | null;
-            }
-          >;
-        };
-        if (cancelled) return;
-        setVehicles(
-          Array.isArray(data.vehicles)
-            ? data.vehicles.map((v) => ({
-                ...v,
-                driverName: v.driverName ?? v.owner?.name ?? 'Driver',
-              }))
-            : [],
-        );
-      } catch {
-        if (!cancelled) setVehicles([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    void loadVehicles();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedArmours, city, selectedCarTypes, minPrice, maxPrice]);
 
   useEffect(() => {
     let cancelled = false;
@@ -180,43 +109,83 @@ export default function Home() {
     };
   }, [userId]);
 
-  const filteredVehicles = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return vehicles;
-    return vehicles.filter((v) =>
-      `${v.manufacturer ?? ''} ${v.generation ?? ''} ${v.carModel ?? ''} ${v.location}`.toLowerCase().includes(q),
-    );
-  }, [vehicles, search]);
-
-  function toggleArmour(type: string) {
-    setSelectedArmours((prev) => (prev.includes(type) ? prev.filter((x) => x !== type) : [...prev, type]));
+  function closeCityModal() {
+    setCityModalOpen(false);
+    setCityModalKind(null);
+    setCitySearch('');
   }
 
-  function applyFilters() {
-    filterSheetRef.current?.close();
+  function selectCityFromModal(c: PakistanCity) {
+    if (cityModalKind === 'drop') {
+      setDropCity(c.name);
+    } else {
+      setServiceCity(c.name, c.lat, c.lng);
+      const st = useTripDraftStore.getState();
+      if (!st.dropCity.trim()) setDropCity(c.name);
+    }
+    closeCityModal();
   }
 
-  function toggleCarType(type: string) {
-    setSelectedCarTypes((prev) => {
-      if (type === 'ALL') return ['ALL'];
-      const withoutAll = prev.filter((x) => x !== 'ALL');
-      const next = withoutAll.includes(type) ? withoutAll.filter((x) => x !== type) : [...withoutAll, type];
-      return next.length === 0 ? ['ALL'] : next;
+  function openPickupMapDirect() {
+    const d = useTripDraftStore.getState();
+    if (!d.serviceCity.trim() || d.serviceCityLat == null || d.serviceCityLng == null) {
+      Alert.alert('Select city', 'Choose your city from the list first.');
+      setCityModalKind('service');
+      setCitySearch(d.serviceCity);
+      setCityModalOpen(true);
+      return;
+    }
+    router.push({
+      pathname: '/pick-location' as any,
+      params: {
+        flow: 'trip',
+        mode: 'pickup',
+        from: d.serviceCity,
+        centerLat: String(d.serviceCityLat),
+        centerLng: String(d.serviceCityLng),
+      },
     });
   }
 
-  function handleMinPriceChange(next: string) {
-    if (/^\d*$/.test(next)) setMinPrice(next);
-  }
-
-  function handleMaxPriceChange(next: string) {
-    if (/^\d*$/.test(next)) setMaxPrice(next);
+  function openDropMapDirect() {
+    const d = useTripDraftStore.getState();
+    if (!d.serviceCity.trim() || d.serviceCityLat == null || d.serviceCityLng == null) {
+      Alert.alert('Select city', 'Choose your city from the list first.');
+      setCityModalKind('service');
+      setCitySearch(d.serviceCity);
+      setCityModalOpen(true);
+      return;
+    }
+    if (!d.pickupAddress || d.pickupLat == null) {
+      Alert.alert('Pickup first', 'Choose your pickup location on the map before drop-off.');
+      return;
+    }
+    if (!d.dropCity.trim()) {
+      Alert.alert('Drop city', 'Choose the drop-off city first.');
+      setCityModalKind('drop');
+      setCitySearch('');
+      setCityModalOpen(true);
+      return;
+    }
+    const dropPk = findPakistanCityByName(d.dropCity.trim());
+    const lat = dropPk?.lat ?? d.serviceCityLat;
+    const lng = dropPk?.lng ?? d.serviceCityLng;
+    router.push({
+      pathname: '/pick-location' as any,
+      params: {
+        flow: 'trip',
+        mode: 'drop',
+        to: dropPk?.name ?? d.dropCity.trim(),
+        centerLat: String(lat),
+        centerLng: String(lng),
+      },
+    });
   }
 
   return (
-    <LinearGradient 
-      colors={['rgb(77, 76, 76)', 'rgb(112, 112, 112)','rgb(202, 202, 202)','rgb(247, 248, 255)']} 
-      start={{ x: 1, y: 0 }} 
+    <LinearGradient
+      colors={['rgb(77, 76, 76)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
+      start={{ x: 1, y: 0 }}
       end={{ x: 1, y: 1 }}
       locations={[0, 0.3, 0.6, 1]}
       style={{ flex: 1 }}>
@@ -225,7 +194,7 @@ export default function Home() {
           <View className="flex-row items-center justify-between">
             <View>
               <Text className="text-[18px] font-semibold text-gray-200">Welcome!</Text>
-              <Text className="text-lg font-semibold text-gray-200">{userName || city.trim() || 'User'}</Text>
+              <Text className="text-lg font-semibold text-gray-200">{userName || 'User'}</Text>
             </View>
             <View className="flex-row items-center gap-2">
               <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
@@ -235,168 +204,143 @@ export default function Home() {
             </View>
           </View>
 
-        <View className="mt-4 flex-row items-center">
-          <View className="flex-1 flex-row items-center rounded-2xl bg-white px-4 py-3">
-            <FontAwesome name="search" size={14} color="#9CA3AF" />
-            <TextInput
-              value={search}
-              onChangeText={setSearch}
-              placeholder="Search your dream car..."
-              placeholderTextColor="#9CA3AF"
-              className="ml-2 flex-1 text-sm font-semibold text-gray-900"
-            />
-          </View>
-          <Pressable onPress={() => filterSheetRef.current?.open()} className="ml-3 h-11 w-11 items-center justify-center rounded-2xl bg-[#111827]">
-            <FontAwesome name="sliders" size={14} color="#FFFFFF" />
-          </Pressable>
-        </View>
-
-        {ongoingTrip ? (
-          <Pressable
-            onPress={() => router.push({ pathname: '/ongoing-trip' as any, params: { bookingId: ongoingTrip.id } })}
-            className="mt-4 rounded-2xl bg-[rgb(71,138,44)] px-4 py-3">
-            <Text className="text-md font-bold text-gray-200">Ongoing trip</Text>
-            <Text className="mt-1 text-[12px] font-semibold text-gray-300">
-              {ongoingTrip.pickupLocation}
-              {' -> '}
-              {ongoingTrip.dropLocation}
-            </Text>
-            <Text className="text-[12px] font-semibold text-gray-300">
-              {ongoingTrip.driverName} • {ongoingTrip.vehicleType}
-            </Text>
-          </Pressable>
-        ) : null}
-
-        <Text className="text-lg font-bold text-gray-200 mt-2">Armour levels</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
-          {armourTypes.map((type) => {
-            const active = selectedArmours.includes(type);
-            return (
-              <Pressable
-                key={type}
-                onPress={() => toggleArmour(type)}
-                className={`h-[70px] w-[40%] justify-center rounded-2xl mr-2 px-4 py-2 ${active ? 'bg-[#111827]' : 'bg-white'}`}
-                >
-                <Text className={`text-md font-extrabold text-center ${active ? 'text-white' : 'text-gray-700'}`}>{type}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        <View className="mt-6 flex-row items-center justify-between">
-          <Text className="text-lg font-bold text-gray-200">Available Vehicles</Text>
-          <Text className="text-xs font-bold text-gray-400">{filteredVehicles.length} cars</Text>
-        </View>
-
-        {loading ? (
-          <View className="mt-10 items-center">
-            <Text className="text-sm font-semibold text-gray-500">Loading...</Text>
-          </View>
-        ) : null}
-
-        {!loading && filteredVehicles.length === 0 ? (
-          <View className="mt-10 items-center">
-            <Text className="text-sm font-semibold text-gray-500">No vehicles found for selected filters.</Text>
-          </View>
-        ) : null}
-
-        <View className="mt-4 flex-row flex-wrap justify-between">
-          {filteredVehicles.map((v) => (
-            <VehicleCard
-              key={v.id}
-              vehicle={v}
-              onPress={() => router.push({ pathname: '/car-details' as any, params: { vehicleId: v.id } })}
-            />
-          ))}
-        </View>
-        </ScrollView>
-
-        <RBSheet
-          ref={filterSheetRef}
-          closeOnPressMask
-          draggable
-          dragOnContent={false}
-          height={460}
-          customStyles={{
-            wrapper: { backgroundColor: 'rgba(0,0,0,0.4)' },
-            draggableIcon: { backgroundColor: '#D1D5DB' },
-            container: { borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 16, paddingBottom: 16 },
-          }}>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <Text className="text-base font-extrabold text-gray-900">Filters</Text>
-            <Field label="City" value={city} onChangeText={setCity} placeholder="Karachi" />
-            <View className="mt-3 rounded-2xl bg-gray-50 px-4 py-3">
-              <Text className="text-[10px] font-bold text-gray-400">Car type</Text>
-              <Pressable onPress={() => setCarTypePickerOpen((prev) => !prev)} className="mt-2 flex-row items-center justify-between rounded-xl bg-white px-3 py-2.5">
-                <Text className="text-sm font-extrabold text-gray-900">
-                  {selectedCarTypes.includes('ALL') ? 'ALL' : selectedCarTypes.join(', ')}
-                </Text>
-                <FontAwesome name={carTypePickerOpen ? 'angle-up' : 'angle-down'} size={16} color="#6B7280" />
-              </Pressable>
-              {carTypePickerOpen ? (
-                <View className="mt-2 rounded-xl bg-white p-1">
-                  {vehicleTypeOptions.map((type) => (
-                    <Pressable
-                      key={type}
-                      onPress={() => toggleCarType(type)}
-                      className="rounded-lg px-3 py-2 flex-row items-center justify-between">
-                      <Text className="text-sm font-bold text-gray-800">{type}</Text>
-                      {selectedCarTypes.includes(type) ? <FontAwesome name="check" size={14} color="#16A34A" /> : <View />}
-                    </Pressable>
-                  ))}
-                </View>
-              ) : null}
-            </View>
-            <View className="mt-3 flex-row gap-3">
-              <View className="flex-1">
-                <Field label="Min price/hr" value={minPrice} onChangeText={handleMinPriceChange} placeholder="100" keyboardType="number-pad" />
-              </View>
-              <View className="flex-1">
-                <Field label="Max price/hr" value={maxPrice} onChangeText={handleMaxPriceChange} placeholder="500" keyboardType="number-pad" />
-              </View>
-            </View>
-            <Pressable onPress={applyFilters} className="mt-4 items-center justify-center rounded-2xl bg-[#111827] py-3">
-              <Text className="text-xs font-extrabold text-white">Apply filters</Text>
+          {ongoingTrip ? (
+            <Pressable
+              onPress={() => router.push({ pathname: '/ongoing-trip' as any, params: { bookingId: ongoingTrip.id } })}
+              className="mt-4 rounded-2xl bg-[rgb(71,138,44)] px-4 py-3">
+              <Text className="text-md font-bold text-gray-200">Ongoing trip</Text>
+              <Text className="mt-1 text-[12px] font-semibold text-gray-300">
+                {ongoingTrip.pickupLocation}
+                {' -> '}
+                {ongoingTrip.dropLocation}
+              </Text>
+              <Text className="text-[12px] font-semibold text-gray-300">
+                {ongoingTrip.driverName} • {ongoingTrip.vehicleType}
+              </Text>
             </Pressable>
-          </ScrollView>
-        </RBSheet>
+          ) : null}
+
+          
+          <Text className="mt-20 text-center text-3xl font-semibold text-gray-200">Where are you going?</Text>
+
+          <Text className="mt-6 text-md font-bold uppercase tracking-wide text-gray-300">Your city</Text>
+          <Pressable
+            onPress={() => {
+              setCityModalKind('service');
+              setCitySearch(draft.serviceCity);
+              setCityModalOpen(true);
+            }}
+            className="mt-2 flex-row items-center justify-between rounded-2xl bg-white px-4 py-3.5">
+            <View className="flex-1 flex-row items-center">
+              <FontAwesome name="map-marker" size={16} color="#111827" />
+              <Text className={`ml-3 flex-1 text-sm font-extrabold ${draft.serviceCity ? 'text-gray-900' : 'text-gray-400'}`}>
+                {draft.serviceCity || 'Tap to search cities…'}
+              </Text>
+            </View>
+            <FontAwesome name="chevron-down" size={14} color="#6B7280" />
+          </Pressable>
+          
+          <View className="mt-8 gap-5">
+            <View>
+              {/* <Text className="text-md font-bold uppercase tracking-wide text-gray-300">Pickup</Text> */}
+              <Pressable
+                onPress={openPickupMapDirect}
+                className="h-[70px] mt-2 flex-row items-center rounded-2xl border border-gray-200 px-4 py-3.5">
+                <FontAwesome name="dot-circle-o" size={20} color="#6B7280" />
+                <Text
+                  numberOfLines={2}
+                  className={`ml-3 mr-3 flex-1 text-md font-semibold bg-transparent border-b border-gray-200 ${draft.pickupAddress ? 'text-gray-900' : 'text-gray-300'}`}>
+                  {draft.pickupAddress || 'Select pickup on map'}
+                </Text>
+                <FontAwesome name="map-marker" size={20} color="#9CA3AF" />
+              </Pressable>
+            </View>
+
+            <View>
+              <Text className="text-md font-bold uppercase tracking-wide text-gray-800">Drop city</Text>
+              <Pressable
+                onPress={() => {
+                  setCityModalKind('drop');
+                  setCitySearch(draft.dropCity);
+                  setCityModalOpen(true);
+                }}
+                className="mt-2 flex-row items-center justify-between rounded-2xl border border-gray-200/80 bg-white px-4 py-3.5 shadow-sm">
+                <View className="flex-1 flex-row items-center">
+                  <FontAwesome name="building-o" size={15} color="#111827" />
+                  <Text className={`ml-3 flex-1 text-sm font-extrabold ${draft.dropCity ? 'text-gray-900' : 'text-gray-400'}`}>
+                    {draft.dropCity || 'Tap to choose drop city'}
+                  </Text>
+                </View>
+                <FontAwesome name="chevron-down" size={14} color="#6B7280" />
+              </Pressable>
+            </View>
+
+            <View>
+              {/* <Text className="text-md font-bold uppercase tracking-wide text-gray-800">Drop location</Text> */}
+              <Pressable
+                onPress={openDropMapDirect}
+                className="h-[70px] mt-2 flex-row items-center rounded-2xl border border-gray-500 px-4 py-3.5">
+                <FontAwesome name="map-marker" size={20} color="#6B7280" />
+                <Text
+                  numberOfLines={2}
+                  className={`ml-3 mr-3 flex-1 text-md font-semibold bg-transparent border-b border-gray-500 ${draft.dropAddress ? 'text-gray-900' : 'text-gray-500'}`}>
+                  {draft.dropAddress || 'Select drop on map'}
+                </Text>
+                <FontAwesome name="map" size={20} color="#9CA3AF" />
+              </Pressable>
+            </View>
+          </View>
+
+          {hasBothLocations ? (
+            <Pressable
+              onPress={() => router.push('/trip-schedule' as any)}
+              className="mt-8 items-center rounded-2xl bg-[#111827] py-3.5">
+              <Text className="text-sm font-extrabold text-white">Next — pickup time & duration</Text>
+            </Pressable>
+          ) : null}
+        </ScrollView>
+
+        <Modal visible={cityModalOpen} animationType="slide" transparent onRequestClose={closeCityModal}>
+          <View className="flex-1 justify-end bg-black/50">
+            <View className="max-h-[85%] rounded-t-3xl bg-white px-4 pb-6 pt-3">
+              <View className="mb-3 flex-row items-center justify-between">
+                <Text className="text-base font-extrabold text-gray-900">
+                  {cityModalKind === 'drop' ? 'Drop city' : 'Pakistan cities'}
+                </Text>
+                <Pressable onPress={closeCityModal} hitSlop={12}>
+                  <Text className="text-sm font-extrabold text-[#1D2DD9]">Done</Text>
+                </Pressable>
+              </View>
+              <View className="flex-row items-center rounded-2xl bg-gray-100 px-3 py-2">
+                <FontAwesome name="search" size={14} color="#6B7280" />
+                <TextInput
+                  value={citySearch}
+                  onChangeText={setCitySearch}
+                  placeholder="Type to search…"
+                  placeholderTextColor="#9CA3AF"
+                  autoFocus
+                  className="ml-2 flex-1 py-2 text-sm font-semibold text-gray-900"
+                />
+              </View>
+              <FlatList
+                data={filteredCities}
+                keyExtractor={(item) => item.name}
+                keyboardShouldPersistTaps="handled"
+                className="mt-2"
+                style={{ maxHeight: 420 }}
+                renderItem={({ item }) => (
+                  <Pressable onPress={() => selectCityFromModal(item)} className="border-b border-gray-100 py-3.5">
+                    <Text className="text-sm font-extrabold text-gray-900">{item.name}</Text>
+                  </Pressable>
+                )}
+                ListEmptyComponent={
+                  <Text className="py-6 text-center text-sm font-semibold text-gray-500">No matching city.</Text>
+                }
+              />
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </LinearGradient>
   );
 }
-
-function Field({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  keyboardType,
-}: {
-  label: string;
-  value: string;
-  onChangeText: (v: string) => void;
-  placeholder: string;
-  keyboardType?: 'default' | 'number-pad';
-}) {
-  return (
-    <View className="mt-3 rounded-2xl bg-gray-50 px-4 py-3">
-      <Text className="text-[10px] font-bold text-gray-400">{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#9CA3AF"
-        keyboardType={keyboardType}
-        className="mt-1 text-sm font-extrabold text-gray-900"
-      />
-    </View>
-  );
-}
-
-const cardShadow = {
-  shadowColor: '#000',
-  shadowOpacity: 0.06,
-  shadowRadius: 12,
-  shadowOffset: { width: 0, height: 8 },
-  elevation: 3,
-};

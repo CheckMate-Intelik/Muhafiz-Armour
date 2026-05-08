@@ -7,6 +7,10 @@ import { RolesGuard } from '../auth/roles.guard';
 import { BookingService } from './booking.service';
 import { RequestBookingDto } from './dto/request-booking.dto';
 import { SelectVehicleDto } from './dto/select-vehicle.dto';
+import { PlanTripMetaDto } from './dto/plan-trip-meta.dto';
+import { UpdateBookingScheduleDto } from './dto/update-booking-schedule.dto';
+import { ExtendBookingDto } from './dto/extend-booking.dto';
+import { CheckVehicleAvailabilityDto } from './dto/check-vehicle-availability.dto';
 
 @Controller('bookings')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -14,9 +18,29 @@ import { SelectVehicleDto } from './dto/select-vehicle.dto';
 export class BookingController {
   constructor(private readonly bookings: BookingService) {}
 
+  @Post('plan-meta')
+  planMeta(@Body() dto: PlanTripMetaDto) {
+    return this.bookings.planTripMeta(dto);
+  }
+
+  @Post('check-availability')
+  checkAvailability(@Body() dto: CheckVehicleAvailabilityDto) {
+    return this.bookings.checkVehicleAvailabilityFromDto(dto);
+  }
+
   @Post('request')
   async request(@AuthUser() user: JwtPayload, @Body() dto: RequestBookingDto) {
     return this.bookings.requestBooking(user.sub, dto);
+  }
+
+  @Patch(':id/schedule')
+  async updateSchedule(@AuthUser() user: JwtPayload, @Param('id') id: string, @Body() dto: UpdateBookingScheduleDto) {
+    return this.bookings.updateSchedule(user.sub, id, dto);
+  }
+
+  @Post(':id/extend')
+  async extend(@AuthUser() user: JwtPayload, @Param('id') id: string, @Body() dto: ExtendBookingDto) {
+    return this.bookings.extendActiveBooking(user.sub, id, dto);
   }
 
   @Post(':id/select')
@@ -39,4 +63,3 @@ export class BookingController {
     return this.bookings.cancelForUser(user.sub, id);
   }
 }
-

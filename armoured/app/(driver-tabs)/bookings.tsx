@@ -141,19 +141,6 @@ export default function DriverBookingsScreen() {
     }
   }
 
-  async function startTrip(bookingId: string) {
-    try {
-      setBusyId(bookingId);
-      const s = await ensureDriverSession();
-      await driverPatch(`/driver/bookings/${bookingId}/start`, s.driverId);
-      router.push({ pathname: '/driver-ongoing-trip' as any, params: { bookingId } });
-    } catch (e) {
-      Alert.alert('Failed', e instanceof Error ? e.message : 'Start trip failed');
-    } finally {
-      setBusyId(null);
-    }
-  }
-
   async function cancelTrip(bookingId: string) {
     Alert.alert('Cancel trip?', 'This will cancel the selected trip.', [
       { text: 'No', style: 'cancel' },

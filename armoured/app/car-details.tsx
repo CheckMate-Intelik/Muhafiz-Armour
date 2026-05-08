@@ -23,7 +23,7 @@ type VehicleDetails = {
   baseRatePerHour: number;
   certification: string;
   condition: string;
-  features: string[];
+  seatingCapacity?: number;
   owner: { id: string; name: string; rating: number };
 };
 
@@ -75,7 +75,7 @@ export default function CarDetailsScreen() {
   const specificationCards = useMemo(() => {
     if (!vehicle) return [];
     return [
-      { key: 'capacity', label: 'Capacity', value: '4 Seats', icon: 'users' as const },
+      { key: 'capacity', label: 'Capacity', value: `${vehicle.seatingCapacity ?? 4} seats`, icon: 'users' as const },
       { key: 'certification', label: 'Certification', value: vehicle.certification, icon: 'shield' as const },
       { key: 'location', label: 'City', value: vehicle.location, icon: 'map-marker' as const },
     ];
@@ -220,7 +220,7 @@ export default function CarDetailsScreen() {
           </View>
           {!isReadonly ? (
             <Pressable
-              onPress={() => router.push({ pathname: '/book-vehicle' as any, params: { vehicleId: vehicle.id } })}
+              onPress={() => router.push({ pathname: '/book-confirm' as any, params: { vehicleId: vehicle.id } })}
               className="rounded-2xl bg-[#111827] px-6 py-3">
               <Text className="text-sm font-extrabold text-white">Book Now</Text>
             </Pressable>

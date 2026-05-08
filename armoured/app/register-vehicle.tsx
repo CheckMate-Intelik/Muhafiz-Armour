@@ -18,6 +18,7 @@ export default function RegisterVehicleScreen() {
   const [numberPlate, setNumberPlate] = useState('');
   const [registrationNumber, setRegistrationNumber] = useState('');
   const [baseRatePerHour, setBaseRatePerHour] = useState('120');
+  const [seatingCapacity, setSeatingCapacity] = useState('4');
   const [location, setLocation] = useState('Quezon City');
   const [imageUris, setImageUris] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -71,6 +72,9 @@ export default function RegisterVehicleScreen() {
     registrationNumber.trim().length > 0 &&
     Number.isFinite(Number(baseRatePerHour)) &&
     Number(baseRatePerHour) > 0 &&
+    Number.isFinite(Number(seatingCapacity)) &&
+    Number(seatingCapacity) >= 1 &&
+    Number(seatingCapacity) <= 60 &&
     location.trim().length > 0;
 
   async function pickImages() {
@@ -107,6 +111,7 @@ export default function RegisterVehicleScreen() {
         registrationNumber: registrationNumber.trim().toUpperCase(),
         imageUrls: imageUris,
         baseRatePerHour: Math.round(Number(baseRatePerHour)),
+        seatingCapacity: Math.round(Number(seatingCapacity)),
         location: location.trim(),
       });
       router.back();
@@ -183,6 +188,14 @@ export default function RegisterVehicleScreen() {
               value={baseRatePerHour}
               onChangeText={setBaseRatePerHour}
               placeholder="120"
+              keyboardType="number-pad"
+              autoCapitalize="none"
+            />
+            <Field
+              label="Seating capacity"
+              value={seatingCapacity}
+              onChangeText={setSeatingCapacity}
+              placeholder="4"
               keyboardType="number-pad"
               autoCapitalize="none"
             />

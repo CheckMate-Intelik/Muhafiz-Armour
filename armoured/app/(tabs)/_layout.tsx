@@ -163,7 +163,7 @@ export default function TabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'white' : 'transparent',
                 height: 46,
-                width: focused ? 112 : 52,
+                width: focused ? '350%' : 52,
               }}>
               <FontAwesome name="home" size={24} color={focused ? 'black' : 'white'} />
               {focused && (
@@ -198,7 +198,7 @@ export default function TabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'white' : 'transparent',
                 height: 46,
-                width: focused ? 112 : 52,
+                width: focused ? '350%' : 52,
               }}>
               <FontAwesome name="list-alt" size={24} color={focused ? 'black' : 'white'} />
               {focused && (
@@ -233,7 +233,7 @@ export default function TabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'white' : 'transparent',
                 height: 46,
-                width: focused ? 112 : 52,
+                width: focused ? '350%' : 52,
               }}>
               <FontAwesome name="user" size={24} color={focused ? 'black' : 'white'}/>
               {focused && (

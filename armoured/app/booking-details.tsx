@@ -35,19 +35,6 @@ export default function BookingDetailsScreen() {
   const personName = isDriverMode ? params.customerName ?? '—' : params.driverName ?? '—';
   const statusLabel = params.status ?? '—';
 
-  async function startTrip(bookingId: string) {
-    try {
-      setBusyId(bookingId);
-      const s = await ensureDriverSession();
-      await driverPatch(`/driver/bookings/${bookingId}/start`, s.driverId);
-      router.push({ pathname: '/driver-ongoing-trip' as any, params: { bookingId } });
-    } catch (e) {
-      Alert.alert('Failed', e instanceof Error ? e.message : 'Start trip failed');
-    } finally {
-      setBusyId(null);
-    }
-  }
-
   async function cancelTrip(bookingId: string) {
     Alert.alert('Cancel trip?', 'This will cancel the selected trip.', [
       { text: 'No', style: 'cancel' },
@@ -119,21 +106,6 @@ export default function BookingDetailsScreen() {
                 {busyId === params.id ? 'Please wait...' : 'Cancel trip'}
               </Text>
             </Pressable>
-            {activeRole === 'DRIVER' ? (
-              <Pressable
-                disabled={busyId === params.id}
-                onPress={() => {
-                  const id = params.id;
-                  if (id) void startTrip(id);
-                }}
-                className={`flex-1 items-center justify-center rounded-full py-3 ${
-                  busyId === params.id ? 'bg-gray-300' : 'bg-gray-800'
-                }`}>
-                <Text className="text-sm font-bold text-white">
-                  {busyId === params.id ? 'Please wait...' : 'Start trip'}
-                </Text>
-              </Pressable>
-            ) : null}
           </View>
         ) : statusLabel === 'IN_PROGRESS' ? (
           <Pressable

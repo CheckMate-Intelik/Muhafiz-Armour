@@ -19,7 +19,10 @@ export default function RootLayout() {
         <Stack.Screen name="select-vehicle" options={{ headerShown: false }} />
         <Stack.Screen name="car-details" options={{ headerShown: false }} />
         <Stack.Screen name="book-vehicle" options={{ headerShown: false }} />
-        <Stack.Screen name="book-vehicle-schedule" options={{ headerShown: false }} />
+        <Stack.Screen name="book-confirm" options={{ headerShown: false }} />
+        <Stack.Screen name="trip-setup" options={{ headerShown: false }} />
+        <Stack.Screen name="trip-schedule" options={{ headerShown: false }} />
+        <Stack.Screen name="vehicle-select" options={{ headerShown: false }} />
         <Stack.Screen name="payment" options={{ headerShown: false }} />
         <Stack.Screen name="ongoing-trip" options={{ headerShown: false }} />
         <Stack.Screen name="driver-ongoing-trip" options={{ headerShown: false }} />

@@ -13,6 +13,7 @@ export type VehicleCardData = {
   rating?: number | null;
   baseRatePerHour: number;
   location: string;
+  seatingCapacity?: number;
   isApproved?: boolean;
 };
 
@@ -71,25 +72,32 @@ export function VehicleCard({ vehicle, onPress, className, showStatus = false, s
         </View>
       </View>
 
-      <View className="mt-3 flex-row items-center justify-between px-3 py-2 border-t border-gray-200">
-        <View className="flex-row items-center">
+      <View className="mt-3 flex-row flex-wrap items-center gap-x-2 gap-y-2 border-t border-gray-200 px-3 py-2">
+        <View className="min-w-[30%] flex-row items-center">
           <FontAwesome name="map-marker" size={15} color="rgb(126, 126, 126)" />
           <Text className="ml-2 text-sm font-bold text-gray-500" numberOfLines={1}>
             {city || '—'}
           </Text>
         </View>
 
-        <View className="flex-row items-center">
+        <View className="min-w-[28%] flex-row items-center">
           <FontAwesome name="shield" size={15} color="rgb(126, 126, 126)" />
           <Text className="ml-2 text-sm font-bold text-gray-500" numberOfLines={1}>
             {vehicle.armourLevel || '—'}
           </Text>
         </View>
 
-        <View className="flex-row items-center">
+        <View className="min-w-[28%] flex-row items-center">
           <FontAwesome name="car" size={15} color="rgb(126, 126, 126)" />
           <Text className="ml-2 text-sm font-bold text-gray-500" numberOfLines={1}>
             {vehicle.vehicleType || '—'}
+          </Text>
+        </View>
+
+        <View className="min-w-[28%] flex-row items-center">
+          <FontAwesome name="users" size={15} color="rgb(126, 126, 126)" />
+          <Text className="ml-2 text-sm font-bold text-gray-500" numberOfLines={1}>
+            {vehicle.seatingCapacity != null ? `${vehicle.seatingCapacity} seats` : '—'}
           </Text>
         </View>
       </View>

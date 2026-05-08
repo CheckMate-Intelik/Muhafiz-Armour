@@ -36,7 +36,6 @@ export default function DriverOngoingTripScreen() {
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState<Booking | null>(null);
   const [busy, setBusy] = useState(false);
-  const canComplete = booking?.status === 'IN_PROGRESS';
 
   useEffect(() => {
     if (!booking) return;
@@ -85,21 +84,6 @@ export default function DriverOngoingTripScreen() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId]);
-
-  async function complete() {
-    if (!booking) return;
-    try {
-      setBusy(true);
-      const s = await ensureDriverSession();
-      await driverPatch(`/driver/bookings/${booking.id}/complete`, s.driverId);
-      await load();
-      router.replace('/(driver-tabs)/dashboard' as any);
-    } catch (e) {
-      Alert.alert('Failed', e instanceof Error ? e.message : 'Complete trip failed');
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function cancel() {
     if (!booking) return;
@@ -204,15 +188,6 @@ export default function DriverOngoingTripScreen() {
           startTime={booking.startTime}
           endTime={booking.endTime}
         />
-
-        <Pressable
-          disabled={!canComplete || busy}
-          onPress={complete}
-          className={`mt-4 items-center justify-center rounded-2xl py-3 ${canComplete && !busy ? 'bg-gray-800' : 'bg-gray-200'}`}>
-          <Text className={`text-xs font-extrabold ${canComplete && !busy ? 'text-white' : 'text-gray-500'}`}>
-            {busy ? 'Completing...' : 'Complete trip'}
-          </Text>
-        </Pressable>
 
         {booking.status !== 'IN_PROGRESS' ? (
           <Pressable

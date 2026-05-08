@@ -42,7 +42,12 @@ export class CreateVehicleDto {
   @Min(1)
   baseRatePerHour!: number;
 
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(60)
+  seatingCapacity?: number;
+
   @IsString()
   location!: string;
 }
-

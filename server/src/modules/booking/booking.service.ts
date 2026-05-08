@@ -1,7 +1,17 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  bufferMinutesForTrip,
+  distanceKmFromCoords,
+  distanceMinHours,
+  effectiveMinDurationHours,
+} from '../../common/trip-planning';
 import { MatchingService } from '../matching/matching.service';
 import { RequestBookingDto } from './dto/request-booking.dto';
+import { UpdateBookingScheduleDto } from './dto/update-booking-schedule.dto';
+import { ExtendBookingDto } from './dto/extend-booking.dto';
+
+const MAX_BOOKING_HOURS = 5 * 24;
 
 @Injectable()
 export class BookingService {
@@ -9,6 +19,48 @@ export class BookingService {
     private readonly prisma: PrismaService,
     private readonly matching: MatchingService,
   ) {}
+
+  planTripMeta(dto: { pickupLat: number; pickupLng: number; dropLat: number; dropLng: number; pickupCity?: string; dropCity?: string }) {
+    const distanceKm = distanceKmFromCoords(dto.pickupLat, dto.pickupLng, dto.dropLat, dto.dropLng) ?? 0;
+    const distMinHours = distanceMinHours(distanceKm);
+    const effectiveMinHours = effectiveMinDurationHours(distanceKm);
+    const bufferMinutes = bufferMinutesForTrip(dto.pickupCity, dto.dropCity);
+    return {
+      distanceKm,
+      distanceMinHours: distMinHours,
+      effectiveMinDurationHours: effectiveMinHours,
+      bufferMinutes,
+      maxDurationHours: MAX_BOOKING_HOURS,
+    };
+  }
+
+  async checkVehicleAvailabilityFromDto(dto: {
+    vehicleId: string;
+    startTime: string;
+    endTime: string;
+    excludeBookingId?: string;
+  }) {
+    const start = new Date(dto.startTime);
+    const end = new Date(dto.endTime);
+    let bufferMinutes = 120;
+    if (dto.excludeBookingId) {
+      const b = await this.prisma.booking.findUnique({ where: { id: dto.excludeBookingId } });
+      if (b?.bufferMinutes != null) bufferMinutes = b.bufferMinutes;
+      else if (b) bufferMinutes = bufferMinutesForTrip(b.pickupCity, b.dropCity);
+    }
+    return this.checkVehicleAvailability(dto.vehicleId, start, end, bufferMinutes, dto.excludeBookingId);
+  }
+
+  async checkVehicleAvailability(
+    vehicleId: string,
+    startTime: Date,
+    endTime: Date,
+    bufferMinutes: number,
+    excludeBookingId?: string,
+  ) {
+    const ok = await this.matching.assertVehicleAvailableForWindow(vehicleId, startTime, endTime, bufferMinutes, excludeBookingId);
+    return { available: ok };
+  }
 
   async requestBooking(userId: string, dto: RequestBookingDto) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -30,10 +82,20 @@ export class BookingService {
     if (pickupLocation.length === 0) throw new BadRequestException('pickupLocation is required');
     if (dropLocation.length === 0) throw new BadRequestException('dropLocation is required');
 
-    // Idempotency: if the same user submits the same request multiple times
-    // (double-tap, flaky networks, retries), reuse the most recent non-terminal booking.
-    // This also protects against races where the first request is already moved to
-    // PENDING_DRIVER before the second request arrives.
+    const durationMs = endTime.getTime() - startTime.getTime();
+    const durationHours = durationMs / (1000 * 60 * 60);
+    if (durationHours > MAX_BOOKING_HOURS) {
+      throw new BadRequestException(`Booking duration may not exceed ${MAX_BOOKING_HOURS} hours`);
+    }
+
+    const distKm = distanceKmFromCoords(dto.pickupLat ?? null, dto.pickupLng ?? null, dto.dropLat ?? null, dto.dropLng ?? null);
+    const effectiveMin = distKm != null ? effectiveMinDurationHours(distKm) : 10;
+    if (durationHours + 1e-6 < effectiveMin) {
+      throw new BadRequestException(`Duration must be at least ${effectiveMin} hours for this route`);
+    }
+
+    const bufferMinutes = bufferMinutesForTrip(dto.pickupCity, dto.dropCity);
+
     const recentWindowStart = new Date(Date.now() - 2 * 60 * 1000);
     const existing = await this.prisma.booking.findFirst({
       where: {
@@ -59,6 +121,13 @@ export class BookingService {
         userId,
         pickupLocation,
         dropLocation,
+        pickupCity: dto.pickupCity?.trim() || null,
+        dropCity: dto.dropCity?.trim() || null,
+        pickupLat: dto.pickupLat ?? null,
+        pickupLng: dto.pickupLng ?? null,
+        dropLat: dto.dropLat ?? null,
+        dropLng: dto.dropLng ?? null,
+        bufferMinutes,
         startTime,
         endTime,
         status: 'REQUESTED',
@@ -81,8 +150,12 @@ export class BookingService {
     if (booking.userId !== userId) throw new BadRequestException('Not your booking');
 
     const options = await this.matching.findAvailableVehicles(
-      { startTime: booking.startTime, endTime: booking.endTime },
-      5,
+      {
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        bufferMinutes: booking.bufferMinutes ?? 120,
+      },
+      50,
     );
     const durationHours = (booking.endTime.getTime() - booking.startTime.getTime()) / (1000 * 60 * 60);
 
@@ -98,6 +171,41 @@ export class BookingService {
     }));
   }
 
+  async updateSchedule(userId: string, bookingId: string, dto: UpdateBookingScheduleDto) {
+    const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId) throw new BadRequestException('Not your booking');
+    if (booking.status !== 'REQUESTED') throw new BadRequestException('Only draft bookings can be rescheduled');
+
+    const nextEnd = new Date(dto.endTime);
+    if (Number.isNaN(nextEnd.getTime())) throw new BadRequestException('Invalid endTime');
+    if (nextEnd <= booking.startTime) throw new BadRequestException('endTime must be after startTime');
+
+    const durationHours = (nextEnd.getTime() - booking.startTime.getTime()) / (1000 * 60 * 60);
+    if (durationHours > MAX_BOOKING_HOURS) {
+      throw new BadRequestException(`Booking duration may not exceed ${MAX_BOOKING_HOURS} hours`);
+    }
+
+    const distKm = distanceKmFromCoords(booking.pickupLat, booking.pickupLng, booking.dropLat, booking.dropLng);
+    const effectiveMin = distKm != null ? effectiveMinDurationHours(distKm) : 10;
+    if (durationHours + 1e-6 < effectiveMin) {
+      throw new BadRequestException(`Duration must be at least ${effectiveMin} hours for this route`);
+    }
+
+    const buf = booking.bufferMinutes ?? bufferMinutesForTrip(booking.pickupCity, booking.dropCity);
+
+    if (dto.vehicleId) {
+      const ok = await this.matching.assertVehicleAvailableForWindow(dto.vehicleId, booking.startTime, nextEnd, buf);
+      if (!ok) throw new BadRequestException('Vehicle is not available for the selected window');
+    }
+
+    return this.prisma.booking.update({
+      where: { id: bookingId },
+      data: { endTime: nextEnd },
+      include: { user: true, driver: true, vehicle: true },
+    });
+  }
+
   async selectVehicle(userId: string, bookingId: string, vehicleId: string) {
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundException('Booking not found');
@@ -107,21 +215,75 @@ export class BookingService {
     const vehicle = await this.prisma.vehicle.findUnique({ where: { id: vehicleId }, include: { driver: true } });
     if (!vehicle) throw new BadRequestException('Vehicle not found');
     if (!vehicle.isApproved) throw new BadRequestException('Vehicle not approved');
+    if (vehicle.status !== 'AVAILABLE') throw new BadRequestException('Vehicle is not available');
     if (process.env.NODE_ENV === 'production') {
       if (!vehicle.driver.isApproved || vehicle.driver.isBlocked) throw new BadRequestException('Driver not eligible');
     } else {
       if (vehicle.driver.isBlocked) throw new BadRequestException('Driver not eligible');
     }
 
+    const buf = booking.bufferMinutes ?? bufferMinutesForTrip(booking.pickupCity, booking.dropCity);
+    const free = await this.matching.assertVehicleAvailableForWindow(vehicleId, booking.startTime, booking.endTime, buf);
+    if (!free) throw new BadRequestException('Vehicle is not available for this time range');
+
     const durationHours = (booking.endTime.getTime() - booking.startTime.getTime()) / (1000 * 60 * 60);
     const plannedPrice = Math.round(vehicle.baseRatePerHour * durationHours);
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          vehicleId: vehicle.id,
+          driverId: vehicle.driverId,
+          status: 'PENDING_DRIVER',
+          totalPrice: plannedPrice,
+        },
+        include: { user: true, driver: true, vehicle: true },
+      });
+      await tx.vehicle.update({
+        where: { id: vehicle.id },
+        data: { status: 'BOOKED' },
+      });
+      return updated;
+    });
+  }
+
+  async extendActiveBooking(userId: string, bookingId: string, dto: ExtendBookingDto) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { vehicle: true },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId) throw new BadRequestException('Not your booking');
+    if (!['CONFIRMED', 'IN_PROGRESS'].includes(booking.status)) {
+      throw new BadRequestException('Booking cannot be extended');
+    }
+    if (!booking.vehicleId || !booking.vehicle) throw new BadRequestException('Vehicle missing on booking');
+
+    const addMs = dto.mode === 'ADD_2_HOURS' ? 2 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+    const newEnd = new Date(booking.endTime.getTime() + addMs);
+
+    const durationHours = (newEnd.getTime() - booking.startTime.getTime()) / (1000 * 60 * 60);
+    if (durationHours > MAX_BOOKING_HOURS) {
+      throw new BadRequestException(`Total booking length may not exceed ${MAX_BOOKING_HOURS} hours`);
+    }
+
+    const buf = booking.bufferMinutes ?? bufferMinutesForTrip(booking.pickupCity, booking.dropCity);
+    const ok = await this.matching.assertVehicleAvailableForWindow(
+      booking.vehicleId,
+      booking.startTime,
+      newEnd,
+      buf,
+      booking.id,
+    );
+    if (!ok) throw new BadRequestException('Extension conflicts with another booking');
+
+    const plannedPrice = Math.round(booking.vehicle.baseRatePerHour * durationHours);
 
     return this.prisma.booking.update({
       where: { id: bookingId },
       data: {
-        vehicleId: vehicle.id,
-        driverId: vehicle.driverId,
-        status: 'PENDING_DRIVER',
+        endTime: newEnd,
         totalPrice: plannedPrice,
       },
       include: { user: true, driver: true, vehicle: true },
@@ -147,14 +309,24 @@ export class BookingService {
       throw new BadRequestException('Booking is not cancellable');
     }
 
-    return this.prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: 'REJECTED',
-        actualEndTime: booking.actualEndTime ?? (booking.status === 'IN_PROGRESS' ? new Date() : booking.actualEndTime),
-      },
-      include: { user: true, driver: true, vehicle: true },
+    const vid = booking.vehicleId;
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: 'REJECTED',
+          actualEndTime: booking.actualEndTime ?? (booking.status === 'IN_PROGRESS' ? new Date() : booking.actualEndTime),
+          ...(vid ? { vehicleId: null, driverId: null } : {}),
+        },
+        include: { user: true, driver: true, vehicle: true },
+      });
+      if (vid) {
+        await tx.vehicle.updateMany({
+          where: { id: vid, status: 'BOOKED' },
+          data: { status: 'AVAILABLE' },
+        });
+      }
+      return updated;
     });
   }
 }
-
