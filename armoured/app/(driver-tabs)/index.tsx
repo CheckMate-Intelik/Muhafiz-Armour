@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { driverGet, ensureDriverSession } from '@/lib/api';
+import { driverGet, ensureDriverSession, isNotAuthenticatedError } from '@/lib/api';
 
 type Booking = {
   id: string;
@@ -26,8 +26,10 @@ export default function DriverDashboardScreen() {
         const data = await driverGet<Booking[]>(`/driver/bookings/completed`, s.driverId);
         if (cancelled) return;
         setCompleted(Array.isArray(data) ? data : []);
-      } catch {
-        router.replace('/login' as any);
+      } catch (e) {
+        if (isNotAuthenticatedError(e)) {
+          router.replace('/login' as any);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

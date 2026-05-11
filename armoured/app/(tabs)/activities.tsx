@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { BookingSummaryCard } from '@/components/BookingSummaryCard';
-import { apiGet, ensureUserSession } from '@/lib/api';
+import { apiGet, ensureUserSession, isNotAuthenticatedError } from '@/lib/api';
 
 type RideStatus = 'Schedule' | 'Recent' | 'Completed' | 'Canceled';
 
@@ -40,8 +40,10 @@ export default function ActivitiesScreen() {
         const data = await apiGet<Booking[]>(`/bookings`, s.userId);
         if (cancelled) return;
         setBookings(Array.isArray(data) ? data : []);
-      } catch {
-        router.replace('/login' as any);
+      } catch (e) {
+        if (isNotAuthenticatedError(e)) {
+          router.replace('/login' as any);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

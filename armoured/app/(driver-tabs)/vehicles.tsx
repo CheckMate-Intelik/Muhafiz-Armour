@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { VehicleCard } from '@/components/VehicleCard';
-import { driverGet, ensureDriverSession } from '@/lib/api';
+import { driverGet, ensureDriverSession, isNotAuthenticatedError } from '@/lib/api';
 
 type VehicleTab = 'Approved' | 'Pending';
 
@@ -42,8 +42,10 @@ export default function DriverVehiclesScreen() {
         const data = await driverGet<Vehicle[]>(`/driver/vehicles`, s.driverId);
         if (cancelled) return;
         setVehicles(Array.isArray(data) ? data : []);
-      } catch {
-        if (!cancelled) router.replace('/login' as any);
+      } catch (e) {
+        if (!cancelled && isNotAuthenticatedError(e)) {
+          router.replace('/login' as any);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { filterPakistanCities, findPakistanCityByName, type PakistanCity } from '@/constants/pakistanCities';
-import { apiGet, ensureUserSession } from '@/lib/api';
+import { apiGet, ensureUserSession, isNotAuthenticatedError } from '@/lib/api';
 import { useTripDraftStore } from '@/store/tripDraft';
 
 export default function Home() {
@@ -63,8 +63,10 @@ export default function Home() {
         if (cancelled) return;
         const profileName = (me?.name ?? '').trim();
         if (profileName.length > 0) setUserName(profileName);
-      } catch {
-        router.replace('/login' as any);
+      } catch (e) {
+        if (isNotAuthenticatedError(e)) {
+          router.replace('/login' as any);
+        }
       }
     }
     void loadSession();
@@ -223,51 +225,68 @@ export default function Home() {
           
           <Text className="mt-20 text-center text-3xl font-semibold text-gray-200">Where are you going?</Text>
 
-          <Text className="mt-6 text-md font-bold uppercase tracking-wide text-gray-300">Your city</Text>
+          
           <Pressable
             onPress={() => {
               setCityModalKind('service');
               setCitySearch(draft.serviceCity);
               setCityModalOpen(true);
             }}
-            className="mt-2 flex-row items-center justify-between rounded-2xl bg-white px-4 py-3.5">
-            <View className="flex-1 flex-row items-center">
-              <FontAwesome name="map-marker" size={16} color="#111827" />
-              <Text className={`ml-3 flex-1 text-sm font-extrabold ${draft.serviceCity ? 'text-gray-900' : 'text-gray-400'}`}>
-                {draft.serviceCity || 'Tap to search cities…'}
-              </Text>
-            </View>
-            <FontAwesome name="chevron-down" size={14} color="#6B7280" />
+            className="mt-6 justify-between rounded-full bg-white px-4  py-2 flex-1 flex-row items-center">
+            
+            
+              <FontAwesome name="map-marker" size={24} color="#111827" />
+              <View className="flex-1 ml-3">
+                <Text className="text-md font-bold tracking-wide text-gray-400">Your city</Text>
+                <Text className={`flex-1 text-lg font-bold ${draft.serviceCity ? 'text-gray-900' : 'text-gray-600'}`}>
+                  {draft.serviceCity || 'Tap to choose pickup city'}
+                </Text>
+              </View>
+              <FontAwesome name="chevron-down" size={14} color="#6B7280" />
+            
           </Pressable>
           
-          <View className="mt-8 gap-5">
+          <View className="mt-4 gap-5">
             <View>
               {/* <Text className="text-md font-bold uppercase tracking-wide text-gray-300">Pickup</Text> */}
               <Pressable
                 onPress={openPickupMapDirect}
-                className="h-[70px] mt-2 flex-row items-center rounded-2xl border border-gray-200 px-4 py-3.5">
+                className="h-[70px] mt-2 flex-row items-center rounded-2xl bg-gray-200 border border-gray-200 px-4 py-3.5">
                 <FontAwesome name="dot-circle-o" size={20} color="#6B7280" />
                 <Text
                   numberOfLines={2}
-                  className={`ml-3 mr-3 flex-1 text-md font-semibold bg-transparent border-b border-gray-200 ${draft.pickupAddress ? 'text-gray-900' : 'text-gray-300'}`}>
+                  className={`ml-3 mr-3 flex-1 text-md font-semibold bg-transparent border-b border-gray-600 ${draft.pickupAddress ? 'text-gray-900' : 'text-gray-600'}`}>
                   {draft.pickupAddress || 'Select pickup on map'}
                 </Text>
                 <FontAwesome name="map-marker" size={20} color="#9CA3AF" />
               </Pressable>
             </View>
 
+            <View
+            style={{
+              alignSelf: 'center',
+              width: '100%',
+              marginVertical: 4,
+              borderBottomWidth: 2,
+              borderBottomColor: 'rgb(65, 65, 65)',
+              borderStyle: 'dashed',
+            }}
+          />
+
             <View>
-              <Text className="text-md font-bold uppercase tracking-wide text-gray-800">Drop city</Text>
+              
               <Pressable
                 onPress={() => {
                   setCityModalKind('drop');
                   setCitySearch(draft.dropCity);
                   setCityModalOpen(true);
                 }}
-                className="mt-2 flex-row items-center justify-between rounded-2xl border border-gray-200/80 bg-white px-4 py-3.5 shadow-sm">
-                <View className="flex-1 flex-row items-center">
-                  <FontAwesome name="building-o" size={15} color="#111827" />
-                  <Text className={`ml-3 flex-1 text-sm font-extrabold ${draft.dropCity ? 'text-gray-900' : 'text-gray-400'}`}>
+                className="justify-between rounded-full bg-white px-4  py-2 flex-1 flex-row items-center">
+                
+                <FontAwesome name="building-o" size={20} color="#111827" />
+                <View className="flex-1 ml-3">
+                  <Text className="text-md font-bold tracking-wide text-gray-400">Drop city</Text>
+                  <Text className={`flex-1 text-lg font-bold ${draft.dropCity ? 'text-gray-900' : 'text-gray-600'}`}>
                     {draft.dropCity || 'Tap to choose drop city'}
                   </Text>
                 </View>
@@ -279,11 +298,11 @@ export default function Home() {
               {/* <Text className="text-md font-bold uppercase tracking-wide text-gray-800">Drop location</Text> */}
               <Pressable
                 onPress={openDropMapDirect}
-                className="h-[70px] mt-2 flex-row items-center rounded-2xl border border-gray-500 px-4 py-3.5">
+                className="h-[70px] flex-row items-center rounded-2xl bg-gray-200 border border-gray-500 px-4 py-3.5">
                 <FontAwesome name="map-marker" size={20} color="#6B7280" />
                 <Text
                   numberOfLines={2}
-                  className={`ml-3 mr-3 flex-1 text-md font-semibold bg-transparent border-b border-gray-500 ${draft.dropAddress ? 'text-gray-900' : 'text-gray-500'}`}>
+                  className={`ml-3 mr-3 flex-1 text-md font-semibold bg-transparent border-b border-gray-500 ${draft.dropAddress ? 'text-gray-900' : 'text-gray-600'}`}>
                   {draft.dropAddress || 'Select drop on map'}
                 </Text>
                 <FontAwesome name="map" size={20} color="#9CA3AF" />
@@ -294,8 +313,8 @@ export default function Home() {
           {hasBothLocations ? (
             <Pressable
               onPress={() => router.push('/trip-schedule' as any)}
-              className="mt-8 items-center rounded-2xl bg-[#111827] py-3.5">
-              <Text className="text-sm font-extrabold text-white">Next — pickup time & duration</Text>
+              className="mt-8 items-center rounded-full bg-[#111827] py-3.5">
+              <Text className="text-lg font-extrabold text-white">Next — pickup time & duration</Text>
             </Pressable>
           ) : null}
         </ScrollView>

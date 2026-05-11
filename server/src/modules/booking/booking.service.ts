@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   bufferMinutesForTrip,
@@ -229,7 +230,7 @@ export class BookingService {
     const durationHours = (booking.endTime.getTime() - booking.startTime.getTime()) / (1000 * 60 * 60);
     const plannedPrice = Math.round(vehicle.baseRatePerHour * durationHours);
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const updated = await tx.booking.update({
         where: { id: bookingId },
         data: {
@@ -310,7 +311,7 @@ export class BookingService {
     }
 
     const vid = booking.vehicleId;
-    return this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const updated = await tx.booking.update({
         where: { id: bookingId },
         data: {

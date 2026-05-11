@@ -72,7 +72,7 @@ export class MatchingService {
       take: Math.max(1, Math.min(200, limit * 10)),
     });
 
-    const filtered = rows.filter((v) => !this.bookingsConflict(v.bookings, startTime, endTime, bufferMinutes));
+    const filtered = rows.filter((v: any) => !this.bookingsConflict(v.bookings, startTime, endTime, bufferMinutes));
     return filtered.slice(0, Math.max(1, Math.min(50, limit)));
   }
 }

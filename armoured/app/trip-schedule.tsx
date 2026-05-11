@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TripSchedulePanel } from '@/components/TripSchedulePanel';
 import { useTripDraftStore } from '@/store/tripDraft';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function TripScheduleScreen() {
   const draft = useTripDraftStore();
@@ -33,19 +34,26 @@ export default function TripScheduleScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <LinearGradient
+      colors={['rgb(77, 76, 76)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
+      start={{ x: 1, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      locations={[0, 0.3, 0.6, 1]}
+      style={{ flex: 1 }}>
+      <SafeAreaView className="flex-1">
       <View className="px-5 pt-4">
         <View className="flex-row items-center justify-between">
           <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
             <FontAwesome name="arrow-left" size={16} color="#111827" />
           </Pressable>
-          <Text className="text-base font-extrabold text-gray-900">When & how long</Text>
+          <Text className="text-xl font-extrabold text-gray-200">When & how long</Text>
           <View className="h-10 w-10" />
         </View>
       </View>
       <View className="flex-1 px-5 pt-2">
-        <TripSchedulePanel />
-      </View>
-    </SafeAreaView>
+          <TripSchedulePanel />
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }

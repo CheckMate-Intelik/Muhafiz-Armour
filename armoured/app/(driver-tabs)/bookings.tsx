@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BookingSummaryCard } from '@/components/BookingSummaryCard';
 import { TripRouteCard } from '@/components/TripRouteCard';
-import { driverGet, driverPatch, ensureDriverSession } from '@/lib/api';
+import { driverGet, driverPatch, ensureDriverSession, isNotAuthenticatedError } from '@/lib/api';
 
 type BookingTab = 'Booking Requests' | 'Booking History';
 
@@ -79,8 +79,10 @@ export default function DriverBookingsScreen() {
         await ensureDriverSession();
         if (cancelled) return;
         await refresh();
-      } catch {
-        router.replace('/login' as any);
+      } catch (e) {
+        if (isNotAuthenticatedError(e)) {
+          router.replace('/login' as any);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

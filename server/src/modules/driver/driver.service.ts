@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -54,7 +55,7 @@ export class DriverService {
 
     if (!accept) {
       const vid = booking.vehicleId;
-      return this.prisma.$transaction(async (tx) => {
+      return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         const updated = await tx.booking.update({
           where: { id: bookingId },
           data: { status: 'REJECTED', vehicleId: null, driverId: null },
@@ -109,7 +110,7 @@ export class DriverService {
     const totalPrice = Math.round(booking.vehicle.baseRatePerHour * (plannedHours + overtimeHours));
 
     const vid = booking.vehicleId;
-    return this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const updated = await tx.booking.update({
         where: { id: bookingId },
         data: {
@@ -137,7 +138,7 @@ export class DriverService {
     if (!['CONFIRMED', 'IN_PROGRESS'].includes(booking.status)) throw new BadRequestException('Booking is not cancellable');
 
     const vid = booking.vehicleId;
-    return this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const updated = await tx.booking.update({
         where: { id: bookingId },
         data: {

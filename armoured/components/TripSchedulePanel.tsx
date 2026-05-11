@@ -22,7 +22,7 @@ export function TripSchedulePanel() {
   const [meta, setMeta] = useState<PlanMeta | null>(null);
   const [startAt, setStartAt] = useState<Date>(() => new Date(Date.now() + 60 * 60 * 1000));
   const [durationHours, setDurationHours] = useState(12);
-  const [picker, setPicker] = useState<null | 'start'>(null);
+  const [picker, setPicker] = useState<null | 'date' | 'time'>(null);
   const [loadingMeta, setLoadingMeta] = useState(false);
 
   useEffect(() => {
@@ -79,23 +79,45 @@ export function TripSchedulePanel() {
     return same ? `Same-city buffer: ${h} hours` : `Intercity buffer: ${h} hours`;
   }, [meta, draft.pickupCity, draft.dropCity]);
 
-  function openStartPicker() {
+  function openDatePicker() {
     if (Platform.OS === 'android') {
       DateTimePickerAndroid.open({
-        mode: 'datetime' as any,
+        mode: 'date',
         value: startAt,
         onChange: (e: DateTimePickerEvent, d?: Date) => {
           if (e.type !== 'set' || !d) return;
-          setStartAt(d);
+          setStartAt((prev) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), prev.getHours(), prev.getMinutes(), 0, 0));
         },
       });
       return;
     }
-    setPicker('start');
+    setPicker('date');
   }
 
-  function onStartChange(_: DateTimePickerEvent, d?: Date) {
-    if (d) setStartAt(d);
+  function openTimePicker() {
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        mode: 'time',
+        value: startAt,
+        is24Hour: false,
+        onChange: (e: DateTimePickerEvent, d?: Date) => {
+          if (e.type !== 'set' || !d) return;
+          setStartAt((prev) => new Date(prev.getFullYear(), prev.getMonth(), prev.getDate(), d.getHours(), d.getMinutes(), 0, 0));
+        },
+      });
+      return;
+    }
+    setPicker('time');
+  }
+
+  function onDateChange(_: DateTimePickerEvent, d?: Date) {
+    if (!d) return;
+    setStartAt((prev) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), prev.getHours(), prev.getMinutes(), 0, 0));
+  }
+
+  function onTimeChange(_: DateTimePickerEvent, d?: Date) {
+    if (!d) return;
+    setStartAt((prev) => new Date(prev.getFullYear(), prev.getMonth(), prev.getDate(), d.getHours(), d.getMinutes(), 0, 0));
   }
 
   function continueNext() {
@@ -122,26 +144,45 @@ export function TripSchedulePanel() {
   return (
     <View>
       <View className="mt-4 rounded-2xl bg-gray-50 px-4 py-3">
-        <Text className="text-[11px] font-bold text-gray-500">Route</Text>
-        <Text className="mt-1 text-xs font-semibold text-gray-700">
+        <Text className="text-md font-bold text-gray-500">Route</Text>
+        <Text className="mt-1 text-lg font-semibold text-gray-700">
           ~{meta.distanceKm.toFixed(1)} km • min drive estimate {meta.distanceMinHours}h
         </Text>
-        <Text className="mt-2 text-xs font-semibold text-gray-600">
+        <Text className="mt-2 text-md font-semibold text-gray-600">
           Minimum booking duration for this route: {meta.effectiveMinDurationHours} hours (up to {MAX_HOURS} hours / 5 days).
         </Text>
-        <Text className="mt-2 text-xs font-extrabold text-[#1D2DD9]">{bufferLabel}</Text>
-        <Text className="mt-1 text-[10px] font-semibold text-gray-500">
+        <Text className="mt-2 text-md font-extrabold text-[#1D2DD9]">{bufferLabel}</Text>
+        <Text className="mt-1 text-md font-semibold text-gray-500">
           Buffer time is added automatically when checking vehicle availability.
         </Text>
       </View>
 
-      <Pressable onPress={openStartPicker} className="mt-4 rounded-2xl bg-gray-50 px-4 py-3">
-        <Text className="text-[10px] font-bold text-gray-400">Pickup date & time</Text>
-        <Text className="mt-1 text-sm font-extrabold text-gray-900">{startAt.toLocaleString()}</Text>
-      </Pressable>
+      <View className="mt-6 gap-4">
+        <Pressable onPress={openDatePicker} className="justify-between rounded-full bg-white px-4 py-2 flex-row items-center">
+          <FontAwesome name="calendar" size={20} color="#111827" />
+          <View className="flex-1 ml-3">
+            <Text className="text-md font-bold tracking-wide text-gray-400">Pickup date</Text>
+            <Text className="mt-0.5 text-lg font-extrabold text-gray-900">
+              {startAt.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+            </Text>
+          </View>
+          <FontAwesome name="chevron-down" size={14} color="#6B7280" />
+        </Pressable>
 
-      <Text className="mt-4 text-[10px] font-bold text-gray-400">Duration (hours)</Text>
-      <Text className="mt-1 text-[10px] font-semibold text-gray-500">
+        <Pressable onPress={openTimePicker} className="justify-between rounded-full bg-white px-4 py-2 flex-row items-center">
+          <FontAwesome name="clock-o" size={20} color="#111827" />
+          <View className="flex-1 ml-3">
+            <Text className="text-md font-bold tracking-wide text-gray-400">Pickup time</Text>
+            <Text className="mt-0.5 text-lg font-extrabold text-gray-900">
+              {startAt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+            </Text>
+          </View>
+          <FontAwesome name="chevron-down" size={14} color="#6B7280" />
+        </Pressable>
+      </View>
+
+      <Text className="mt-4 text-lg font-bold text-gray-900">Duration (hours)</Text>
+      <Text className="mt-1 text-md font-semibold text-gray-700">
         Between {minHours} and {MAX_HOURS} hours
       </Text>
       <View className="mt-3 flex-row items-center justify-between rounded-2xl bg-gray-50 px-3 py-2">
@@ -159,23 +200,27 @@ export function TripSchedulePanel() {
         </Pressable>
       </View>
 
-      <Pressable onPress={continueNext} className="mt-6 items-center rounded-2xl bg-[#111827] py-3">
-        <Text className="text-xs font-extrabold text-white">Next — see available vehicles</Text>
+      <Pressable onPress={continueNext} className="mt-6 items-center rounded-full bg-[#111827] py-3">
+        <Text className="text-lg font-extrabold text-white">Next — see available vehicles</Text>
       </Pressable>
 
-      <Modal transparent visible={picker === 'start' && Platform.OS !== 'android'} animationType="fade" onRequestClose={() => setPicker(null)}>
+      <Modal transparent visible={picker != null && Platform.OS !== 'android'} animationType="fade" onRequestClose={() => setPicker(null)}>
         <Pressable className="flex-1 bg-black/40 px-5" onPress={() => setPicker(null)}>
-          <Pressable className="mt-auto rounded-3xl bg-white p-4">
+          <View className="mt-auto rounded-3xl bg-white p-4" onStartShouldSetResponder={() => true}>
             <View className="flex-row items-center justify-between">
-              <Text className="text-base font-extrabold text-gray-900">Pickup time</Text>
+              <Text className="text-base font-extrabold text-gray-900">{picker === 'date' ? 'Pickup date' : 'Pickup time'}</Text>
               <Pressable onPress={() => setPicker(null)}>
                 <Text className="text-sm font-extrabold text-[#1D2DD9]">Done</Text>
               </Pressable>
             </View>
             <View className="mt-3">
-              <DateTimePicker mode="datetime" value={startAt} onChange={onStartChange} />
+              <DateTimePicker
+                mode={picker === 'date' ? 'date' : 'time'}
+                value={startAt}
+                onChange={picker === 'date' ? onDateChange : onTimeChange}
+              />
             </View>
-          </Pressable>
+          </View>
         </Pressable>
       </Modal>
     </View>

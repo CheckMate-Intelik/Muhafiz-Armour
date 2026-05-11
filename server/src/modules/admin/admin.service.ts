@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateCatalogOptionDto } from './dto/create-catalog-option.dto';
 import { UpdateCatalogOptionDto } from './dto/update-catalog-option.dto';
@@ -242,8 +242,8 @@ export class AdminService {
           isActive: dto.isActive ?? true,
         },
       });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+    } catch (e: unknown) {
+      if (e instanceof PrismaClientKnownRequestError && e.code === 'P2002') {
         throw new ConflictException('This code is already in use');
       }
       throw e;
@@ -262,8 +262,8 @@ export class AdminService {
           isActive: dto.isActive ?? true,
         },
       });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+    } catch (e: unknown) {
+      if (e instanceof PrismaClientKnownRequestError && e.code === 'P2002') {
         throw new ConflictException('This code is already in use');
       }
       throw e;

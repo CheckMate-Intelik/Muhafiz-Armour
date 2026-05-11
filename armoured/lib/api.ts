@@ -246,6 +246,12 @@ export async function ensureDriverSession(): Promise<DriverSession> {
   }
 }
 
+export function isNotAuthenticatedError(e: unknown): boolean {
+  if (!e) return false;
+  if (e instanceof Error) return e.message === 'Not authenticated';
+  return false;
+}
+
 export async function apiGet<T>(path: string, userId: string): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     headers: { 'x-user-id': userId },

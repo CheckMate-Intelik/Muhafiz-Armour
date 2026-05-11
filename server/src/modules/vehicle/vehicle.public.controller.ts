@@ -113,7 +113,7 @@ export class VehiclePublicController {
 
     const filtered = hasWindow
       ? rows.filter(
-          (v) =>
+          (v: any) =>
             !this.matching.bookingsConflict(
               v.bookings,
               start!,
