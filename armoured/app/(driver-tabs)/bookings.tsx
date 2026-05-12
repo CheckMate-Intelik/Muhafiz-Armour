@@ -3,10 +3,22 @@ import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { BookingSummaryCard } from '@/components/BookingSummaryCard';
 import { TripRouteCard } from '@/components/TripRouteCard';
 import { driverGet, driverPatch, ensureDriverSession, isNotAuthenticatedError } from '@/lib/api';
+
+function driverMissionBanner(status: string) {
+  const s = (status ?? '').trim().toUpperCase();
+  if (s === 'IN_PROGRESS') return 'ACTIVE MISSION';
+  if (s === 'CONFIRMED') return 'CONFIRMED MISSION';
+  if (s === 'COMPLETED') return 'COMPLETED MISSION';
+  if (s === 'REJECTED' || s === 'EXPIRED') return 'CANCELED MISSION';
+  if (s === 'PENDING_DRIVER') return 'PENDING MISSION';
+  if (s === 'REQUESTED') return 'REQUEST MISSION';
+  return 'BOOKING';
+}
 
 type BookingTab = 'Booking Requests' | 'Booking History';
 
@@ -123,13 +135,6 @@ export default function DriverBookingsScreen() {
     return list.length === 0;
   }, [loading, tab, list.length, ongoingCardBookings.length]);
 
-  function formatRange(startTime: string, endTime: string) {
-    const s = new Date(startTime);
-    const e = new Date(endTime);
-    if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) return '—';
-    return `${s.toLocaleString()} -> ${e.toLocaleString()}`;
-  }
-
   async function respond(bookingId: string, accept: boolean) {
     try {
       setBusyId(bookingId);
@@ -143,219 +148,244 @@ export default function DriverBookingsScreen() {
     }
   }
 
-  async function cancelTrip(bookingId: string) {
-    Alert.alert('Cancel trip?', 'This will cancel the selected trip.', [
-      { text: 'No', style: 'cancel' },
-      {
-        text: 'Yes, cancel',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            setBusyId(bookingId);
-            const s = await ensureDriverSession();
-            await driverPatch(`/driver/bookings/${bookingId}/cancel`, s.driverId);
-            await refresh();
-          } catch (e) {
-            Alert.alert('Failed', e instanceof Error ? e.message : 'Cancel trip failed');
-          } finally {
-            setBusyId(null);
-          }
-        },
-      },
-    ]);
-  }
-
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="px-5 pt-4">
-        <View className="flex-row items-center justify-center">
-          <Text className="text-base font-extrabold text-gray-900">Bookings</Text>
-          {/* <Pressable className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-            <FontAwesome name="filter" size={16} color="#111827" />
-          </Pressable> */}
-        </View>
-
-        <View className="mt-4 flex-row rounded-2xl bg-gray-100 p-1">
-          {(['Booking Requests', 'Booking History'] as const).map((t) => {
-            const isActive = tab === t;
-            return (
-              <Pressable
-                key={t}
-                onPress={() => setTab(t)}
-                className={`flex-1 items-center justify-center rounded-2xl py-3 ${
-                  isActive ? 'bg-gray-800' : ''
-                }`}>
-                <Text className={`text-xs font-extrabold ${isActive ? 'text-white' : 'text-gray-500'}`}>{t}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
-        {approvedVehicles.length > 0 ? (
-          <View className="mb-3">
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <Pressable
-                onPress={() => setSelectedVehicleId('ALL')}
-                className={`mr-2 h-[74px] w-[96px] items-center justify-center rounded-2xl border border-gray-200 ${
-                  selectedVehicleId === 'ALL' ? 'bg-gray-800' : 'bg-white'
-                }`}>
-                <Text className={`text-xs font-extrabold ${selectedVehicleId === 'ALL' ? 'text-white' : 'text-gray-800'}`}>All</Text>
-              </Pressable>
-
-              {approvedVehicles.map((v) => {
-                const id = String(v.id);
-                const activeCar = selectedVehicleId === id;
-                const firstImg = Array.isArray(v.imageUrls) && v.imageUrls.length > 0 ? v.imageUrls[0] : '';
-                const label = `${v.manufacturer ?? ''} ${v.carModel ?? ''}`.trim() || v.vehicleType || v.armourLevel || 'Vehicle';
-
-                return (
-                  <Pressable
-                    key={id}
-                    onPress={() => setSelectedVehicleId(id)}
-                    className={`mr-2 h-[74px] w-[140px] overflow-hidden rounded-2xl border ${
-                      activeCar ? 'border-gray-800 bg-gray-800' : 'border-gray-200 bg-white'
-                    }`}>
-                    <View className="flex-row items-center">
-                      <View className={`h-[74px] w-[74px] items-center justify-center ${activeCar ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                        {firstImg ? (
-                          <Image source={{ uri: firstImg }} style={{ width: 74, height: 74 }} resizeMode="cover" />
-                        ) : (
-                          <FontAwesome name="car" size={18} color={activeCar ? '#FFFFFF' : '#111827'} />
-                        )}
-                      </View>
-                      <View className="flex-1 px-2">
-                        <Text numberOfLines={2} className={`text-[11px] font-extrabold ${activeCar ? 'text-white' : 'text-gray-900'}`}>
-                          {label}
-                        </Text>
-                        <Text numberOfLines={1} className={`mt-0.5 text-[10px] font-bold ${activeCar ? 'text-gray-200' : 'text-gray-500'}`}>
-                          {v.numberPlate ?? v.registrationNumber ?? v.armourLevel}
-                        </Text>
-                      </View>
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
+    <LinearGradient
+      colors={['rgb(51, 47, 56)', 'rgb(88, 88, 90)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
+      start={{ x: 1, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      locations={[0, 0.4, 0.7, 0.9, 1]}
+      style={{ flex: 1 }}>
+      <SafeAreaView className="flex-1">
+        <View className="px-5 pt-4">
+          <View className="flex-row items-center">
+            <Text className="text-2xl font-extrabold text-gray-100" style={{ letterSpacing: 0.8 }}>
+              BOOKINGS
+            </Text>
           </View>
-        ) : null}
 
-        {!loading && tab === 'Booking Requests' && ongoingCardBookings.length > 0
-          ? ongoingCardBookings.map((b) => {
-              const metaLine = `${b.user?.name ?? '—'} • ${b.vehicle?.vehicleType ?? b.vehicle?.armourLevel ?? '—'}`;
-              const detailParams = {
-                id: b.id,
-                pickupLocation: b.pickupLocation,
-                dropLocation: b.dropLocation,
-                status: b.status,
-                startTime: b.startTime,
-                endTime: b.endTime,
-                totalPrice: String(b.totalPrice ?? 0),
-                driverName: '',
-                customerName: b.user?.name ?? '',
-                vehicleArmour: b.vehicle?.armourLevel ?? '',
-                vehicleType: b.vehicle?.vehicleType ?? '',
-                vehicleName: `${b.vehicle?.manufacturer ?? ''} ${b.vehicle?.carModel ?? ''}`.trim(),
-              };
+          <View className="mt-4 flex-row overflow-hidden rounded-xl bg-[#2F3135]">
+            {(['Booking Requests', 'Booking History'] as const).map((t, idx) => {
+              const active = tab === t;
+              return (
+                <Pressable
+                  key={t}
+                  onPress={() => setTab(t)}
+                  className="flex-1"
+                  style={{
+                    borderLeftWidth: idx === 0 ? 0 : 1,
+                    borderLeftColor: '#515458',
+                  }}>
+                  <View
+                    className="items-center justify-center px-1 py-3"
+                    style={{
+                      borderWidth: active ? 2 : 0,
+                      borderColor: active ? 'black' : 'transparent',
+                      borderRadius: 10,
+                      margin: 6,
+                    }}>
+                    <FontAwesome
+                      name={t === 'Booking Requests' ? 'inbox' : 'history'}
+                      size={18}
+                      color={active ? '#E5E7EB' : '#B8BBC0'}
+                    />
+                    <Text
+                      className="mt-1 text-[10px] font-extrabold"
+                      style={{ color: active ? '#E5E7EB' : '#B8BBC0' }}>
+                      {t === 'Booking Requests' ? 'REQUESTS' : 'HISTORY'}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
 
-              if (b.status === 'IN_PROGRESS') {
+        <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
+          {approvedVehicles.length > 0 ? (
+            <View className="mb-4 overflow-hidden rounded-xl bg-[#2F3135] py-2 pl-2">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 10 }}>
+                <Pressable
+                  onPress={() => setSelectedVehicleId('ALL')}
+                  className="mr-1"
+                  style={{
+                    borderWidth: selectedVehicleId === 'ALL' ? 2 : 0,
+                    borderColor: '#000',
+                    borderRadius: 10,
+                    margin: 4,
+                  }}>
+                  <View className="h-[74px] w-[96px] items-center justify-center rounded-lg bg-[#3B3E43]">
+                    <Text
+                      className={`text-xs font-extrabold ${selectedVehicleId === 'ALL' ? 'text-gray-100' : 'text-[#B8BBC0]'}`}>
+                      All
+                    </Text>
+                  </View>
+                </Pressable>
+
+                {approvedVehicles.map((v) => {
+                  const id = String(v.id);
+                  const activeCar = selectedVehicleId === id;
+                  const firstImg = Array.isArray(v.imageUrls) && v.imageUrls.length > 0 ? v.imageUrls[0] : '';
+                  const label =
+                    `${v.manufacturer ?? ''} ${v.carModel ?? ''}`.trim() || v.vehicleType || v.armourLevel || 'Vehicle';
+
+                  return (
+                    <Pressable
+                      key={id}
+                      onPress={() => setSelectedVehicleId(id)}
+                      className="mr-1"
+                      style={{
+                        borderWidth: activeCar ? 2 : 0,
+                        borderColor: '#000',
+                        borderRadius: 10,
+                        margin: 4,
+                      }}>
+                      <View className="h-[74px] w-[140px] flex-row items-center overflow-hidden rounded-lg bg-[#3B3E43]">
+                        <View className="h-[74px] w-[74px] items-center justify-center bg-black/20">
+                          {firstImg ? (
+                            <Image source={{ uri: firstImg }} style={{ width: 74, height: 74 }} resizeMode="cover" />
+                          ) : (
+                            <FontAwesome name="car" size={18} color={activeCar ? '#E5E7EB' : '#B8BBC0'} />
+                          )}
+                        </View>
+                        <View className="flex-1 px-2">
+                          <Text
+                            numberOfLines={2}
+                            className={`text-[11px] font-extrabold ${activeCar ? 'text-gray-100' : 'text-[#B8BBC0]'}`}>
+                            {label}
+                          </Text>
+                          <Text numberOfLines={1} className="mt-0.5 text-[10px] font-bold text-gray-500">
+                            {v.numberPlate ?? v.registrationNumber ?? v.armourLevel}
+                          </Text>
+                        </View>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          ) : null}
+
+          {!loading && tab === 'Booking Requests' && ongoingCardBookings.length > 0
+            ? ongoingCardBookings.map((b) => {
+                const metaLine = `${b.user?.name ?? '—'} • ${b.vehicle?.vehicleType ?? b.vehicle?.armourLevel ?? '—'}`;
+                const detailParams = {
+                  id: b.id,
+                  pickupLocation: b.pickupLocation,
+                  dropLocation: b.dropLocation,
+                  status: b.status,
+                  startTime: b.startTime,
+                  endTime: b.endTime,
+                  totalPrice: String(b.totalPrice ?? 0),
+                  driverName: '',
+                  customerName: b.user?.name ?? '',
+                  vehicleArmour: b.vehicle?.armourLevel ?? '',
+                  vehicleType: b.vehicle?.vehicleType ?? '',
+                  vehicleName: `${b.vehicle?.manufacturer ?? ''} ${b.vehicle?.carModel ?? ''}`.trim(),
+                };
+                const missionHeaderLine = `${driverMissionBanner(b.status)} - ${metaLine}`;
+                const costLabel =
+                  typeof b.totalPrice === 'number' ? `Rs ${b.totalPrice.toFixed(2)}` : undefined;
+
                 return (
                   <View key={b.id} className={busyId === b.id ? 'opacity-50' : ''}>
                     <TripRouteCard
+                      variant="mission"
+                      missionHeaderLine={missionHeaderLine}
+                      missionCostLabel={costLabel}
                       from={b.pickupLocation}
                       to={b.dropLocation}
                       status={b.status}
-                      rightMetaText={metaLine}
-                      onPress={() => router.push({ pathname: '/driver-ongoing-trip' as any, params: { bookingId: b.id } })}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/booking-details' as any,
+                          params:
+                            b.status === 'IN_PROGRESS'
+                              ? { id: b.id, live: '1' }
+                              : detailParams,
+                        })
+                      }
                     />
                   </View>
                 );
-              }
+              })
+            : null}
 
-              return (
-                <View key={b.id}>
-                  <TripRouteCard
-                    from={b.pickupLocation}
-                    to={b.dropLocation}
-                    status={b.status}
-                    rightMetaText={metaLine}
-                    onPress={() => router.push({ pathname: '/booking-details' as any, params: detailParams })}
-                  />
-                </View>
-              );
-            })
-          : null}
-
-        {loading ? (
-          <View className="mt-10 items-center">
-            <Text className="text-sm font-semibold text-gray-500">Loading...</Text>
-          </View>
-        ) : null}
-
-        {emptyState ? (
-          <View className="mt-10 items-center">
-            <View className="h-14 w-14 items-center justify-center rounded-3xl bg-gray-100">
-              <FontAwesome name="calendar" size={20} color="#111827" />
+          {loading ? (
+            <View className="mt-10 items-center">
+              <Text className="text-sm font-semibold text-gray-400">Loading…</Text>
             </View>
-            <Text className="mt-4 text-base font-extrabold text-gray-900">No bookings</Text>
-            <Text className="mt-1 text-xs font-semibold text-gray-500">You will see your {tab.toLowerCase()} here.</Text>
-          </View>
-        ) : null}
+          ) : null}
 
-        {list.map((b) => {
-          const isBusy = busyId === b.id;
-          const customerName = b.user?.name ?? '-';
-          const payout = b.totalPrice ?? 0;
-          const vehicleName = `${b.vehicle?.manufacturer ?? ''} ${b.vehicle?.carModel ?? ''}`.trim();
-
-          return (
-            <View key={b.id}>
-              <BookingSummaryCard
-                pickupLocation={b.pickupLocation}
-                dropLocation={b.dropLocation}
-                payout={payout}
-                status={b.status}
-                onPress={() =>
-                  router.push({
-                    pathname: '/booking-details' as any,
-                    params: {
-                      id: b.id,
-                      pickupLocation: b.pickupLocation,
-                      dropLocation: b.dropLocation,
-                      status: b.status,
-                      startTime: b.startTime,
-                      endTime: b.endTime,
-                      totalPrice: String(payout),
-                      driverName: '',
-                      customerName,
-                      vehicleArmour: b.vehicle?.armourLevel ?? '',
-                      vehicleType: b.vehicle?.vehicleType ?? '',
-                      vehicleName: vehicleName || '',
-                    },
-                  })
-                }
-              />
-              {tab === 'Booking Requests' ? (
-                <View className="mb-4 -mt-1 flex-row gap-3">
-                  <Pressable
-                    disabled={isBusy}
-                    onPress={() => respond(b.id, false)}
-                    className="flex-1 items-center justify-center rounded-2xl bg-gray-100 py-3">
-                    <Text className="text-xs font-extrabold text-gray-900">{isBusy ? '...' : 'Decline'}</Text>
-                  </Pressable>
-                  <Pressable
-                    disabled={isBusy}
-                    onPress={() => respond(b.id, true)}
-                    className="flex-1 items-center justify-center rounded-2xl bg-[#1D2DD9] py-3">
-                    <Text className="text-xs font-extrabold text-white">{isBusy ? '...' : 'Accept'}</Text>
-                  </Pressable>
-                </View>
-              ) : null}
+          {emptyState ? (
+            <View className="mt-10 items-center">
+              <View className="h-14 w-14 items-center justify-center rounded-3xl bg-[#2F3135]">
+                <FontAwesome name="calendar" size={20} color="#B8BBC0" />
+              </View>
+              <Text className="mt-4 text-lg font-extrabold text-gray-200">No bookings</Text>
+              <Text className="mt-1 text-sm font-semibold text-gray-200">
+                You will see your {tab.toLowerCase()} here.
+              </Text>
             </View>
-          );
-        })}
-      </ScrollView>
-    </SafeAreaView>
+          ) : null}
+
+          {list.map((b) => {
+            const isBusy = busyId === b.id;
+            const customerName = b.user?.name ?? '—';
+            const payout = b.totalPrice ?? 0;
+            const vehicleName = `${b.vehicle?.manufacturer ?? ''} ${b.vehicle?.carModel ?? ''}`.trim();
+            const vehicleBit = b.vehicle?.vehicleType ?? b.vehicle?.armourLevel ?? '—';
+            const missionHeaderLine = `${driverMissionBanner(b.status)} - ${customerName} • ${vehicleBit}`;
+
+            return (
+              <View key={b.id}>
+                <BookingSummaryCard
+                  variant="mission"
+                  missionHeaderLine={missionHeaderLine}
+                  pickupLocation={b.pickupLocation}
+                  dropLocation={b.dropLocation}
+                  payout={payout}
+                  status={b.status}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/booking-details' as any,
+                      params: {
+                        id: b.id,
+                        pickupLocation: b.pickupLocation,
+                        dropLocation: b.dropLocation,
+                        status: b.status,
+                        startTime: b.startTime,
+                        endTime: b.endTime,
+                        totalPrice: String(payout),
+                        driverName: '',
+                        customerName,
+                        vehicleArmour: b.vehicle?.armourLevel ?? '',
+                        vehicleType: b.vehicle?.vehicleType ?? '',
+                        vehicleName: vehicleName || '',
+                      },
+                    })
+                  }
+                />
+                {tab === 'Booking Requests' ? (
+                  <View className="mb-4 -mt-1 flex-row gap-3">
+                    <Pressable
+                      disabled={isBusy}
+                      onPress={() => respond(b.id, false)}
+                      className="flex-1 items-center justify-center rounded-2xl border border-[#515458] bg-[#2F3135] py-3">
+                      <Text className="text-xs font-extrabold text-gray-100">{isBusy ? '…' : 'Decline'}</Text>
+                    </Pressable>
+                    <Pressable
+                      disabled={isBusy}
+                      onPress={() => respond(b.id, true)}
+                      className="flex-1 items-center justify-center rounded-2xl bg-[#1D2DD9] py-3">
+                      <Text className="text-xs font-extrabold text-white">{isBusy ? '…' : 'Accept'}</Text>
+                    </Pressable>
+                  </View>
+                ) : null}
+              </View>
+            );
+          })}
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }

@@ -22,25 +22,48 @@ type Props = {
   onPress?: () => void;
   className?: string;
   showStatus?: boolean;
-  showDriverHeader?: boolean;
+  /** Dark card styling to match user Activities lists. */
+  appearance?: 'light' | 'dark';
 };
 
 const FALLBACK_IMAGE = 'https://images.pexels.com/photos/358070/pexels-photo-358070.jpeg';
 
-export function VehicleCard({ vehicle, onPress, className, showStatus = false, showDriverHeader = true }: Props) {
+export function VehicleCard({
+  vehicle,
+  onPress,
+  className,
+  showStatus = false,
+  appearance = 'light',
+}: Props) {
   const rating = typeof vehicle.rating === 'number' && Number.isFinite(vehicle.rating) ? vehicle.rating : null;
   const Wrapper = onPress ? Pressable : View;
   const statusLabel = vehicle.isApproved ? 'Approved' : 'Pending';
-  const statusClass = vehicle.isApproved ? 'text-green-600' : 'text-amber-600';
+  const statusClass =
+    appearance === 'dark'
+      ? vehicle.isApproved
+        ? 'text-emerald-400'
+        : 'text-amber-400'
+      : vehicle.isApproved
+        ? 'text-green-600'
+        : 'text-amber-600';
   const vehicleName = `${vehicle.manufacturer ?? ''} ${vehicle.generation ?? ''} ${vehicle.carModel ?? ''}`.trim() || 'Vehicle';
   const firstImage = vehicle.imageUrls?.[0] || FALLBACK_IMAGE;
   const city = (vehicle.location ?? '').trim();
+  const isDark = appearance === 'dark';
+  const defaultClass = isDark
+    ? 'mb-3 w-[100%] rounded-2xl bg-[#3B3E43] p-2.5'
+    : 'mb-3 w-[100%] rounded-2xl bg-white p-2.5';
+  const metaIcon = isDark ? '#B8BBC0' : 'rgb(126, 126, 126)';
+  const titleClass = isDark ? 'mt-0.5 text-lg font-bold text-gray-100' : 'mt-0.5 text-lg font-bold text-gray-800';
+  const rateClass = isDark ? 'text-lg font-bold text-gray-200' : 'text-lg font-bold text-gray-600';
+  const footerBorder = isDark ? 'border-[#55585D]' : 'border-gray-200';
+  const footerText = isDark ? 'ml-1 flex-1 text-xs font-bold text-gray-300' : 'ml-1 flex-1 text-xs font-bold text-gray-500';
 
   return (
     <Wrapper
       onPress={onPress}
-      className={className ?? `mb-3 w-[100%] rounded-2xl bg-white p-2.5`}
-      style={cardShadow}>
+      className={className ?? defaultClass}
+      style={isDark ? missionCardShadow : cardShadow}>
       <View className="relative overflow-hidden rounded-xl bg-gray-100">
         <Image source={{ uri: firstImage }} style={{ width: '100%', height: 160 }} resizeMode="cover" />
 
@@ -58,45 +81,38 @@ export function VehicleCard({ vehicle, onPress, className, showStatus = false, s
 
       <View className="mt-4 flex-row items-center justify-between">
         <View className="flex-1 pr-2">
-          {/* <Text className="text-[11px] font-bold text-gray-500" numberOfLines={1}>
-            {vehicle.vehicleType}
-          </Text> */}
-          <Text className="mt-0.5 text-lg font-bold text-gray-800" numberOfLines={1}>
+          <Text className={titleClass} numberOfLines={1}>
             {vehicleName}
           </Text>
         </View>
 
         <View className="items-end">
-          <Text className="text-lg font-bold text-gray-600">Rs {vehicle.baseRatePerHour.toFixed(0)} /hr</Text>
-          {/* <Text className="text-[11px] font-bold text-gray-500">/hr</Text> */}
+          <Text className={rateClass}>Rs {vehicle.baseRatePerHour.toFixed(0)} /hr</Text>
         </View>
       </View>
 
-      <View className="mt-3 flex-row flex-wrap items-center gap-x-2 gap-y-2 border-t border-gray-200 px-3 py-2">
-        <View className="min-w-[30%] flex-row items-center">
-          <FontAwesome name="map-marker" size={15} color="rgb(126, 126, 126)" />
-          <Text className="ml-2 text-sm font-bold text-gray-500" numberOfLines={1}>
+      <View className={`mt-3 flex-row items-center border-t px-2 py-2 ${footerBorder}`}>
+        <View className="min-w-0 flex-1 flex-row items-center">
+          <FontAwesome name="map-marker" size={13} color={metaIcon} />
+          <Text className={footerText} numberOfLines={1} ellipsizeMode="tail">
             {city || '—'}
           </Text>
         </View>
-
-        <View className="min-w-[28%] flex-row items-center">
-          <FontAwesome name="shield" size={15} color="rgb(126, 126, 126)" />
-          <Text className="ml-2 text-sm font-bold text-gray-500" numberOfLines={1}>
+        <View className="min-w-0 flex-1 flex-row items-center">
+          <FontAwesome name="shield" size={13} color={metaIcon} />
+          <Text className={footerText} numberOfLines={1} ellipsizeMode="tail">
             {vehicle.armourLevel || '—'}
           </Text>
         </View>
-
-        <View className="min-w-[28%] flex-row items-center">
-          <FontAwesome name="car" size={15} color="rgb(126, 126, 126)" />
-          <Text className="ml-2 text-sm font-bold text-gray-500" numberOfLines={1}>
+        <View className="min-w-0 flex-1 flex-row items-center">
+          <FontAwesome name="car" size={13} color={metaIcon} />
+          <Text className={footerText} numberOfLines={1} ellipsizeMode="tail">
             {vehicle.vehicleType || '—'}
           </Text>
         </View>
-
-        <View className="min-w-[28%] flex-row items-center">
-          <FontAwesome name="users" size={15} color="rgb(126, 126, 126)" />
-          <Text className="ml-2 text-sm font-bold text-gray-500" numberOfLines={1}>
+        <View className="min-w-0 flex-1 flex-row items-center">
+          <FontAwesome name="users" size={13} color={metaIcon} />
+          <Text className={footerText} numberOfLines={1} ellipsizeMode="tail">
             {vehicle.seatingCapacity != null ? `${vehicle.seatingCapacity} seats` : '—'}
           </Text>
         </View>
@@ -117,4 +133,12 @@ const cardShadow = {
   shadowRadius: 16,
   shadowOffset: { width: 0, height: 8 },
   elevation: 3,
+};
+
+const missionCardShadow = {
+  shadowColor: '#000',
+  shadowOpacity: 0.22,
+  shadowRadius: 14,
+  shadowOffset: { width: 0, height: 10 },
+  elevation: 6,
 };

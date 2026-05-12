@@ -62,7 +62,7 @@ export default function TabLayout() {
 
     async function checkOngoing() {
       if (activeRole !== 'USER') return;
-      if (pathname === '/login' || pathname === '/signup' || pathname === '/ongoing-trip') return;
+      if (pathname === '/login' || pathname === '/signup' || pathname === '/booking-details') return;
       try {
         // Re-read snooze each time because this layout stays mounted
         // when the user dismisses the ongoing trip screen.
@@ -81,7 +81,7 @@ export default function TabLayout() {
           return;
         }
 
-        router.replace({ pathname: '/ongoing-trip' as any, params: { bookingId: ongoing.id } });
+        router.replace({ pathname: '/booking-details' as any, params: { id: ongoing.id, live: '1' } });
       } catch {
         // Ignore: screens already handle login redirects.
       }

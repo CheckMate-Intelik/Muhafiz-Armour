@@ -37,11 +37,101 @@ type Props = {
   onPress?: () => void;
   rightMetaText?: string | null;
   testID?: string;
+  /** Matches user Activities list cards (dark header + route). */
+  variant?: 'default' | 'mission';
+  /** First line in mission header, e.g. "ACTIVE MISSION - Customer • vehicle". */
+  missionHeaderLine?: string | null;
+  /** Shown in mission variant COST column when set. */
+  missionCostLabel?: string | null;
 };
 
-export function TripRouteCard({ from, to, status, onPress, rightMetaText, testID }: Props) {
+export function TripRouteCard({
+  from,
+  to,
+  status,
+  onPress,
+  rightMetaText,
+  testID,
+  variant = 'default',
+  missionHeaderLine,
+  missionCostLabel,
+}: Props) {
   const meta = getStatusMeta(status);
   const Root: any = onPress ? Pressable : View;
+
+  if (variant === 'mission') {
+    return (
+      <Root
+        testID={testID}
+        onPress={onPress}
+        className="mb-4 overflow-hidden rounded-2xl"
+        style={missionCardOuter}>
+        <View className="border-b border-gray-900 bg-black px-4 pb-3 pt-3.5">
+          <View className="flex-row items-center justify-between">
+            <Text
+              numberOfLines={2}
+              className="flex-1 pr-2 text-[12px] font-extrabold"
+              style={{ color: '#D8DADF', letterSpacing: 0.4 }}>
+              {missionHeaderLine || meta?.label || '—'}
+            </Text>
+            <FontAwesome name="car" size={22} color="#B8BBC0" />
+          </View>
+        </View>
+
+        <View className="px-4 py-4">
+          <View className="flex-row">
+            <View className="mr-3 w-5 items-center">
+              <View className="h-3 w-3 rounded-full bg-[#D9D9D9]" />
+              <View className="my-2 w-[2px] flex-1 bg-[rgb(42,156,61)]" />
+              <View className="h-3 w-3 rounded-full bg-[#D9D9D9]" />
+            </View>
+
+            <View className="flex-1">
+              <View className="flex-row">
+                <View className="flex-1 pr-3">
+                  <Text className="text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                    FROM:
+                  </Text>
+                  <Text numberOfLines={2} className="mt-1 text-[16px] font-semibold text-gray-100">
+                    {from || '—'}
+                  </Text>
+                </View>
+
+                {missionCostLabel ? (
+                  <View className="w-[90px] items-end">
+                    <Text className="text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                      COST:
+                    </Text>
+                    <Text numberOfLines={1} className="mt-1 text-[14px] font-semibold text-gray-100">
+                      {missionCostLabel}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+
+              <View className="mt-3 border-t border-[#55585D]" />
+
+              <View className="mt-3 flex-row items-start justify-between">
+                <View className="min-w-0 flex-1 pr-2">
+                  <Text className="text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                    TO:
+                  </Text>
+                  <Text numberOfLines={2} className="mt-1 text-[16px] font-semibold text-gray-100">
+                    {to || '—'}
+                  </Text>
+                </View>
+                {rightMetaText && !missionCostLabel ? (
+                  <Text numberOfLines={2} className="max-w-[40%] text-[11px] font-semibold text-gray-300">
+                    {rightMetaText}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+          </View>
+        </View>
+      </Root>
+    );
+  }
 
   return (
     <Root
@@ -51,11 +141,11 @@ export function TripRouteCard({ from, to, status, onPress, rightMetaText, testID
       style={cardShadow}>
       <View className="flex-row items-center px-4 py-4">
         <View className="mr-3 w-5 items-center">
-          <View className="h-4 w-4 rounded-full bg-emerald-200 items-center justify-center">
+          <View className="h-4 w-4 items-center justify-center rounded-full bg-emerald-200">
             <View className="h-2 w-2 rounded-full bg-emerald-500" />
           </View>
           <View className="my-1 w-[3px] flex-1 bg-emerald-200" />
-          <View className="h-4 w-4 rounded-full bg-emerald-200 items-center justify-center">
+          <View className="h-4 w-4 items-center justify-center rounded-full bg-emerald-200">
             <View className="h-2 w-2 rounded-full bg-emerald-500" />
           </View>
         </View>
@@ -68,14 +158,14 @@ export function TripRouteCard({ from, to, status, onPress, rightMetaText, testID
                 {from || '—'}
               </Text>
             </View>
-            
+
             {meta ? (
               <View className={`rounded-full px-3 py-1 ${meta.bgClass}`}>
                 <Text className={`text-[10px] font-extrabold ${meta.textClass}`}>{meta.label}</Text>
               </View>
             ) : null}
           </View>
-          <View className='mt-2 h-[2px] bg-emerald-200'></View>
+          <View className="mt-2 h-[2px] bg-emerald-200" />
           <View className="mt-2 flex-row items-center justify-between">
             <View className="flex-1 pr-2">
               <Text className="text-sm font-semibold text-gray-500">To</Text>
@@ -88,9 +178,8 @@ export function TripRouteCard({ from, to, status, onPress, rightMetaText, testID
               <Text numberOfLines={1} className="mt-3 text-[11px] font-semibold text-gray-500">
                 {rightMetaText}
               </Text>
-              ) : null}
+            ) : null}
           </View>
-
         </View>
       </View>
     </Root>
@@ -103,5 +192,14 @@ const cardShadow = {
   shadowRadius: 14,
   shadowOffset: { width: 0, height: 10 },
   elevation: 4,
+};
+
+const missionCardOuter = {
+  backgroundColor: '#3B3E43',
+  shadowColor: '#000',
+  shadowOpacity: 0.22,
+  shadowRadius: 14,
+  shadowOffset: { width: 0, height: 10 },
+  elevation: 6,
 };
 

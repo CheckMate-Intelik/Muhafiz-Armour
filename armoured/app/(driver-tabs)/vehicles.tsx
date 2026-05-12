@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { VehicleCard } from '@/components/VehicleCard';
 import { driverGet, ensureDriverSession, isNotAuthenticatedError } from '@/lib/api';
@@ -64,71 +65,108 @@ export default function DriverVehiclesScreen() {
   const list = tab === 'Approved' ? approved : pending;
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F4F5F7]">
-      <View className="px-5 pt-4">
-        <View className="flex-row items-center justify-center">
-          <Text className="text-base font-extrabold text-gray-900">Vehicles</Text>
-        </View>
-
-        <View className="mt-4 flex-row rounded-2xl bg-gray-200 p-1">
-          {(['Approved', 'Pending'] as const).map((t) => {
-            const activeTab = tab === t;
-            return (
-              <Pressable
-                key={t}
-                onPress={() => setTab(t)}
-                className={`flex-1 items-center justify-center rounded-2xl py-3 ${activeTab ? 'bg-gray-800' : ''}`}>
-                <Text className={`text-xs font-extrabold ${activeTab ? 'text-white' : 'text-gray-500'}`}>{t}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-
-      <Pressable
-        onPress={() => router.push('/register-vehicle')}
-        className="absolute bottom-[120px] left-1/2 z-10 w-[150px] -translate-x-1/2 flex-row items-center justify-center rounded-full bg-gray-800 py-5">
-        <FontAwesome name="plus" size={14} color="#FFFFFF" />
-        <Text className="ml-2 text-xs font-bold text-white">Add vehicle</Text>
-      </Pressable>
-
-      <ScrollView contentContainerStyle={{ paddingBottom: 180 }} className="px-5 pt-4">
-        {loading ? (
-          <View className="mt-10 items-center">
-            <Text className="text-sm font-semibold text-gray-500">Loading...</Text>
-          </View>
-        ) : null}
-
-        {!loading && list.length === 0 ? (
-          <View className="mt-10 items-center">
-            <View className="h-14 w-14 items-center justify-center rounded-3xl bg-gray-100">
-              <FontAwesome name="car" size={20} color="#111827" />
-            </View>
-            <Text className="mt-4 text-base font-extrabold text-gray-900">No vehicles</Text>
-            <Text className="mt-1 text-xs font-semibold text-gray-500">
-              {tab === 'Approved' ? 'Your approved vehicles will appear here.' : 'Your pending vehicles will appear here.'}
+    <LinearGradient
+      colors={['rgb(51, 47, 56)', 'rgb(88, 88, 90)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
+      start={{ x: 1, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      locations={[0, 0.4, 0.7, 0.9, 1]}
+      style={{ flex: 1 }}>
+      <SafeAreaView className="flex-1">
+        <View className="px-5 pt-4">
+          <View className="flex-row items-center">
+            <Text className="text-2xl font-extrabold text-gray-100" style={{ letterSpacing: 0.8 }}>
+              VEHICLES
             </Text>
           </View>
-        ) : null}
 
-        <View className="flex-row flex-wrap justify-between">
-          {list.map((v) => (
-            <VehicleCard
-              key={v.id}
-              vehicle={v}
-              onPress={() =>
-                router.push({
-                  pathname: '/car-details' as any,
-                  params: { vehicleId: v.id, readonly: '1' },
-                })
-              }
-              // className="mb-3 w-[48.5%] rounded-2xl bg-white p-2.5"
-              showStatus
-              showDriverHeader={false}
-            />
-          ))}
+          <View className="mt-4 flex-row overflow-hidden rounded-xl bg-[#2F3135]">
+            {(['Approved', 'Pending'] as const).map((t, idx) => {
+              const active = tab === t;
+              return (
+                <Pressable
+                  key={t}
+                  onPress={() => setTab(t)}
+                  className="flex-1"
+                  style={{
+                    borderLeftWidth: idx === 0 ? 0 : 1,
+                    borderLeftColor: '#515458',
+                  }}>
+                  <View
+                    className="items-center justify-center px-1 py-3"
+                    style={{
+                      borderWidth: active ? 2 : 0,
+                      borderColor: active ? 'black' : 'transparent',
+                      borderRadius: 10,
+                      margin: 6,
+                    }}>
+                    <FontAwesome
+                      name={t === 'Approved' ? 'check' : 'clock-o'}
+                      size={18}
+                      color={active ? '#E5E7EB' : '#B8BBC0'}
+                    />
+                    <Text
+                      className="mt-1 text-[10px] font-extrabold"
+                      style={{ color: active ? '#E5E7EB' : '#B8BBC0' }}>
+                      {t.toUpperCase()}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+
+        <Pressable
+          onPress={() => router.push('/register-vehicle')}
+          className="absolute bottom-[120px] left-1/2 z-10 w-[160px] -translate-x-1/2 flex-row items-center justify-center rounded-full bg-[#1D2DD9] py-4 shadow-lg"
+          style={{
+            shadowColor: '#000',
+            shadowOpacity: 0.2,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 6 },
+            elevation: 8,
+          }}>
+          <FontAwesome name="plus" size={14} color="#FFFFFF" />
+          <Text className="ml-2 text-xs font-extrabold text-white">Add vehicle</Text>
+        </Pressable>
+
+        <ScrollView contentContainerStyle={{ paddingBottom: 180 }} className="px-5 pt-4">
+          {loading ? (
+            <View className="mt-10 items-center">
+              <Text className="text-sm font-semibold text-gray-400">Loading…</Text>
+            </View>
+          ) : null}
+
+          {!loading && list.length === 0 ? (
+            <View className="mt-10 items-center">
+              <View className="h-14 w-14 items-center justify-center rounded-3xl bg-[#2F3135]">
+                <FontAwesome name="car" size={20} color="#B8BBC0" />
+              </View>
+              <Text className="mt-4 text-lg font-extrabold text-gray-200">No vehicles</Text>
+              <Text className="mt-1 text-sm font-semibold text-gray-200">
+                {tab === 'Approved' ? 'Your approved vehicles will appear here.' : 'Your pending vehicles will appear here.'}
+              </Text>
+            </View>
+          ) : null}
+
+          <View className="flex-row flex-wrap justify-between">
+            {list.map((v) => (
+              <VehicleCard
+                key={v.id}
+                vehicle={v}
+                onPress={() =>
+                  router.push({
+                    pathname: '/car-details' as any,
+                    params: { vehicleId: v.id, readonly: '1' },
+                  })
+                }
+                appearance="dark"
+                showStatus
+              />
+            ))}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }

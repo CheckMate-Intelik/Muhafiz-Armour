@@ -1,241 +1,25 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { BookingDetailsBody } from '@/components/BookingDetailsBody';
-import { apiGet, apiPatch, apiPost, ensureUserSession } from '@/lib/api';
-
-const SNOOZE_KEY = 'armoured:ongoing-trip-snooze:v1';
-const IN_MEMORY_SNOOZE_KEY = '__armouredOngoingTripSnoozeUntilMs';
-
-type Booking = {
-  id: string;
-  pickupLocation: string;
-  dropLocation: string;
-  startTime: string;
-  endTime: string;
-  status: string;
-  totalPrice: number | null;
-  driver?: { name: string } | null;
-  vehicle?: { armourLevel: string; vehicleType: string } | null;
-};
 
 export default function OngoingTripScreen() {
   const params = useLocalSearchParams<{ bookingId?: string }>();
   const bookingId = params.bookingId ?? '';
 
-  const [loading, setLoading] = useState(true);
-  const [booking, setBooking] = useState<Booking | null>(null);
-  const [busy, setBusy] = useState(false);
-
   useEffect(() => {
-    if (!booking) return;
-    if (booking.status === 'COMPLETED') {
-      router.replace('/(tabs)/activities' as any);
+    if (!bookingId) {
+      router.replace('/(tabs)' as any);
       return;
     }
-    if (booking.status === 'REJECTED' || booking.status === 'EXPIRED') {
-      router.replace('/(tabs)/activities' as any);
-    }
-  }, [booking]);
-
-  async function load() {
-    const s = await ensureUserSession();
-    const rows = await apiGet<Booking[]>(`/bookings`, s.userId);
-    const match = Array.isArray(rows) ? rows.find((b) => b.id === bookingId) : undefined;
-    setBooking(match ?? null);
-  }
-
-  async function extend(mode: 'ADD_2_HOURS' | 'ADD_1_DAY') {
-    if (!booking) return;
-    try {
-      setBusy(true);
-      const s = await ensureUserSession();
-      const updated = await apiPost<Booking>(`/bookings/${booking.id}/extend`, s.userId, { mode });
-      setBooking(updated);
-    } catch (e) {
-      Alert.alert('Extension denied', e instanceof Error ? e.message : 'Conflict or error');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function cancel() {
-    if (!booking) return;
-    Alert.alert('Cancel trip?', 'This will cancel the current trip.', [
-      { text: 'No', style: 'cancel' },
-      {
-        text: 'Yes, cancel',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            setBusy(true);
-            const s = await ensureUserSession();
-            await apiPatch(`/bookings/${booking.id}/cancel`, s.userId);
-            await load();
-            router.replace('/(tabs)/activities' as any);
-          } catch (e) {
-            Alert.alert('Failed', e instanceof Error ? e.message : 'Cancel failed');
-          } finally {
-            setBusy(false);
-          }
-        },
-      },
-    ]);
-  }
-
-  async function dismissToHome() {
-    const untilMs = Date.now() + 6 * 60 * 60 * 1000;
-    (globalThis as any)[IN_MEMORY_SNOOZE_KEY] = untilMs;
-    try {
-      await AsyncStorage.setItem(SNOOZE_KEY, JSON.stringify({ untilMs }));
-    } catch {
-      // ignore
-    }
-    router.replace('/(tabs)' as any);
-  }
-
-  useEffect(() => {
-    let cancelled = false;
-    let interval: ReturnType<typeof setInterval> | null = null;
-
-    async function boot() {
-      if (!bookingId) {
-        router.replace('/(tabs)' as any);
-        return;
-      }
-      try {
-        await ensureUserSession();
-        if (cancelled) return;
-        await load();
-        if (cancelled) return;
-        interval = setInterval(() => {
-          void load().catch(() => null);
-        }, 5000);
-      } catch {
-        router.replace('/login' as any);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    void boot();
-    return () => {
-      cancelled = true;
-      if (interval) clearInterval(interval);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    router.replace({ pathname: '/booking-details' as any, params: { id: bookingId, live: '1' } });
   }, [bookingId]);
-
-  if (loading) {
-    return (
-      <SafeAreaView className="flex-1 bg-white">
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-sm font-semibold text-gray-500">Loading…</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!booking) {
-    return (
-      <SafeAreaView className="flex-1 bg-white">
-        <View className="px-5 pt-4">
-          <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={dismissToHome}
-              className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-              <FontAwesome name="arrow-left" size={16} color="#111827" />
-            </Pressable>
-            <Text className="text-base font-extrabold text-gray-900">Ongoing trip</Text>
-            <View className="h-10 w-10" />
-          </View>
-        </View>
-        <View className="flex-1 items-center justify-center px-5">
-          <Text className="text-base font-extrabold text-gray-900">No active trip</Text>
-          <Text className="mt-2 text-xs font-semibold text-gray-500">This trip may have ended.</Text>
-          <Pressable onPress={dismissToHome} className="mt-4 rounded-2xl bg-[#1D2DD9] px-4 py-3">
-            <Text className="text-xs font-extrabold text-white">Back to home</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const payout = booking.totalPrice ?? NaN;
-  const payoutLabel = Number.isFinite(payout) ? `Rs ${payout.toFixed(2)}` : '—';
-  const v = booking.vehicle;
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <View className="px-5 pt-4">
-        <View className="flex-row items-center justify-between">
-          <Pressable onPress={dismissToHome} className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-            <FontAwesome name="arrow-left" size={16} color="#111827" />
-          </Pressable>
-          <Text className="text-base font-extrabold text-gray-900">Ongoing trip</Text>
-          <Pressable onPress={() => void load()} className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-            <FontAwesome name="refresh" size={16} color="#111827" />
-          </Pressable>
-        </View>
+      <View className="flex-1 items-center justify-center">
+        <Text className="text-sm font-semibold text-gray-500">Loading…</Text>
       </View>
-
-      <ScrollView contentContainerStyle={{ paddingBottom: 48 }} className="px-5 pt-4">
-        <BookingDetailsBody
-          personLabel="Driver"
-          personName={booking.driver?.name ?? '—'}
-          statusLabel={booking.status}
-          payoutLabel={payoutLabel}
-          vehicleName={v?.vehicleType ?? '—'}
-          vehicleType={v?.vehicleType ?? '—'}
-          vehicleArmour={v?.armourLevel ?? '—'}
-          bookingId={booking.id}
-          pickupLocation={booking.pickupLocation}
-          dropLocation={booking.dropLocation}
-          startTime={booking.startTime}
-          endTime={booking.endTime}
-        />
-
-        <View className="mt-4 rounded-2xl bg-gray-50 px-4 py-3">
-          <Text className="text-xs font-semibold text-gray-600">
-            You’ll be notified here once the driver completes the trip.
-          </Text>
-        </View>
-
-        {booking.status === 'IN_PROGRESS' || booking.status === 'CONFIRMED' ? (
-          <View className="mt-4 gap-3">
-            <Text className="text-xs font-extrabold text-gray-900">Extend booking</Text>
-            <View className="flex-row gap-3">
-              <Pressable
-                disabled={busy}
-                onPress={() => void extend('ADD_2_HOURS')}
-                className={`flex-1 items-center rounded-2xl py-3 ${busy ? 'bg-gray-200' : 'bg-[#1D2DD9]'}`}>
-                <Text className={`text-xs font-extrabold ${busy ? 'text-gray-500' : 'text-white'}`}>+2 hours</Text>
-              </Pressable>
-              <Pressable
-                disabled={busy}
-                onPress={() => void extend('ADD_1_DAY')}
-                className={`flex-1 items-center rounded-2xl py-3 ${busy ? 'bg-gray-200' : 'bg-[#1D2DD9]'}`}>
-                <Text className={`text-xs font-extrabold ${busy ? 'text-gray-500' : 'text-white'}`}>+1 day</Text>
-              </Pressable>
-            </View>
-          </View>
-        ) : null}
-
-        {booking.status !== 'IN_PROGRESS' ? (
-          <Pressable
-            disabled={busy}
-            onPress={cancel}
-            className={`mt-4 items-center justify-center rounded-2xl py-3 ${busy ? 'bg-gray-200' : 'bg-red-600'}`}>
-            <Text className={`text-xs font-extrabold ${busy ? 'text-gray-500' : 'text-white'}`}>
-              {busy ? 'Please wait…' : 'Cancel trip'}
-            </Text>
-          </Pressable>
-        ) : null}
-      </ScrollView>
     </SafeAreaView>
   );
 }

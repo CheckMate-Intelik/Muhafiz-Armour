@@ -26,73 +26,92 @@ export default function ProfileScreen() {
   }, [profile?.createdAt]);
 
   return (
-    <LinearGradient 
-      colors={['rgb(77, 76, 76)', 'rgb(112, 112, 112)','rgb(202, 202, 202)','rgb(247, 248, 255)']} 
-      start={{ x: 1, y: 0 }} 
+    <LinearGradient
+      colors={['rgb(51, 47, 56)', 'rgb(88, 88, 90)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
+      start={{ x: 1, y: 0 }}
       end={{ x: 1, y: 1 }}
-      locations={[0, 0.3, 0.6, 1]}
+      locations={[0, 0.4, 0.7, 0.9, 1]}
       style={{ flex: 1 }}>
-    <SafeAreaView className="flex-1">
-      <View className="px-5 pt-4 items-center justify-center">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-base font-extrabold text-gray-900">Profile</Text>
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-6">
-        <View className="items-center">
-          <Image
-            source={{ uri: 'https://i.pravatar.cc/240?img=12' }}
-            style={{ width: 120, height: 120, borderRadius: 60 }}
-          />
-          <Text className="mt-4 text-xl font-bold text-gray-200">
-            {profile?.name ?? (loading ? 'Loading…' : '—')}
-          </Text>
-          <Text className="mt-1 text-sm font-semibold text-gray-200">
-            Member since {memberSince}
-          </Text>
+      <SafeAreaView className="flex-1">
+        <View className="px-5 pt-4">
+          <View className="flex-row items-center">
+            <Text className="text-2xl font-extrabold text-gray-100" style={{ letterSpacing: 0.8 }}>
+              PROFILE
+            </Text>
+          </View>
         </View>
 
-        <View className="mt-6 rounded-3xl bg-white p-4" style={cardShadow}>
-          <DetailRow icon="phone" label="Phone" value={profile?.phone ?? '—'} />
-          <Divider />
-          <DetailRow icon="envelope" label="Email" value={profile?.email ?? '—'} />
-        </View>
+        <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
+          <View
+            className="items-center overflow-hidden rounded-2xl bg-black"
+            style={{
+              shadowColor: '#000',
+              shadowOpacity: 0.22,
+              shadowRadius: 14,
+              shadowOffset: { width: 0, height: 10 },
+              elevation: 6,
+            }}>
+            <View className="w-full border-b border-gray-900 bg-black pb-2 pt-4 rounded-t-xl">
+              <Text
+                className="text-center text-md font-extrabold"
+                style={{ color: '#D8DADF', letterSpacing: 0.4 }}>
+                ACCOUNT
+              </Text>
+            </View>
+            <View className="items-center py-5 rounded-xl w-full bg-[#3B3E43]">
+              <Image
+                source={{ uri: 'https://i.pravatar.cc/240?img=12' }}
+                style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: '#515458' }}
+              />
+              <Text className="mt-4 text-xl font-bold text-gray-100">
+                {profile?.name ?? (loading ? 'Loading…' : '—')}
+              </Text>
+              <Text className="mt-1 text-sm font-semibold" style={{ color: '#B8BBC0' }}>
+                Member since {memberSince}
+              </Text>
+            </View>
+          </View>
 
-        <View className="mt-5 rounded-3xl bg-white p-4" style={cardShadow}>
-          <ActionRow icon="credit-card" title="Payment Methods" />
-          <Divider />
-          <ActionRow icon="history" title="Ride History" />
-          <Divider />
-          <ActionRow icon="shield" title="Privacy & Security" />
-          <Divider />
-          <ActionRow
-            icon="exchange"
-            title="Switch to Driver mode"
-            onPress={async () => {
-              await switchRole('DRIVER');
-              router.replace('/(driver-tabs)' as any);
-            }}
-          />
-          <Divider />
-          <ActionRow
-            icon="sign-out"
-            title="Logout"
-            destructive
-            onPress={async () => {
-              await logout();
-              router.replace('/login' as any);
-            }}
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          <View className="mt-4 overflow-hidden rounded-2xl p-4" style={cardShadow}>
+            <DetailRow icon="phone" label="Phone" value={profile?.phone ?? '—'} />
+            <Divider />
+            <DetailRow icon="envelope" label="Email" value={profile?.email ?? '—'} />
+          </View>
+
+          <View className="mt-4 overflow-hidden rounded-2xl p-4" style={cardShadow}>
+            <ActionRow icon="credit-card" title="Payment Methods" />
+            <Divider />
+            <ActionRow icon="history" title="Ride History" />
+            <Divider />
+            <ActionRow icon="shield" title="Privacy & Security" />
+            <Divider />
+            <ActionRow
+              icon="exchange"
+              title="Switch to Driver mode"
+              onPress={async () => {
+                await switchRole('DRIVER');
+                router.replace('/(driver-tabs)' as any);
+              }}
+            />
+            <Divider />
+            <ActionRow
+              icon="sign-out"
+              title="Logout"
+              destructive
+              onPress={async () => {
+                await logout();
+                router.replace('/login' as any);
+              }}
+            />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </LinearGradient>
   );
 }
 
 function Divider() {
-  return <View className="my-3 h-[1px] bg-gray-100" />;
+  return <View className="my-3 h-[1px] bg-[#55585D]" />;
 }
 
 function DetailRow({
@@ -106,12 +125,14 @@ function DetailRow({
 }) {
   return (
     <View className="flex-row items-center">
-      <View className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-        <FontAwesome name={icon} size={16} color="#111827" />
+      <View className="h-10 w-10 items-center justify-center rounded-2xl bg-[#2F3135]">
+        <FontAwesome name={icon} size={16} color="#B8BBC0" />
       </View>
       <View className="ml-3 flex-1">
-        <Text className="text-[10px] font-bold text-gray-400">{label}</Text>
-        <Text className="mt-1 text-sm font-extrabold text-gray-900">{value}</Text>
+        <Text className="text-[10px] font-bold" style={{ color: '#B8BBC0' }}>
+          {label}
+        </Text>
+        <Text className="mt-1 text-sm font-extrabold text-gray-100">{value}</Text>
       </View>
     </View>
   );
@@ -131,23 +152,24 @@ function ActionRow({
   return (
     <Pressable onPress={onPress} className="flex-row items-center justify-between">
       <View className="flex-row items-center">
-        <View className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-          <FontAwesome name={icon} size={16} color={destructive ? '#DC2626' : '#111827'} />
+        <View className="h-10 w-10 items-center justify-center rounded-2xl bg-[#2F3135]">
+          <FontAwesome name={icon} size={16} color={destructive ? '#F87171' : '#B8BBC0'} />
         </View>
         <Text
-          className={`ml-3 text-sm font-extrabold ${destructive ? 'text-red-600' : 'text-gray-900'}`}>
+          className={`ml-3 text-sm font-extrabold ${destructive ? 'text-red-400' : 'text-gray-100'}`}>
           {title}
         </Text>
       </View>
-      <FontAwesome name="angle-right" size={18} color="#9CA3AF" />
+      <FontAwesome name="angle-right" size={18} color="#B8BBC0" />
     </Pressable>
   );
 }
 
 const cardShadow = {
+  backgroundColor: '#3B3E43',
   shadowColor: '#000',
-  shadowOpacity: 0.06,
-  shadowRadius: 12,
-  shadowOffset: { width: 0, height: 8 },
-  elevation: 3,
+  shadowOpacity: 0.22,
+  shadowRadius: 14,
+  shadowOffset: { width: 0, height: 10 },
+  elevation: 6,
 };

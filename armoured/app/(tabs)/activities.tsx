@@ -5,7 +5,6 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { BookingSummaryCard } from '@/components/BookingSummaryCard';
 import { apiGet, ensureUserSession, isNotAuthenticatedError } from '@/lib/api';
 
 type RideStatus = 'Schedule' | 'Recent' | 'Completed' | 'Canceled';
@@ -75,30 +74,54 @@ export default function ActivitiesScreen() {
   }, [bookings, status]);
 
   return (
-    <LinearGradient 
-      colors={['rgb(77, 76, 76)', 'rgb(133, 133, 133)','rgb(202, 202, 202)','rgb(247, 248, 255)']} 
-      start={{ x: 1, y: 0 }} 
+    <LinearGradient
+      colors={['rgb(51, 47, 56)', 'rgb(88, 88, 90)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
+      start={{ x: 1, y: 0 }}
       end={{ x: 1, y: 1 }}
-      locations={[0, 0.3, 0.6, 1]}
+      locations={[0, 0.4, 0.7, 0.9, 1]}
       style={{ flex: 1 }}>
     <SafeAreaView className="flex-1">
       <View className="px-5 pt-4">
-        <View className="flex-row items-center justify-center">
-          <Text className="text-lg font-bold text-gray-200">Activities</Text>
+        <View className="flex-row items-center">
+          <Text className="text-2xl font-extrabold text-gray-100" style={{ letterSpacing: 0.8 }}>
+            ACTIVITIES
+          </Text>
         </View>
 
-        <View className="mt-4 flex-row rounded-xl bg-gray-100 p-1">
-          {(['Schedule', 'Recent', 'Completed', 'Canceled'] as const).map((s) => {
-            const active = status === s;
+        <View className="mt-4 flex-row overflow-hidden rounded-xl bg-[#2F3135]">
+          {(
+            [
+              { key: 'Schedule', label: 'SCHEDULED', icon: 'calendar' },
+              { key: 'Recent', label: 'RECENT', icon: 'clock-o' },
+              { key: 'Completed', label: 'COMPLETED', icon: 'check' },
+              { key: 'Canceled', label: 'CANCELED', icon: 'times' },
+            ] as const
+          ).map((t, idx) => {
+            const active = status === t.key;
             return (
               <Pressable
-                key={s}
-                onPress={() => setStatus(s)}
-                className={`flex-1 items-center justify-center rounded-xl py-3 ${active ? 'bg-black' : ''}`}>
-                <Text
-                  className={`text-sm font-extrabold ${active ? 'text-white' : 'text-gray-500'}`}>
-                  {s === 'Schedule' ? 'Scheduled' : s}
-                </Text>
+                key={t.key}
+                onPress={() => setStatus(t.key)}
+                className="flex-1"
+                style={{
+                  borderLeftWidth: idx === 0 ? 0 : 1,
+                  borderLeftColor: '#515458',
+                }}>
+                <View
+                  className="items-center justify-center px-1 py-3"
+                  style={{
+                    borderWidth: active ? 2 : 0,
+                    borderColor: active ? 'black' : 'transparent',
+                    borderRadius: 10,
+                    margin: 6,
+                  }}>
+                  <FontAwesome name={t.icon as any} size={18} color={active ? '#E5E7EB' : '#B8BBC0'} />
+                  <Text
+                    className="mt-1 text-[10px] font-extrabold"
+                    style={{ color: active ? '#E5E7EB' : '#B8BBC0' }}>
+                    {t.label}
+                  </Text>
+                </View>
               </Pressable>
             );
           })}
@@ -127,32 +150,104 @@ export default function ActivitiesScreen() {
         {rides.map((r) => (
           (() => {
             const vehicleName = `${r.vehicle?.manufacturer ?? ''} ${r.vehicle?.carModel ?? ''}`.trim();
+            const headerStatusLabel =
+              status === 'Schedule'
+                ? 'SCHEDULED MISSION'
+                : status === 'Recent'
+                  ? 'RECENT MISSION'
+                  : status === 'Completed'
+                    ? 'COMPLETED MISSION'
+                    : 'CANCELED MISSION';
+            const driverAndArmour = `${r.driver?.name ?? '—'} • ${r.vehicle?.armourLevel ?? '—'}`.trim();
+            const costLabel = typeof r.totalPrice === 'number' ? `Rs ${r.totalPrice.toFixed(2)}` : '—';
             return (
-          <BookingSummaryCard
-            key={r.id}
-            pickupLocation={r.pickupLocation}
-            dropLocation={r.dropLocation}
-            payout={r.totalPrice}
-            onPress={() =>
-              router.push({
-                pathname: '/booking-details' as any,
-                params: {
-                  id: r.id,
-                  pickupLocation: r.pickupLocation,
-                  dropLocation: r.dropLocation,
-                  status: r.status,
-                  startTime: r.startTime,
-                  endTime: r.endTime,
-                  totalPrice: r.totalPrice == null ? '' : String(r.totalPrice),
-                  driverName: r.driver?.name ?? '',
-                  customerName: '',
-                  vehicleArmour: r.vehicle?.armourLevel ?? '',
-                  vehicleType: r.vehicle?.vehicleType ?? '',
-                  vehicleName: vehicleName || '',
-                },
-              })
-            }
-          />
+              <Pressable
+                key={r.id}
+                onPress={() =>
+                  router.push({
+                    pathname: '/booking-details' as any,
+                    params: {
+                      id: r.id,
+                      pickupLocation: r.pickupLocation,
+                      dropLocation: r.dropLocation,
+                      status: r.status,
+                      startTime: r.startTime,
+                      endTime: r.endTime,
+                      totalPrice: r.totalPrice == null ? '' : String(r.totalPrice),
+                      driverName: r.driver?.name ?? '',
+                      customerName: '',
+                      vehicleArmour: r.vehicle?.armourLevel ?? '',
+                      vehicleType: r.vehicle?.vehicleType ?? '',
+                      vehicleName: vehicleName || '',
+                    },
+                  })
+                }
+                className="mb-4 overflow-hidden rounded-2xl"
+                style={{
+                  backgroundColor: '#3B3E43',
+                  shadowColor: '#000',
+                  shadowOpacity: 0.22,
+                  shadowRadius: 14,
+                  shadowOffset: { width: 0, height: 10 },
+                  elevation: 6,
+                }}>
+                <View className="px-4 pt-3.5 bg-black pb-3 border-b border-gray-900">
+                  <View className="flex-row items-center justify-between">
+                    <Text
+                      numberOfLines={1}
+                      className="flex-1 pr-2 text-[12px] font-extrabold"
+                      style={{ color: '#D8DADF', letterSpacing: 0.4 }}>
+                      {headerStatusLabel} - {driverAndArmour}
+                    </Text>
+                    <FontAwesome name="car" size={22} color="#B8BBC0" />
+                  </View>
+                </View>
+
+                {/* <View className="mt-3 border-t border-[#55585D]" /> */}
+
+                <View className="px-4 py-4">
+                  <View className="flex-row">
+                    <View className="mr-3 w-5 items-center">
+                      <View className="h-3 w-3 rounded-full bg-[#D9D9D9]" />
+                      <View className="my-2 w-[2px] flex-1 bg-[rgb(42,156,61)]" />
+                      <View className="h-3 w-3 rounded-full bg-[#D9D9D9]" />
+                    </View>
+
+                    <View className="flex-1">
+                      <View className="flex-row">
+                        <View className="flex-1 pr-3">
+                          <Text className="text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                            FROM:
+                          </Text>
+                          <Text numberOfLines={1} className="mt-1 text-[16px] font-semibold text-gray-100">
+                            {r.pickupLocation || '—'}
+                          </Text>
+                        </View>
+
+                        <View className="w-[90px] items-end">
+                          <Text className="text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                            COST:
+                          </Text>
+                          <Text numberOfLines={1} className="mt-1 text-[14px] font-semibold text-gray-100">
+                            {costLabel}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View className="mt-3 border-t border-[#55585D]" />
+
+                      <View className="mt-3">
+                        <Text className="text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                          TO:
+                        </Text>
+                        <Text numberOfLines={1} className="mt-1 text-[16px] font-semibold text-gray-100">
+                          {r.dropLocation || '—'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </Pressable>
             );
           })()
         ))}

@@ -1,10 +1,11 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useEffect, useMemo } from 'react';
 import { useStore } from '@/store/store';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function DriverProfileScreen() {
   const hydrate = useStore((s) => s.hydrate);
@@ -19,59 +20,100 @@ export default function DriverProfileScreen() {
   }, [hydrate]);
 
   const memberSince = useMemo(() => {
-    if (!profile?.createdAt) return '-';
+    if (!profile?.createdAt) return '—';
     const d = new Date(profile.createdAt);
-    if (Number.isNaN(d.getTime())) return '-';
+    if (Number.isNaN(d.getTime())) return '—';
     return `${d.getFullYear()}`;
   }, [profile?.createdAt]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="px-5 pt-4 items-center justify-center">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-base font-extrabold text-gray-900">Driver</Text>
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-6">
-        <View className="items-center">
-          <Image source={{ uri: 'https://i.pravatar.cc/240?img=12' }} style={{ width: 120, height: 120, borderRadius: 60 }} />
-          <Text className="mt-4 text-lg font-extrabold text-gray-900">{profile?.name ?? (loading ? 'Loading...' : '-')}</Text>
-          <Text className="mt-1 text-xs font-semibold text-gray-500">Member since {memberSince}</Text>
-        </View>
-
-        <View className="mt-6 rounded-3xl bg-white p-4" style={cardShadow}>
-          <DetailRow icon="phone" label="Phone" value={profile?.phone ?? '-'} />
-          <Divider />
-          <DetailRow icon="envelope" label="Email" value={profile?.email ?? '-'} />
-          <Divider />
-          <DetailRow icon="check" label="Approval" value={profile ? (profile.isApproved ? 'Approved' : 'Pending') : '-'} />
+    <LinearGradient
+      colors={['rgb(51, 47, 56)', 'rgb(88, 88, 90)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
+      start={{ x: 1, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      locations={[0, 0.4, 0.7, 0.9, 1]}
+      style={{ flex: 1 }}>
+      <SafeAreaView className="flex-1">
+        <View className="px-5 pt-4">
+          <View className="flex-row items-center">
+            <Text className="text-2xl font-extrabold text-gray-100" style={{ letterSpacing: 0.8 }}>
+              PROFILE
+            </Text>
+          </View>
         </View>
 
-        <View className="mt-5 rounded-3xl bg-white p-4" style={cardShadow}>
-          <ActionRow icon="refresh" title="Refresh profile" onPress={() => void refreshProfile()} />
-          <Divider />
-          <ActionRow icon="car" title="Vehicle management" onPress={() => router.push('/(driver-tabs)/vehicles' as any)} />
-          <Divider />
-          <ActionRow icon="exchange" title="Switch to User mode" onPress={() => void switchRole('USER').then(() => router.replace('/(tabs)' as any))} />
-          <Divider />
-          <ActionRow
-            icon="sign-out"
-            title="Logout"
-            destructive
-            onPress={async () => {
-              await logout();
-              router.replace('/login' as any);
-            }}
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
+          <View
+            className="items-center overflow-hidden rounded-2xl bg-black"
+            style={{
+              shadowColor: '#000',
+              shadowOpacity: 0.22,
+              shadowRadius: 14,
+              shadowOffset: { width: 0, height: 10 },
+              elevation: 6,
+            }}>
+            <View className="w-full rounded-t-xl border-b border-gray-900 bg-black pb-2 pt-4">
+              <Text
+                className="text-center text-md font-extrabold"
+                style={{ color: '#D8DADF', letterSpacing: 0.4 }}>
+                DRIVER ACCOUNT
+              </Text>
+            </View>
+            <View className="w-full items-center rounded-xl bg-[#3B3E43] py-5">
+              <Image
+                source={{ uri: 'https://i.pravatar.cc/240?img=32' }}
+                style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: '#515458' }}
+              />
+              <Text className="mt-4 text-xl font-bold text-gray-100">
+                {profile?.name ?? (loading ? 'Loading…' : '—')}
+              </Text>
+              <Text className="mt-1 text-sm font-semibold" style={{ color: '#B8BBC0' }}>
+                Member since {memberSince}
+              </Text>
+            </View>
+          </View>
+
+          <View className="mt-4 overflow-hidden rounded-2xl p-4" style={cardShadow}>
+            <DetailRow icon="phone" label="Phone" value={profile?.phone ?? '—'} />
+            <Divider />
+            <DetailRow icon="envelope" label="Email" value={profile?.email ?? '—'} />
+            <Divider />
+            <DetailRow
+              icon="check"
+              label="Approval"
+              value={profile ? (profile.isApproved ? 'Approved' : 'Pending') : '—'}
+            />
+          </View>
+
+          <View className="mt-4 overflow-hidden rounded-2xl p-4" style={cardShadow}>
+            <ActionRow icon="refresh" title="Refresh profile" onPress={() => void refreshProfile()} />
+            <Divider />
+            <ActionRow icon="car" title="Vehicle management" onPress={() => router.push('/(driver-tabs)/vehicles' as any)} />
+            <Divider />
+            <ActionRow
+              icon="exchange"
+              title="Switch to User mode"
+              onPress={() => void switchRole('USER').then(() => router.replace('/(tabs)' as any))}
+            />
+            <Divider />
+            <ActionRow
+              icon="sign-out"
+              title="Logout"
+              destructive
+              onPress={async () => {
+                await logout();
+                router.replace('/login' as any);
+              }}
+            />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 function Divider() {
-  return <View className="my-3 h-[1px] bg-gray-100" />;
+  return <View className="my-3 h-[1px] bg-[#55585D]" />;
 }
 
 function DetailRow({
@@ -85,12 +127,14 @@ function DetailRow({
 }) {
   return (
     <View className="flex-row items-center">
-      <View className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-        <FontAwesome name={icon} size={16} color="#111827" />
+      <View className="h-10 w-10 items-center justify-center rounded-2xl bg-[#2F3135]">
+        <FontAwesome name={icon} size={16} color="#B8BBC0" />
       </View>
       <View className="ml-3 flex-1">
-        <Text className="text-[10px] font-bold text-gray-400">{label}</Text>
-        <Text className="mt-1 text-sm font-extrabold text-gray-900">{value}</Text>
+        <Text className="text-[10px] font-bold" style={{ color: '#B8BBC0' }}>
+          {label}
+        </Text>
+        <Text className="mt-1 text-sm font-extrabold text-gray-100">{value}</Text>
       </View>
     </View>
   );
@@ -110,20 +154,24 @@ function ActionRow({
   return (
     <Pressable onPress={onPress} className="flex-row items-center justify-between">
       <View className="flex-row items-center">
-        <View className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-          <FontAwesome name={icon} size={16} color={destructive ? '#DC2626' : '#111827'} />
+        <View className="h-10 w-10 items-center justify-center rounded-2xl bg-[#2F3135]">
+          <FontAwesome name={icon} size={16} color={destructive ? '#F87171' : '#B8BBC0'} />
         </View>
-        <Text className={`ml-3 text-sm font-extrabold ${destructive ? 'text-red-600' : 'text-gray-900'}`}>{title}</Text>
+        <Text
+          className={`ml-3 text-sm font-extrabold ${destructive ? 'text-red-400' : 'text-gray-100'}`}>
+          {title}
+        </Text>
       </View>
-      <FontAwesome name="angle-right" size={18} color="#9CA3AF" />
+      <FontAwesome name="angle-right" size={18} color="#B8BBC0" />
     </Pressable>
   );
 }
 
 const cardShadow = {
+  backgroundColor: '#3B3E43',
   shadowColor: '#000',
-  shadowOpacity: 0.06,
-  shadowRadius: 12,
-  shadowOffset: { width: 0, height: 8 },
-  elevation: 3,
+  shadowOpacity: 0.22,
+  shadowRadius: 14,
+  shadowOffset: { width: 0, height: 10 },
+  elevation: 6,
 };

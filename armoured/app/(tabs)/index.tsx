@@ -2,6 +2,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   AppState,
   FlatList,
@@ -19,6 +20,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { filterPakistanCities, findPakistanCityByName, type PakistanCity } from '@/constants/pakistanCities';
 import { apiGet, ensureUserSession, isNotAuthenticatedError } from '@/lib/api';
 import { useTripDraftStore } from '@/store/tripDraft';
+
+const ONGOING_CARD_OUTER_RADIUS = 16;
+const ONGOING_CARD_GRADIENT_BORDER = 3;
+
+const ACCENT_GRADIENT_COLORS = ['#81C784', '#4CAF50', '#2E7D32', '#66BB6A'] as const;
+const ACCENT_GRADIENT_COLORS_2 = ['rgb(128, 128, 128)','rgb(155, 155, 155)', 'rgb(178, 178, 178)', 'rgb(128, 128, 128)'] as const;
+const FIELD_GRADIENT_BORDER = 2.5;
+const FIELD_PILL_RADIUS = 9999;
+const FIELD_LOCATION_RADIUS = 16;
 
 export default function Home() {
   const draft = useTripDraftStore();
@@ -186,10 +196,10 @@ export default function Home() {
 
   return (
     <LinearGradient
-      colors={['rgb(77, 76, 76)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
+      colors={['rgb(51, 47, 56)','rgb(88, 88, 90)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
       start={{ x: 1, y: 0 }}
       end={{ x: 1, y: 1 }}
-      locations={[0, 0.3, 0.6, 1]}
+      locations={[0, 0.4, 0.7, 0.9, 1]}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
@@ -208,59 +218,145 @@ export default function Home() {
 
           {ongoingTrip ? (
             <Pressable
-              onPress={() => router.push({ pathname: '/ongoing-trip' as any, params: { bookingId: ongoingTrip.id } })}
-              className="mt-4 rounded-2xl bg-[rgb(71,138,44)] px-4 py-3">
-              <Text className="text-md font-bold text-gray-200">Ongoing trip</Text>
-              <Text className="mt-1 text-[12px] font-semibold text-gray-300">
-                {ongoingTrip.pickupLocation}
-                {' -> '}
-                {ongoingTrip.dropLocation}
-              </Text>
-              <Text className="text-[12px] font-semibold text-gray-300">
-                {ongoingTrip.driverName} • {ongoingTrip.vehicleType}
-              </Text>
+              onPress={() =>
+                router.push({
+                  pathname: '/booking-details' as any,
+                  params: { id: ongoingTrip.id, live: '1' },
+                })
+              }
+              className="mt-4 overflow-hidden"
+              style={{
+                borderRadius: ONGOING_CARD_OUTER_RADIUS,
+                shadowColor: '#4CAF50',
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.45,
+                shadowRadius: 12,
+                elevation: 10,
+              }}>
+              <LinearGradient
+                colors={ACCENT_GRADIENT_COLORS}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  padding: ONGOING_CARD_GRADIENT_BORDER,
+                  borderRadius: ONGOING_CARD_OUTER_RADIUS,
+                }}>
+                <View
+                  className="overflow-hidden bg-[#121212]"
+                  style={{
+                    borderRadius: ONGOING_CARD_OUTER_RADIUS - ONGOING_CARD_GRADIENT_BORDER,
+                  }}>
+                  <View className="flex-row px-4 py-3.5">
+                    <View className="min-w-0 flex-1 pr-2">
+                      <Text
+                        className="text-lg font-extrabold uppercase"
+                        style={{ letterSpacing: 1.2, color: '#A0A0A0' }}>
+                        Active op
+                      </Text>
+
+                      <View className="flex-row items-center gap-2">
+                        <FontAwesome name="map-marker" size={18} color="#6B7280" />
+                        <Text
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                          className="mt-1.5 text-lg font-semibold"
+                          style={{ color: '#A0A0A0' }}>
+                          {ongoingTrip.pickupLocation} → {ongoingTrip.dropLocation}
+                        </Text>
+                      </View>
+                      <View className="flex-row items-center gap-2">
+                        <FontAwesome name="user" size={18} color="#6B7280" />
+                        <Text
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                          className="mt-1 text-md font-semibold"
+                          style={{ color: '#A0A0A0' }}>
+                          {ongoingTrip.driverName}
+                        </Text>
+                        <FontAwesome name="shield" size={18} color="#6B7280" />
+                        <Text
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                          className="mt-1 text-md font-semibold"
+                          style={{ color: '#A0A0A0' }}>
+                          {ongoingTrip.vehicleType}
+                        </Text>
+                      </View>
+                    </View>
+                    <View className="h-[88px] w-[56px] items-center justify-around pt-0.5">
+                      <ActivityIndicator size="large" color="#4CAF50" />
+                      <FontAwesome name="car" size={26} color="#6B6B6B" style={{ marginBottom: 2 }} />
+                    </View>
+                  </View>
+                </View>
+              </LinearGradient>
             </Pressable>
           ) : null}
 
           
           <Text className="mt-20 text-center text-3xl font-semibold text-gray-200">Where are you going?</Text>
 
+          <View className='bg-black mb-4 mt-4 rounded-2xl'>
+            <Text className="text-xl py-1 ml-8 font-bold tracking-wide text-gray-400">Your city</Text>
+          <View className='bg-gray-300 rounded-xl'>
+            <Pressable
+              onPress={() => {
+                setCityModalKind('service');
+                setCitySearch(draft.serviceCity);
+                setCityModalOpen(true);
+              }}
+              className="overflow-hidden"
+              style={{ borderRadius: FIELD_PILL_RADIUS }}>
+              {/* <LinearGradient
+                colors={ACCENT_GRADIENT_COLORS_2}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  padding: FIELD_GRADIENT_BORDER,
+                  borderRadius: FIELD_PILL_RADIUS,
+                }}> */}
+                <View
+                  className="flex-row mt-1 items-center justify-between px-4 py-2 border-b border-gray-500"
+                  style={{ borderRadius: FIELD_PILL_RADIUS - FIELD_GRADIENT_BORDER }}>
+                  <FontAwesome name="map-marker" size={24} color="rgb(56, 56, 56)" />
+                  <View className="ml-3 flex-1">
+                    {/* <Text className="text-lg font-bold tracking-wide text-gray-600">Your city</Text> */}
+                    <Text className={`text-xl font-bold ${draft.serviceCity ? 'text-gray-800' : 'text-gray-500'}`}>
+                      {draft.serviceCity || 'Tap to choose pickup city'}
+                    </Text>
+                  </View>
+                  <FontAwesome name="chevron-down" size={14} color="rgb(56, 56, 56)" />
+                </View>
+              {/* </LinearGradient> */}
+            </Pressable>
           
-          <Pressable
-            onPress={() => {
-              setCityModalKind('service');
-              setCitySearch(draft.serviceCity);
-              setCityModalOpen(true);
-            }}
-            className="mt-6 justify-between rounded-full bg-white px-4  py-2 flex-1 flex-row items-center">
-            
-            
-              <FontAwesome name="map-marker" size={24} color="#111827" />
-              <View className="flex-1 ml-3">
-                <Text className="text-md font-bold tracking-wide text-gray-400">Your city</Text>
-                <Text className={`flex-1 text-lg font-bold ${draft.serviceCity ? 'text-gray-900' : 'text-gray-600'}`}>
-                  {draft.serviceCity || 'Tap to choose pickup city'}
-                </Text>
-              </View>
-              <FontAwesome name="chevron-down" size={14} color="#6B7280" />
-            
-          </Pressable>
-          
-          <View className="mt-4 gap-5">
-            <View>
-              {/* <Text className="text-md font-bold uppercase tracking-wide text-gray-300">Pickup</Text> */}
-              <Pressable
-                onPress={openPickupMapDirect}
-                className="h-[70px] mt-2 flex-row items-center rounded-2xl bg-gray-200 border border-gray-200 px-4 py-3.5">
-                <FontAwesome name="dot-circle-o" size={20} color="#6B7280" />
-                <Text
-                  numberOfLines={2}
-                  className={`ml-3 mr-3 flex-1 text-md font-semibold bg-transparent border-b border-gray-600 ${draft.pickupAddress ? 'text-gray-900' : 'text-gray-600'}`}>
-                  {draft.pickupAddress || 'Select pickup on map'}
-                </Text>
-                <FontAwesome name="map-marker" size={20} color="#9CA3AF" />
-              </Pressable>
-            </View>
+            <Pressable
+              onPress={openPickupMapDirect}
+              className="overflow-hidden"
+              style={{ borderRadius: FIELD_LOCATION_RADIUS }}>
+              {/* <LinearGradient
+                colors={ACCENT_GRADIENT_COLORS_2}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  padding: FIELD_GRADIENT_BORDER,
+                  borderRadius: FIELD_LOCATION_RADIUS,
+                }}> */}
+                <View
+                  className="h-[70px] flex-row items-center px-4 py-3.5"
+                  style={{ borderRadius: FIELD_LOCATION_RADIUS - FIELD_GRADIENT_BORDER }}>
+                  <FontAwesome name="dot-circle-o" size={22} color="rgb(56, 56, 56)" />
+                  <Text
+                    numberOfLines={2}
+                    className={`ml-3 mr-3 flex-1 text-lg font-semibold bg-transparent border-b border-gray-500 ${draft.pickupAddress ? 'text-gray-800' : 'text-gray-500'}`}>
+                    {draft.pickupAddress || 'Select pickup on map'}
+                  </Text>
+                  <FontAwesome name="map" size={20} color="rgb(56, 56, 56)" />
+                </View>
+              {/* </LinearGradient> */}
+            </Pressable>
+          </View>
+          </View>
 
             <View
             style={{
@@ -268,52 +364,77 @@ export default function Home() {
               width: '100%',
               marginVertical: 4,
               borderBottomWidth: 2,
-              borderBottomColor: 'rgb(65, 65, 65)',
+              borderBottomColor: 'rgb(222, 221, 221)',
               borderStyle: 'dashed',
             }}
           />
 
-            <View>
-              
-              <Pressable
-                onPress={() => {
-                  setCityModalKind('drop');
-                  setCitySearch(draft.dropCity);
-                  setCityModalOpen(true);
-                }}
-                className="justify-between rounded-full bg-white px-4  py-2 flex-1 flex-row items-center">
-                
-                <FontAwesome name="building-o" size={20} color="#111827" />
-                <View className="flex-1 ml-3">
-                  <Text className="text-md font-bold tracking-wide text-gray-400">Drop city</Text>
-                  <Text className={`flex-1 text-lg font-bold ${draft.dropCity ? 'text-gray-900' : 'text-gray-600'}`}>
+        <View className='bg-black mb-4 mt-4 rounded-2xl'>
+          <Text className="text-xl py-1 ml-8 font-bold tracking-wide text-gray-400">Drop city</Text>
+        <View className='bg-gray-300 rounded-xl'>
+          <Pressable
+            onPress={() => {
+              setCityModalKind('drop');
+              setCitySearch(draft.dropCity);
+              setCityModalOpen(true);
+            }}
+            className="overflow-hidden border-b border-gray-400"
+            style={{ borderRadius: FIELD_PILL_RADIUS }}>
+            {/* <LinearGradient
+              colors={ACCENT_GRADIENT_COLORS_2}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                padding: FIELD_GRADIENT_BORDER,
+                borderRadius: FIELD_PILL_RADIUS,
+              }}> */}
+              <View
+                className="flex-row mt-1 items-center justify-between px-4 py-2"
+                style={{ borderRadius: FIELD_PILL_RADIUS - FIELD_GRADIENT_BORDER }}>
+                <FontAwesome name="building-o" size={22} color="rgb(56, 56, 56)" />
+                <View className="ml-3 flex-1">
+                  {/* <Text className="text-md font-bold tracking-wide text-gray-600">Drop city</Text> */}
+                  <Text className={`text-lg font-bold ${draft.dropCity ? 'text-gray-800' : 'text-gray-500'}`}>
                     {draft.dropCity || 'Tap to choose drop city'}
                   </Text>
                 </View>
-                <FontAwesome name="chevron-down" size={14} color="#6B7280" />
-              </Pressable>
-            </View>
+                <FontAwesome name="chevron-down" size={14} color="rgb(56, 56, 56)" />
+              </View>
+            {/* </LinearGradient> */}
+          </Pressable>
 
-            <View>
-              {/* <Text className="text-md font-bold uppercase tracking-wide text-gray-800">Drop location</Text> */}
-              <Pressable
-                onPress={openDropMapDirect}
-                className="h-[70px] flex-row items-center rounded-2xl bg-gray-200 border border-gray-500 px-4 py-3.5">
-                <FontAwesome name="map-marker" size={20} color="#6B7280" />
+          <Pressable
+            onPress={openDropMapDirect}
+            className="overflow-hidden"
+            style={{ borderRadius: FIELD_LOCATION_RADIUS }}>
+            {/* <LinearGradient
+              colors={ACCENT_GRADIENT_COLORS_2}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                padding: FIELD_GRADIENT_BORDER,
+                borderRadius: FIELD_LOCATION_RADIUS,
+              }}> */}
+              <View
+                className="h-[70px] flex-row items-center px-4 py-3.5"
+                style={{ borderRadius: FIELD_LOCATION_RADIUS - FIELD_GRADIENT_BORDER }}>
+                <FontAwesome name="map-marker" size={24} color="rgb(56, 56, 56)" />
                 <Text
                   numberOfLines={2}
-                  className={`ml-3 mr-3 flex-1 text-md font-semibold bg-transparent border-b border-gray-500 ${draft.dropAddress ? 'text-gray-900' : 'text-gray-600'}`}>
+                  className={`ml-3 mr-3 flex-1 text-lg font-semibold bg-transparent border-b border-gray-400 ${draft.dropAddress ? 'text-gray-800' : 'text-gray-500'}`}>
                   {draft.dropAddress || 'Select drop on map'}
                 </Text>
-                <FontAwesome name="map" size={20} color="#9CA3AF" />
-              </Pressable>
-            </View>
-          </View>
+                <FontAwesome name="map" size={20} color="rgb(56, 56, 56)" />
+              </View>
+            {/* </LinearGradient> */}
+          </Pressable>
+        </View>
+        </View>
 
           {hasBothLocations ? (
             <Pressable
               onPress={() => router.push('/trip-schedule' as any)}
-              className="mt-8 items-center rounded-full bg-[#111827] py-3.5">
+              className="mt-4 items-center rounded-full bg-[#111827] py-3.5">
               <Text className="text-lg font-extrabold text-white">Next — pickup time & duration</Text>
             </Pressable>
           ) : null}

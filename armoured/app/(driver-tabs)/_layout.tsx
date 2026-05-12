@@ -61,7 +61,7 @@ export default function DriverTabLayout() {
 
     async function checkOngoing() {
       if (activeRole !== 'DRIVER') return;
-      if (pathname === '/login' || pathname === '/signup' || pathname === '/driver-ongoing-trip') return;
+      if (pathname === '/login' || pathname === '/signup' || pathname === '/booking-details') return;
       try {
         snooze = await readSnooze();
         if (snooze) return;
@@ -77,7 +77,7 @@ export default function DriverTabLayout() {
           }
           return;
         }
-        router.replace({ pathname: '/driver-ongoing-trip' as any, params: { bookingId: ongoing.id } });
+        router.replace({ pathname: '/booking-details' as any, params: { id: ongoing.id, live: '1' } });
       } catch {
         // Ignore: screens already handle login redirects.
       }
@@ -113,18 +113,17 @@ export default function DriverTabLayout() {
         tabBarInactiveTintColor: '#111827',
         tabBarStyle: {
           position: 'absolute',
+          width: '90%',
+          marginLeft: '5%',
           bottom: 40,
           borderRadius: 28,
           alignItems: 'center',
           justifyContent: 'center',
-          // backgroundColor: 'rgb(31, 41, 55)',
           backgroundColor: 'rgba(0, 0, 0, 0.92)',
           borderTopWidth: 0,
           shadowColor: '#000',
           shadowOpacity: 0.08,
           height: 58,
-          width: '95%',
-          marginLeft: '2.5%',
           paddingTop: 10,
           paddingBottom: 10,
           shadowRadius: 14,
@@ -138,7 +137,7 @@ export default function DriverTabLayout() {
         <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
+          title: 'Home',
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
@@ -148,20 +147,18 @@ export default function DriverTabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'white' : 'transparent',
                 height: 46,
-                width: focused ? '370%' : 52,
-                marginLeft: focused ? 30 : 0,
+                width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="bar-chart" size={20} color={focused ? 'rgb(31, 41, 55)' : 'white'} />
+              <FontAwesome name="home" size={24} color={focused ? 'black' : 'white'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'rgb(31, 41, 55)',
+                    color: 'black',
                     marginLeft: 8,
                     fontSize: 13,
                     fontWeight: '600',
-                  }}
-                >
-                  Dashboard
+                  }}>
+                  Home
                 </Text>
               )}
             </View>
@@ -185,16 +182,15 @@ export default function DriverTabLayout() {
                 // marginLeft: focused ? 20 : 0,
                 width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="list-alt" size={20} color={focused ? 'rgb(31, 41, 55)' : 'white'} />
+              <FontAwesome name="list-alt" size={24} color={focused ? 'black' : 'white'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'rgb(31, 41, 55)',
+                    color: 'black',
                     marginLeft: 8,
                     fontSize: 13,
                     fontWeight: '600',
-                  }}
-                >
+                  }}>
                   Bookings
                 </Text>
               )}
@@ -218,16 +214,15 @@ export default function DriverTabLayout() {
                 height: 46,
                 width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="car" size={20} color={focused ? 'rgb(31, 41, 55)' : 'white'} />
+              <FontAwesome name="car" size={22} color={focused ? 'black' : 'white'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'rgb(31, 41, 55)',
+                    color: 'black',
                     marginLeft: 8,
                     fontSize: 13,
                     fontWeight: '600',
-                  }}
-                >
+                  }}>
                   Vehicles
                 </Text>
               )}
@@ -239,7 +234,7 @@ export default function DriverTabLayout() {
       <Tabs.Screen
         name="driver"
         options={{
-          title: 'Driver',
+          title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
@@ -249,19 +244,18 @@ export default function DriverTabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'white' : 'transparent',
                 height: 46,
-                width: focused ? '275%' : 52,
+                width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="user" size={20} color={focused ? 'rgb(31, 41, 55)' : 'white'} />
+              <FontAwesome name="user" size={24} color={focused ? 'black' : 'white'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'rgb(31, 41, 55)',
+                    color: 'black',
                     marginLeft: 8,
                     fontSize: 13,
                     fontWeight: '600',
-                  }}
-                >
-                  Driver
+                  }}>
+                  Profile
                 </Text>
               )}
             </View>
