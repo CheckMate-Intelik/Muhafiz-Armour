@@ -105,10 +105,10 @@ export default function Home() {
 
   return (
     <LinearGradient
-      colors={['rgb(51, 47, 56)','rgb(88, 88, 90)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
-      start={{ x: 1, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      locations={[0, 0.4, 0.7, 0.9, 1]}
+      colors={['rgb(23, 45, 92)', 'rgb(22, 37, 68)', '#020617']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      locations={[0, 0.3, 1]}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
@@ -154,8 +154,8 @@ export default function Home() {
 
             <Pressable
               onPress={() => router.push('/new-booking' as any)}
-              className="mb-2 items-center justify-center rounded-2xl bg-[#111827] py-4">
-              <Text className="text-sm font-extrabold text-gray-200">New booking</Text>
+              className="mb-2 items-center justify-center rounded-2xl bg-[#C9B37A] py-4">
+              <Text className="text-sm font-extrabold text-black">New booking</Text>
             </Pressable>
           </View>
         </ScrollView>

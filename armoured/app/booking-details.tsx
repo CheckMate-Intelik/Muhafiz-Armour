@@ -418,10 +418,10 @@ export default function BookingDetailsScreen() {
 
   return (
     <LinearGradient
-      colors={['#1a2744', '#0f172a', '#020617']}
+      colors={['rgb(23, 45, 92)', 'rgb(22, 37, 68)', '#020617']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.45, 1]}
+      locations={[0, 0.3, 1]}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
