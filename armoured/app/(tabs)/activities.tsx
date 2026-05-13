@@ -1,11 +1,12 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { apiGet, ensureUserSession, isNotAuthenticatedError } from '@/lib/api';
+import { isNotAuthenticatedError } from '@/lib/api';
+import { useBookingsStore } from '@/store/bookingsStore';
 
 type RideStatus = 'Schedule' | 'Recent' | 'Completed' | 'Canceled';
 
@@ -27,31 +28,18 @@ function normalizeStatus(status: string | null | undefined) {
 
 export default function ActivitiesScreen() {
   const [status, setStatus] = useState<RideStatus>('Schedule');
-
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
+  const userBookings = useBookingsStore((s) => s.userBookings);
+  const userLoading = useBookingsStore((s) => s.userLoading);
+  const userLoaded = useBookingsStore((s) => s.userLoaded);
+  const refreshUserBookings = useBookingsStore((s) => s.refreshUserBookings);
+  const bookings = userBookings as unknown as Booking[];
+  const loading = userLoading && !userLoaded;
 
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const s = await ensureUserSession();
-        const data = await apiGet<Booking[]>(`/bookings`, s.userId);
-        if (cancelled) return;
-        setBookings(Array.isArray(data) ? data : []);
-      } catch (e) {
-        if (isNotAuthenticatedError(e)) {
-          router.replace('/login' as any);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    refreshUserBookings().catch((e) => {
+      if (isNotAuthenticatedError(e)) router.replace('/login' as any);
+    });
+  }, [refreshUserBookings]);
 
   const rides = useMemo(() => {
     switch (status) {
@@ -75,79 +63,89 @@ export default function ActivitiesScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(51, 47, 56)', 'rgb(88, 88, 90)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
-      start={{ x: 1, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      locations={[0, 0.4, 0.7, 0.9, 1]}
+      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      locations={[0, 0.5, 1]}
       style={{ flex: 1 }}>
-    <SafeAreaView className="flex-1">
-      <View className="px-5 pt-4">
-        <View className="flex-row items-center">
-          <Text className="text-2xl font-extrabold text-gray-100" style={{ letterSpacing: 0.8 }}>
-            ACTIVITIES
-          </Text>
-        </View>
-
-        <View className="mt-4 flex-row overflow-hidden rounded-xl bg-[#2F3135]">
-          {(
-            [
-              { key: 'Schedule', label: 'SCHEDULED', icon: 'calendar' },
-              { key: 'Recent', label: 'RECENT', icon: 'clock-o' },
-              { key: 'Completed', label: 'COMPLETED', icon: 'check' },
-              { key: 'Canceled', label: 'CANCELED', icon: 'times' },
-            ] as const
-          ).map((t, idx) => {
-            const active = status === t.key;
-            return (
-              <Pressable
-                key={t.key}
-                onPress={() => setStatus(t.key)}
-                className="flex-1"
-                style={{
-                  borderLeftWidth: idx === 0 ? 0 : 1,
-                  borderLeftColor: '#515458',
-                }}>
-                <View
-                  className="items-center justify-center px-1 py-3"
-                  style={{
-                    borderWidth: active ? 2 : 0,
-                    borderColor: active ? 'black' : 'transparent',
-                    borderRadius: 10,
-                    margin: 6,
-                  }}>
-                  <FontAwesome name={t.icon as any} size={18} color={active ? '#E5E7EB' : '#B8BBC0'} />
-                  <Text
-                    className="mt-1 text-[10px] font-extrabold"
-                    style={{ color: active ? '#E5E7EB' : '#B8BBC0' }}>
-                    {t.label}
-                  </Text>
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
-        {loading ? (
-          <View className="mt-10 items-center">
-            <Text className="text-sm font-semibold text-gray-500">Loading…</Text>
-          </View>
-        ) : null}
-
-        {!loading && rides.length === 0 ? (
-          <View className="mt-10 items-center">
-            <View className="h-14 w-14 items-center justify-center rounded-3xl bg-gray-100">
-              <FontAwesome name="calendar" size={20} color="#111827" />
+      <SafeAreaView className="flex-1">
+        <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text className="text-[18px] font-semibold text-gray-200">History</Text>
+              <Text className="text-lg font-semibold text-gray-200">Your bookings</Text>
             </View>
-            <Text className="mt-4 text-lg font-extrabold text-gray-200">No activities</Text>
-            <Text className="mt-1 text-sm font-semibold text-gray-200">
-              Your bookings will appear here.
-            </Text>
+            <View className="flex-row items-center gap-2">
+              <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
+                <FontAwesome name="bell-o" size={16} color="#111827" />
+              </Pressable>
+              <Image source={{ uri: 'https://i.pravatar.cc/96?img=12' }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+            </View>
           </View>
-        ) : null}
 
-        {rides.map((r) => (
+          <View
+            className="mt-4 flex-row overflow-hidden rounded-xl"
+            style={{ backgroundColor: '#2F3135' }}>
+            {(
+              [
+                { key: 'Schedule', label: 'SCHEDULED', icon: 'calendar' },
+                { key: 'Recent', label: 'RECENT', icon: 'clock-o' },
+                { key: 'Completed', label: 'COMPLETED', icon: 'check' },
+                { key: 'Canceled', label: 'CANCELED', icon: 'times' },
+              ] as const
+            ).map((t, idx) => {
+              const active = status === t.key;
+              return (
+                <Pressable
+                  key={t.key}
+                  onPress={() => setStatus(t.key)}
+                  className="flex-1"
+                  style={{
+                    borderLeftWidth: idx === 0 ? 0 : 1,
+                    borderLeftColor: 'rgba(255,255,255,0.08)',
+                  }}>
+                  <View
+                    className="items-center justify-center px-1 py-3"
+                    style={{
+                      backgroundColor: active ? '#C9B37A' : 'transparent',
+                      height: 70,
+                      // borderRadius: 10,
+                      // margin:6
+                    }}>
+                    <FontAwesome name={t.icon as any} size={22} color={active ? '#0B0F14' : '#B8BBC0'} />
+                    <Text
+                      className="mt-1 text-sm font-extrabold"
+                      style={{ color: active ? '#0B0F14' : '#B8BBC0' }}>
+                      {t.label}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {loading ? (
+            <View className="mt-10 items-center">
+              <Text className="text-sm font-semibold text-gray-300">Loading…</Text>
+            </View>
+          ) : null}
+
+          {!loading && rides.length === 0 ? (
+            <View className="mt-10 items-center">
+              <View
+                className="h-14 w-14 items-center justify-center rounded-3xl"
+                style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                <FontAwesome name="calendar" size={20} color="#9CA3AF" />
+              </View>
+              <Text className="mt-4 text-lg font-extrabold text-gray-200">No history</Text>
+              <Text className="mt-1 text-center text-sm font-semibold text-gray-300">
+                Your bookings will appear here.
+              </Text>
+            </View>
+          ) : null}
+
+          <View className="mt-4">
+            {rides.map((r) => (
           (() => {
             const vehicleName = `${r.vehicle?.manufacturer ?? ''} ${r.vehicle?.carModel ?? ''}`.trim();
             const headerStatusLabel =
@@ -184,63 +182,68 @@ export default function ActivitiesScreen() {
                 }
                 className="mb-4 overflow-hidden rounded-2xl"
                 style={{
-                  backgroundColor: '#3B3E43',
+                  backgroundColor: '#0B0F14',
+                  borderColor: 'rgba(255,255,255,0.06)',
+                  borderWidth: 1,
                   shadowColor: '#000',
-                  shadowOpacity: 0.22,
-                  shadowRadius: 14,
-                  shadowOffset: { width: 0, height: 10 },
-                  elevation: 6,
+                  shadowOpacity: 0.28,
+                  shadowRadius: 18,
+                  shadowOffset: { width: 0, height: 14 },
+                  elevation: 8,
                 }}>
-                <View className="px-4 pt-3.5 bg-black pb-3 border-b border-gray-900">
+                <View
+                  className="border-b px-4 pb-3 pt-3.5"
+                  style={{ backgroundColor: '#000000', borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                   <View className="flex-row items-center justify-between">
                     <Text
                       numberOfLines={1}
-                      className="flex-1 pr-2 text-[12px] font-extrabold"
-                      style={{ color: '#D8DADF', letterSpacing: 0.4 }}>
+                      className="flex-1 pr-2 text-[14px] font-extrabold"
+                      style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
                       {headerStatusLabel} - {driverAndArmour}
                     </Text>
-                    <FontAwesome name="car" size={22} color="#B8BBC0" />
+                    <FontAwesome name="car" size={22} color="#C9B37A" />
                   </View>
                 </View>
 
-                {/* <View className="mt-3 border-t border-[#55585D]" /> */}
-
-                <View className="px-4 py-4">
+                <View className="px-4 py-4" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
                   <View className="flex-row">
                     <View className="mr-3 w-5 items-center">
-                      <View className="h-3 w-3 rounded-full bg-[#D9D9D9]" />
-                      <View className="my-2 w-[2px] flex-1 bg-[rgb(42,156,61)]" />
-                      <View className="h-3 w-3 rounded-full bg-[#D9D9D9]" />
+                      <View
+                        className="h-3 w-3 rounded-full"
+                        style={{ borderWidth: 2, borderColor: '#F59E0B', backgroundColor: 'transparent' }}
+                      />
+                      <View className="my-2 w-[2px] flex-1" style={{ backgroundColor: 'rgba(34,197,94,0.7)' }} />
+                      <View className="h-3 w-3 rounded-full" style={{ borderWidth: 2, borderColor: '#E5E7EB' }} />
                     </View>
 
                     <View className="flex-1">
                       <View className="flex-row">
                         <View className="flex-1 pr-3">
-                          <Text className="text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                          <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                             FROM:
                           </Text>
-                          <Text numberOfLines={1} className="mt-1 text-[16px] font-semibold text-gray-100">
+                          <Text numberOfLines={1} className="mt-1 text-[18px] font-extrabold text-gray-100">
                             {r.pickupLocation || '—'}
                           </Text>
                         </View>
 
                         <View className="w-[90px] items-end">
-                          <Text className="text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                          <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                             COST:
                           </Text>
-                          <Text numberOfLines={1} className="mt-1 text-[14px] font-semibold text-gray-100">
+                          <Text numberOfLines={1} className="mt-1 text-[14px] font-extrabold text-gray-100">
                             {costLabel}
                           </Text>
                         </View>
                       </View>
 
-                      <View className="mt-3 border-t border-[#55585D]" />
+                      <View className="mt-3 border-t" style={{ borderTopColor: 'rgba(255,255,255,0.06)' }} />
 
                       <View className="mt-3">
-                        <Text className="text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                        <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                           TO:
                         </Text>
-                        <Text numberOfLines={1} className="mt-1 text-[16px] font-semibold text-gray-100">
+                        <Text numberOfLines={1} className="mt-1 text-[18px] font-extrabold text-gray-100">
                           {r.dropLocation || '—'}
                         </Text>
                       </View>
@@ -250,9 +253,10 @@ export default function ActivitiesScreen() {
               </Pressable>
             );
           })()
-        ))}
-      </ScrollView>
-    </SafeAreaView>
+            ))}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </LinearGradient>
   );
 }

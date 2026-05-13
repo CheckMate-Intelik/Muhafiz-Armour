@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { findPakistanCityByName, PAKISTAN_CITIES, type PakistanCity } from '@/constants/pakistanCities';
 import { useTripDraftStore } from '@/store/tripDraft';
@@ -278,190 +279,257 @@ export default function PickLocationScreen() {
 
   if (!apiKey) {
     return (
-      <SafeAreaView className="flex-1 bg-white px-5 pt-4">
-        <View className="flex-row items-center justify-between">
-          <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-            <FontAwesome name="arrow-left" size={16} color="#111827" />
-          </Pressable>
-          <Text className="text-base font-extrabold text-gray-900">{title}</Text>
-          <View className="h-10 w-10" />
-        </View>
-        <View className="mt-6 rounded-2xl bg-gray-50 p-4">
-          <Text className="text-sm font-extrabold text-gray-900">Google Maps API key missing</Text>
-          <Text className="mt-2 text-xs font-semibold text-gray-600">
-            Add your key in `armoured/app.json` under `expo.extra.googleMapsApiKey` (and the iOS/Android config keys),
-            then rebuild the dev client.
-          </Text>
-        </View>
-      </SafeAreaView>
+      <LinearGradient
+        colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        locations={[0, 0.5, 1]}
+        style={{ flex: 1 }}>
+        <SafeAreaView className="flex-1 px-5 pt-4">
+          <View className="flex-row items-center justify-between">
+            <Pressable
+              onPress={() => router.back()}
+              className="h-10 w-10 items-center justify-center rounded-2xl"
+              style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+              <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
+            </Pressable>
+            <Text className="text-base font-extrabold text-gray-200">{title}</Text>
+            <View className="h-10 w-10" />
+          </View>
+          <View
+            className="mt-6 rounded-2xl p-4"
+            style={{ backgroundColor: '#0B0F14', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+            <Text className="text-sm font-extrabold" style={{ color: '#C9B37A' }}>
+              Google Maps API key missing
+            </Text>
+            <Text className="mt-2 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+              Add your key in `armoured/app.json` under `expo.extra.googleMapsApiKey` (and the iOS/Android config keys),
+              then rebuild the dev client.
+            </Text>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
     );
   }
 
   if (!maps) {
     return (
-      <SafeAreaView className="flex-1 bg-white px-5 pt-4">
-        <View className="flex-row items-center justify-between">
-          <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-            <FontAwesome name="arrow-left" size={16} color="#111827" />
-          </Pressable>
-          <Text className="text-base font-extrabold text-gray-900">{title}</Text>
-          <View className="h-10 w-10" />
-        </View>
-        <View className="mt-6 rounded-2xl bg-gray-50 p-4">
-          <Text className="text-sm font-extrabold text-gray-900">Maps module not available in this build</Text>
-          <Text className="mt-2 text-xs font-semibold text-gray-600">
-            Your current dev client was built without `react-native-maps`. Add the `react-native-maps` plugin in `armoured/app.json` and rebuild
-            the dev client.
-          </Text>
-        </View>
-      </SafeAreaView>
+      <LinearGradient
+        colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        locations={[0, 0.5, 1]}
+        style={{ flex: 1 }}>
+        <SafeAreaView className="flex-1 px-5 pt-4">
+          <View className="flex-row items-center justify-between">
+            <Pressable
+              onPress={() => router.back()}
+              className="h-10 w-10 items-center justify-center rounded-2xl"
+              style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+              <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
+            </Pressable>
+            <Text className="text-base font-extrabold text-gray-200">{title}</Text>
+            <View className="h-10 w-10" />
+          </View>
+          <View
+            className="mt-6 rounded-2xl p-4"
+            style={{ backgroundColor: '#0B0F14', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+            <Text className="text-sm font-extrabold" style={{ color: '#C9B37A' }}>
+              Maps module not available in this build
+            </Text>
+            <Text className="mt-2 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+              Your current dev client was built without `react-native-maps`. Add the `react-native-maps` plugin in `armoured/app.json` and rebuild
+              the dev client.
+            </Text>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="px-5 pt-4">
-        <View className="flex-row items-center justify-between">
-          <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-            <FontAwesome name="arrow-left" size={16} color="#111827" />
-          </Pressable>
-          <Text className="text-base font-extrabold text-gray-900">{title}</Text>
-          <View className="h-10 w-10" />
-        </View>
-      </View>
-
-      <View className="flex-1 px-5 pt-4">
-        {/* Autocomplete must be above MapView (Android needs elevation). */}
-        <View style={{ position: 'absolute', left: 20, right: 20, top: 16, zIndex: 1000, elevation: 1000 }}>
-          <GooglePlacesAutocomplete
-            ref={placesRef}
-            placeholder="Search location..."
-            fetchDetails
-            enablePoweredByContainer={false}
-            debounce={400}
-            minLength={2}
-            listViewDisplayed={isTyping && address.trim().length >= 2}
-            keyboardShouldPersistTaps="handled"
-            onPress={(data, details) => {
-              const lat = details?.geometry?.location?.lat;
-              const lng = details?.geometry?.location?.lng;
-              const formatted = details?.formatted_address ?? data.description;
-              if (typeof formatted === 'string') {
-                setAddress(formatted);
-                placesRef.current?.setAddressText?.(formatted);
-              }
-              setIsTyping(false);
-              if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
-              if (typeof lat === 'number' && typeof lng === 'number') {
-                // Center the map so the selected point sits under the center blip.
-                setMarkerAndCenter(lat, lng);
-              }
-            }}
-            query={{ key: apiKey, language: 'en' }}
-            onFail={(e) => {
-              // Useful when API key / Places API / restrictions are wrong.
-              console.warn('places_autocomplete_failed', e);
-            }}
-            textInputProps={{
-              onFocus: () => setIsTyping(true),
-              onBlur: () => setIsTyping(false),
-              onChangeText: (t: string) => {
-                setAddress(t);
-                setIsTyping(true);
-                if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
-                typingTimerRef.current = setTimeout(() => setIsTyping(false), 900);
-              },
-              placeholderTextColor: '#9CA3AF',
-            }}
-            styles={{
-              container: {
-                flex: 0,
-              },
-              textInputContainer: {
-                flexDirection: 'row',
-              },
-              textInput: {
-                backgroundColor: '#F3F4F6',
-                borderRadius: 16,
-                paddingHorizontal: 14,
-                paddingVertical: 12,
-                fontSize: 14,
-                fontWeight: '700',
-                color: '#111827',
-              },
-              listView: {
-                position: 'absolute',
-                top: 52,
-                left: 0,
-                right: 0,
-                borderRadius: 16,
-                marginTop: 6,
-                overflow: 'hidden',
-                backgroundColor: '#FFFFFF',
-                maxHeight: 260,
-                zIndex: 1000,
-                elevation: 1000,
-              },
-              row: {
-                paddingVertical: 12,
-                paddingHorizontal: 12,
-              },
-            }}
-          />
-        </View>
-
-        <View className="flex-1 overflow-hidden rounded-3xl bg-gray-100" style={{ marginTop: 70, zIndex: 0 }}>
-          <maps.MapView
-            ref={(r: any) => {
-              mapRef.current = r;
-            }}
-            style={{ flex: 1 }}
-            provider="google"
-            initialRegion={initialRegion}
-            onRegionChangeComplete={(next: any) => {
-              if (!next) return;
-              const nextRegion = {
-                latitude: Number(next.latitude),
-                longitude: Number(next.longitude),
-                latitudeDelta: Number(next.latitudeDelta),
-                longitudeDelta: Number(next.longitudeDelta),
-              };
-              if (!Number.isFinite(nextRegion.latitude) || !Number.isFinite(nextRegion.longitude)) return;
-              setRegion(nextRegion);
-              setMarker({ lat: nextRegion.latitude, lng: nextRegion.longitude });
-              scheduleReverseGeocode(nextRegion.latitude, nextRegion.longitude);
-            }}
-          >
-            {/* Intentionally no marker: we use a fixed center pin overlay */}
-          </maps.MapView>
-        </View>
-
-        <View
-          pointerEvents="none"
-          style={{
-            position: 'absolute',
-            left: 20,
-            right: 20,
-            top: 120,
-            bottom: 0,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <View style={{ transform: [{ translateY: -18 }] }}>
-            <FontAwesome name="map-marker" size={34} color="#111827" />
+    <LinearGradient
+      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      locations={[0, 0.5, 1]}
+      style={{ flex: 1 }}>
+      <SafeAreaView className="flex-1">
+        <View className="px-5 pt-4">
+          <View className="flex-row items-center justify-between">
+            <Pressable
+              onPress={() => router.back()}
+              className="h-10 w-10 items-center justify-center rounded-2xl"
+              style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+              <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
+            </Pressable>
+            <Text className="text-base font-extrabold text-gray-200">{title}</Text>
+            <View className="h-10 w-10" />
           </View>
         </View>
 
-        <Pressable
-          disabled={!ready}
-          onPress={confirm}
-          className={`mt-4 items-center rounded-2xl py-3 ${!ready ? 'bg-gray-300' : 'bg-[#111827]'}`}
-        >
-          <Text className={`text-xs font-extrabold ${!ready ? 'text-gray-600' : 'text-white'}`}>Confirm</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+        <View className="flex-1 px-5 pt-4">
+          {/* Autocomplete must be above MapView (Android needs elevation). */}
+          <View style={{ position: 'absolute', left: 20, right: 20, top: 16, zIndex: 1000, elevation: 1000 }}>
+            <GooglePlacesAutocomplete
+              ref={placesRef}
+              placeholder="Search location..."
+              fetchDetails
+              enablePoweredByContainer={false}
+              debounce={400}
+              minLength={2}
+              listViewDisplayed={isTyping && address.trim().length >= 2}
+              keyboardShouldPersistTaps="handled"
+              onPress={(data, details) => {
+                const lat = details?.geometry?.location?.lat;
+                const lng = details?.geometry?.location?.lng;
+                const formatted = details?.formatted_address ?? data.description;
+                if (typeof formatted === 'string') {
+                  setAddress(formatted);
+                  placesRef.current?.setAddressText?.(formatted);
+                }
+                setIsTyping(false);
+                if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+                if (typeof lat === 'number' && typeof lng === 'number') {
+                  setMarkerAndCenter(lat, lng);
+                }
+              }}
+              query={{ key: apiKey, language: 'en' }}
+              onFail={(e) => {
+                console.warn('places_autocomplete_failed', e);
+              }}
+              textInputProps={{
+                onFocus: () => setIsTyping(true),
+                onBlur: () => setIsTyping(false),
+                onChangeText: (t: string) => {
+                  setAddress(t);
+                  setIsTyping(true);
+                  if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+                  typingTimerRef.current = setTimeout(() => setIsTyping(false), 900);
+                },
+                placeholderTextColor: '#9CA3AF',
+              }}
+              styles={{
+                container: {
+                  flex: 0,
+                },
+                textInputContainer: {
+                  flexDirection: 'row',
+                },
+                textInput: {
+                  backgroundColor: '#0B0F14',
+                  borderRadius: 16,
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  fontSize: 14,
+                  fontWeight: '700',
+                  color: '#F3F4F6',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.08)',
+                },
+                listView: {
+                  position: 'absolute',
+                  top: 52,
+                  left: 0,
+                  right: 0,
+                  borderRadius: 16,
+                  marginTop: 6,
+                  overflow: 'hidden',
+                  backgroundColor: '#0B0F14',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.08)',
+                  maxHeight: 260,
+                  zIndex: 1000,
+                  elevation: 1000,
+                },
+                row: {
+                  paddingVertical: 12,
+                  paddingHorizontal: 12,
+                  backgroundColor: '#0B0F14',
+                },
+                separator: {
+                  height: 1,
+                  backgroundColor: 'rgba(255,255,255,0.06)',
+                },
+                description: {
+                  color: '#F3F4F6',
+                  fontWeight: '600',
+                },
+                predefinedPlacesDescription: {
+                  color: '#9CA3AF',
+                },
+              }}
+            />
+          </View>
+
+          <View
+            className="flex-1 overflow-hidden rounded-3xl"
+            style={{
+              marginTop: 70,
+              zIndex: 0,
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.08)',
+              backgroundColor: '#0B0F14',
+            }}>
+            <maps.MapView
+              ref={(r: any) => {
+                mapRef.current = r;
+              }}
+              style={{ flex: 1 }}
+              provider="google"
+              initialRegion={initialRegion}
+              onRegionChangeComplete={(next: any) => {
+                if (!next) return;
+                const nextRegion = {
+                  latitude: Number(next.latitude),
+                  longitude: Number(next.longitude),
+                  latitudeDelta: Number(next.latitudeDelta),
+                  longitudeDelta: Number(next.longitudeDelta),
+                };
+                if (!Number.isFinite(nextRegion.latitude) || !Number.isFinite(nextRegion.longitude)) return;
+                setRegion(nextRegion);
+                setMarker({ lat: nextRegion.latitude, lng: nextRegion.longitude });
+                scheduleReverseGeocode(nextRegion.latitude, nextRegion.longitude);
+              }}
+            >
+              {/* Intentionally no marker: we use a fixed center pin overlay */}
+            </maps.MapView>
+          </View>
+
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              left: 20,
+              right: 20,
+              top: 120,
+              bottom: 0,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <View style={{ transform: [{ translateY: -18 }] }}>
+              <FontAwesome name="map-marker" size={34} color="#C9B37A" />
+            </View>
+          </View>
+
+          <Pressable
+            disabled={!ready}
+            onPress={confirm}
+            className="mt-4 items-center rounded-2xl py-4"
+            style={{
+              backgroundColor: ready ? '#C9B37A' : 'rgba(255,255,255,0.08)',
+              opacity: ready ? 1 : 0.7,
+            }}>
+            <Text
+              className="text-sm font-extrabold"
+              style={{ color: ready ? '#0B0F14' : '#9CA3AF' }}>
+              {ready ? 'Confirm location' : 'Loading…'}
+            </Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 

@@ -66,20 +66,23 @@ export default function DriverVehiclesScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(51, 47, 56)', 'rgb(88, 88, 90)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
-      start={{ x: 1, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      locations={[0, 0.4, 0.7, 0.9, 1]}
+      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      locations={[0, 0.5, 1]}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
-          <View className="flex-row items-center">
-            <Text className="text-2xl font-extrabold text-gray-100" style={{ letterSpacing: 0.8 }}>
-              VEHICLES
-            </Text>
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text className="text-[18px] font-semibold text-gray-200">Vehicles</Text>
+              <Text className="text-lg font-semibold text-gray-200">Your fleet</Text>
+            </View>
           </View>
 
-          <View className="mt-4 flex-row overflow-hidden rounded-xl bg-[#2F3135]">
+          <View
+            className="mt-4 flex-row overflow-hidden rounded-xl"
+            style={{ backgroundColor: '#2F3135' }}>
             {(['Approved', 'Pending'] as const).map((t, idx) => {
               const active = tab === t;
               return (
@@ -89,24 +92,22 @@ export default function DriverVehiclesScreen() {
                   className="flex-1"
                   style={{
                     borderLeftWidth: idx === 0 ? 0 : 1,
-                    borderLeftColor: '#515458',
+                    borderLeftColor: 'rgba(255,255,255,0.08)',
                   }}>
                   <View
                     className="items-center justify-center px-1 py-3"
                     style={{
-                      borderWidth: active ? 2 : 0,
-                      borderColor: active ? 'black' : 'transparent',
-                      borderRadius: 10,
-                      margin: 6,
+                      backgroundColor: active ? '#C9B37A' : 'transparent',
+                      height: 70,
                     }}>
                     <FontAwesome
                       name={t === 'Approved' ? 'check' : 'clock-o'}
-                      size={18}
-                      color={active ? '#E5E7EB' : '#B8BBC0'}
+                      size={22}
+                      color={active ? '#0B0F14' : '#B8BBC0'}
                     />
                     <Text
-                      className="mt-1 text-[10px] font-extrabold"
-                      style={{ color: active ? '#E5E7EB' : '#B8BBC0' }}>
+                      className="mt-1 text-sm font-extrabold"
+                      style={{ color: active ? '#0B0F14' : '#B8BBC0' }}>
                       {t.toUpperCase()}
                     </Text>
                   </View>
@@ -118,32 +119,35 @@ export default function DriverVehiclesScreen() {
 
         <Pressable
           onPress={() => router.push('/register-vehicle')}
-          className="absolute bottom-[120px] left-1/2 z-10 w-[160px] -translate-x-1/2 flex-row items-center justify-center rounded-full bg-[#1D2DD9] py-4 shadow-lg"
+          className="absolute bottom-[120px] left-1/2 z-10 w-[170px] -translate-x-1/2 flex-row items-center justify-center rounded-full py-4 shadow-lg"
           style={{
+            backgroundColor: '#C9B37A',
             shadowColor: '#000',
-            shadowOpacity: 0.2,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 6 },
-            elevation: 8,
+            shadowOpacity: 0.25,
+            shadowRadius: 14,
+            shadowOffset: { width: 0, height: 8 },
+            elevation: 10,
           }}>
-          <FontAwesome name="plus" size={14} color="#FFFFFF" />
-          <Text className="ml-2 text-xs font-extrabold text-white">Add vehicle</Text>
+          <FontAwesome name="plus" size={14} color="#0B0F14" />
+          <Text className="ml-2 text-xs font-extrabold" style={{ color: '#0B0F14' }}>Add vehicle</Text>
         </Pressable>
 
         <ScrollView contentContainerStyle={{ paddingBottom: 180 }} className="px-5 pt-4">
           {loading ? (
             <View className="mt-10 items-center">
-              <Text className="text-sm font-semibold text-gray-400">Loading…</Text>
+              <Text className="text-sm font-semibold text-gray-300">Loading…</Text>
             </View>
           ) : null}
 
           {!loading && list.length === 0 ? (
             <View className="mt-10 items-center">
-              <View className="h-14 w-14 items-center justify-center rounded-3xl bg-[#2F3135]">
-                <FontAwesome name="car" size={20} color="#B8BBC0" />
+              <View
+                className="h-14 w-14 items-center justify-center rounded-3xl"
+                style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                <FontAwesome name="car" size={20} color="#9CA3AF" />
               </View>
               <Text className="mt-4 text-lg font-extrabold text-gray-200">No vehicles</Text>
-              <Text className="mt-1 text-sm font-semibold text-gray-200">
+              <Text className="mt-1 text-sm font-semibold text-gray-300">
                 {tab === 'Approved' ? 'Your approved vehicles will appear here.' : 'Your pending vehicles will appear here.'}
               </Text>
             </View>

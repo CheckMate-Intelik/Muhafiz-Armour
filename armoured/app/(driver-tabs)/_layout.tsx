@@ -4,10 +4,9 @@ import { useEffect } from 'react';
 import { AppState, Pressable, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { driverGet, ensureDriverSession } from '@/lib/api';
 import { useStore } from '@/store/store';
+import { useBookingsStore } from '@/store/bookingsStore';
 
-type ActiveBooking = { id: string; status: string };
 type Snooze = { untilMs: number };
 
 const SNOOZE_KEY = 'armoured_driver:ongoing-trip-snooze:v1';
@@ -66,8 +65,8 @@ export default function DriverTabLayout() {
         snooze = await readSnooze();
         if (snooze) return;
 
-        const s = await ensureDriverSession();
-        const rows = await driverGet<ActiveBooking[]>(`/driver/bookings/active`, s.driverId);
+        await useBookingsStore.getState().refreshDriverBookings();
+        const rows = useBookingsStore.getState().driverActive;
         const ongoing = Array.isArray(rows) ? rows.find((b) => b.status === 'IN_PROGRESS') : undefined;
         if (cancelled) return;
         if (!ongoing?.id) {
@@ -119,7 +118,7 @@ export default function DriverTabLayout() {
           borderRadius: 28,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.92)',
+          backgroundColor: 'rgb(193, 155, 59)',
           borderTopWidth: 0,
           shadowColor: '#000',
           shadowOpacity: 0.08,
@@ -133,8 +132,12 @@ export default function DriverTabLayout() {
         tabBarItemStyle: {
           height: 52,
         },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
       }}>
-        <Tabs.Screen
+      <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
@@ -145,17 +148,17 @@ export default function DriverTabLayout() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 100,
-                backgroundColor: focused ? 'white' : 'transparent',
+                backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
                 width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="home" size={24} color={focused ? 'black' : 'white'} />
+              <FontAwesome name="home" size={28} color={focused ? '#C9B37A' : 'black'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'black',
+                    color: '#C9B37A',
                     marginLeft: 8,
-                    fontSize: 13,
+                    fontSize: 15,
                     fontWeight: '600',
                   }}>
                   Home
@@ -177,18 +180,17 @@ export default function DriverTabLayout() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 100,
-                backgroundColor: focused ? 'white' : 'transparent',
+                backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
-                // marginLeft: focused ? 20 : 0,
                 width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="list-alt" size={24} color={focused ? 'black' : 'white'} />
+              <FontAwesome name="list-alt" size={28} color={focused ? '#C9B37A' : 'black'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'black',
+                    color: '#C9B37A',
                     marginLeft: 8,
-                    fontSize: 13,
+                    fontSize: 15,
                     fontWeight: '600',
                   }}>
                   Bookings
@@ -210,17 +212,17 @@ export default function DriverTabLayout() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 100,
-                backgroundColor: focused ? 'white' : 'transparent',
+                backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
                 width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="car" size={22} color={focused ? 'black' : 'white'} />
+              <FontAwesome name="car" size={26} color={focused ? '#C9B37A' : 'black'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'black',
+                    color: '#C9B37A',
                     marginLeft: 8,
-                    fontSize: 13,
+                    fontSize: 15,
                     fontWeight: '600',
                   }}>
                   Vehicles
@@ -242,17 +244,17 @@ export default function DriverTabLayout() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 100,
-                backgroundColor: focused ? 'white' : 'transparent',
+                backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
                 width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="user" size={24} color={focused ? 'black' : 'white'} />
+              <FontAwesome name="user" size={28} color={focused ? '#C9B37A' : 'black'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'black',
+                    color: '#C9B37A',
                     marginLeft: 8,
-                    fontSize: 13,
+                    fontSize: 15,
                     fontWeight: '600',
                   }}>
                   Profile

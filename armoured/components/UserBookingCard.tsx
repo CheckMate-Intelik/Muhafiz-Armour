@@ -105,12 +105,12 @@ export function UserBookingCard({
         elevation: 8,
       }}>
       <View className="flex-row items-center justify-between bg-black px-4 py-3">
-        <Text className="text-[12px] font-extrabold" style={{ color: '#D8DADF', letterSpacing: 0.5 }}>
+        <Text className="text-[14px] font-extrabold" style={{ color: '#D8DADF', letterSpacing: 0.5 }}>
           {title}
         </Text>
         {rightActionLabel ? (
           <Pressable onPress={onRightActionPress} hitSlop={8}>
-            <Text className="text-[12px] font-extrabold" style={{ color: '#B8BBC0' }}>
+            <Text className="text-[14px] font-extrabold" style={{ color: '#B8BBC0' }}>
               {rightActionLabel}
             </Text>
           </Pressable>
@@ -121,7 +121,7 @@ export function UserBookingCard({
 
       {!booking ? (
         <View className="px-4 py-5">
-          <Text className="text-sm font-semibold text-gray-100">{emptyLabel}</Text>
+          <Text className="text-base font-semibold text-gray-100">{emptyLabel}</Text>
         </View>
       ) : (
         <Pressable
@@ -132,14 +132,14 @@ export function UserBookingCard({
             {showDateBox ? (
               <View
                 className="mr-4 items-center justify-center rounded-2xl px-3 py-2"
-                style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.06)', borderWidth: 1, minWidth: 66 }}>
-                <Text className="text-[10px] font-extrabold" style={{ color: '#C9B37A', letterSpacing: 0.6 }}>
+                style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.06)', borderWidth: 1, minWidth: 72 }}>
+                <Text className="text-[11px] font-extrabold" style={{ color: '#C9B37A', letterSpacing: 0.6 }}>
                   {start ? formatMonth(start) : '—'}
                 </Text>
-                <Text className="mt-0.5 text-[18px] font-extrabold text-gray-100">
+                <Text className="mt-0.5 text-[20px] font-extrabold text-gray-100">
                   {start ? String(start.getDate()).padStart(2, '0') : '—'}
                 </Text>
-                <Text className="mt-0.5 text-[10px] font-semibold" style={{ color: '#B8BBC0' }}>
+                <Text className="mt-0.5 text-[11px] font-semibold" style={{ color: '#B8BBC0' }}>
                   {start ? formatTime(start) : '—'}
                 </Text>
               </View>
@@ -150,67 +150,67 @@ export function UserBookingCard({
                 <View className="mb-2 flex-row items-center justify-between">
                   <View className="flex-row items-center">
                     <View className="mr-2 h-2 w-2 rounded-full" style={{ backgroundColor: '#22C55E' }} />
-                    <Text className="text-[12px] font-extrabold" style={{ color: '#22C55E', letterSpacing: 0.5 }}>
+                    <Text className="text-[14px] font-extrabold" style={{ color: '#22C55E', letterSpacing: 0.5 }}>
                       ACTIVE NOW
                     </Text>
                   </View>
-                  <Text className="text-[11px] font-semibold" style={{ color: '#B8BBC0' }}>
+                  <Text className="text-[12px] font-semibold" style={{ color: '#B8BBC0' }}>
                     Booking ID: #{String(booking.id)}
                   </Text>
                 </View>
               ) : null}
 
-              <Text numberOfLines={1} className="text-[16px] font-semibold text-gray-100">
+              <Text numberOfLines={1} className="text-[18px] font-semibold text-gray-100">
                 {(booking.pickupLocation ?? '').trim() || '—'}
               </Text>
               <View className="mt-1 flex-row items-center">
                 <View className="mr-2 h-1.5 w-1.5 rounded-full" style={{ backgroundColor: '#B8BBC0' }} />
-                <Text numberOfLines={1} className="flex-1 text-[12px] font-semibold" style={{ color: '#B8BBC0' }}>
+                <Text numberOfLines={1} className="flex-1 text-[14px] font-semibold" style={{ color: '#B8BBC0' }}>
                   {(booking.dropLocation ?? '').trim() || '—'}
                 </Text>
               </View>
-              <Text className="mt-2 text-[12px] font-semibold" style={{ color: '#B8BBC0' }}>
+              <Text className="mt-2 text-[14px] font-semibold" style={{ color: '#B8BBC0' }}>
                 {durationLabel(booking.startTime, booking.endTime)}
               </Text>
 
               {isActiveCard ? (
                 <View className="mt-4 flex-row justify-between gap-2">
                   <View className="flex-1 items-center justify-center rounded-2xl px-2 py-3" style={{ backgroundColor: '#2F3135' }}>
-                    <FontAwesome name="car" size={16} color="#B8BBC0" />
-                    <Text className="mt-1 text-[10px] font-bold" style={{ color: '#B8BBC0' }}>
+                    <FontAwesome name="car" size={18} color="#B8BBC0" />
+                    <Text className="mt-1 text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
                       Vehicle Type
                     </Text>
-                    <Text numberOfLines={1} className="mt-0.5 text-[12px] font-extrabold text-gray-100">
+                    <Text numberOfLines={1} className="mt-0.5 text-[14px] font-extrabold text-gray-100">
                       {(booking.vehicle?.vehicleType ?? '').trim() || '—'}
                     </Text>
                   </View>
 
                   <View className="flex-1 items-center justify-center rounded-2xl px-2 py-3" style={{ backgroundColor: '#2F3135' }}>
-                    <FontAwesome name="shield" size={16} color="#B8BBC0" />
-                    <Text className="mt-1 text-[10px] font-bold" style={{ color: '#B8BBC0' }}>
+                    <FontAwesome name="shield" size={18} color="#B8BBC0" />
+                    <Text className="mt-1 text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
                       Armour Level
                     </Text>
-                    <Text numberOfLines={1} className="mt-0.5 text-[12px] font-extrabold text-gray-100">
+                    <Text numberOfLines={1} className="mt-0.5 text-[14px] font-extrabold text-gray-100">
                       {(booking.vehicle?.armourLevel ?? '').trim() || '—'}
                     </Text>
                   </View>
 
                   <View className="flex-1 items-center justify-center rounded-2xl px-2 py-3" style={{ backgroundColor: '#2F3135' }}>
-                    <FontAwesome name="users" size={16} color="#B8BBC0" />
-                    <Text className="mt-1 text-[10px] font-bold" style={{ color: '#B8BBC0' }}>
+                    <FontAwesome name="users" size={18} color="#B8BBC0" />
+                    <Text className="mt-1 text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
                       Seating
                     </Text>
-                    <Text numberOfLines={1} className="mt-0.5 text-[12px] font-extrabold text-gray-100">
+                    <Text numberOfLines={1} className="mt-0.5 text-[14px] font-extrabold text-gray-100">
                       {booking.vehicle?.seatingCapacity != null ? `${booking.vehicle.seatingCapacity}` : '—'}
                     </Text>
                   </View>
 
                   <View className="flex-1 items-center justify-center rounded-2xl px-2 py-3" style={{ backgroundColor: '#2F3135' }}>
-                    <FontAwesome name="clock-o" size={16} color="#B8BBC0" />
-                    <Text className="mt-1 text-[10px] font-bold" style={{ color: '#B8BBC0' }}>
+                    <FontAwesome name="clock-o" size={18} color="#B8BBC0" />
+                    <Text className="mt-1 text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
                       Remaining
                     </Text>
-                    <Text numberOfLines={1} className="mt-0.5 text-[12px] font-extrabold text-gray-100">
+                    <Text numberOfLines={1} className="mt-0.5 text-[14px] font-extrabold text-gray-100">
                       {timeRemainingLabel(booking.endTime)}
                     </Text>
                   </View>
@@ -221,11 +221,11 @@ export function UserBookingCard({
             <View className="ml-3 items-end">
               <View className="flex-row items-center">
                 <View className="mr-2 rounded-full px-3 py-2" style={{ backgroundColor: pill.bg }}>
-                  <Text className="text-[12px] font-extrabold" style={{ color: pill.fg }}>
+                  <Text className="text-[14px] font-extrabold" style={{ color: pill.fg }}>
                     {pill.label}
                   </Text>
                 </View>
-                <FontAwesome name="angle-right" size={18} color="#B8BBC0" />
+                <FontAwesome name="angle-right" size={20} color="#B8BBC0" />
               </View>
             </View>
           </View>

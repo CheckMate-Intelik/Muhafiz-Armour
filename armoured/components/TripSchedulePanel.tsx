@@ -135,82 +135,162 @@ export function TripSchedulePanel() {
   if (loadingMeta || !meta) {
     return (
       <View className="items-center py-10">
-        <ActivityIndicator color="#111827" />
-        <Text className="mt-3 text-sm font-semibold text-gray-600">Calculating route…</Text>
+        <ActivityIndicator color="#C9B37A" />
+        <Text className="mt-3 text-sm font-semibold text-gray-300">Calculating route…</Text>
       </View>
     );
   }
 
   return (
     <View>
-      <View className="mt-4 rounded-2xl bg-gray-50 px-4 py-3">
-        <Text className="text-md font-bold text-gray-500">Route</Text>
-        <Text className="mt-1 text-lg font-semibold text-gray-700">
-          ~{meta.distanceKm.toFixed(1)} km • min drive estimate {meta.distanceMinHours}h
-        </Text>
-        <Text className="mt-2 text-md font-semibold text-gray-600">
-          Minimum booking duration for this route: {meta.effectiveMinDurationHours} hours (up to {MAX_HOURS} hours / 5 days).
-        </Text>
-        <Text className="mt-2 text-md font-extrabold text-[#1D2DD9]">{bufferLabel}</Text>
-        <Text className="mt-1 text-md font-semibold text-gray-500">
-          Buffer time is added automatically when checking vehicle availability.
-        </Text>
+      <View
+        className="mt-4 overflow-hidden rounded-2xl"
+        style={{
+          backgroundColor: '#0B0F14',
+          borderWidth: 1,
+          borderColor: 'rgba(255,255,255,0.06)',
+        }}>
+        <View
+          className="border-b px-4 py-3"
+          style={{ backgroundColor: '#000000', borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+          <Text
+            className="text-[12px] font-extrabold"
+            style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
+            ROUTE
+          </Text>
+        </View>
+        <View className="px-4 py-3">
+          <Text className="text-base font-semibold text-gray-100">
+            ~{meta.distanceKm.toFixed(1)} km
+            <Text className="font-semibold" style={{ color: '#9CA3AF' }}>{`  •  min drive estimate ${meta.distanceMinHours}h`}</Text>
+          </Text>
+          <Text className="mt-2 text-sm font-semibold" style={{ color: '#9CA3AF' }}>
+            Minimum booking duration for this route: {meta.effectiveMinDurationHours} hours (up to {MAX_HOURS} hours / 5 days).
+          </Text>
+          <Text className="mt-2 text-sm font-extrabold" style={{ color: '#C9B37A' }}>
+            {bufferLabel}
+          </Text>
+          <Text className="mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+            Buffer time is added automatically when checking vehicle availability.
+          </Text>
+        </View>
       </View>
 
-      <View className="mt-6 gap-4">
-        <Pressable onPress={openDatePicker} className="justify-between rounded-full bg-white px-4 py-2 flex-row items-center">
-          <FontAwesome name="calendar" size={20} color="#111827" />
-          <View className="flex-1 ml-3">
-            <Text className="text-md font-bold tracking-wide text-gray-400">Pickup date</Text>
-            <Text className="mt-0.5 text-lg font-extrabold text-gray-900">
+      <View className="mt-6 gap-3">
+        <Pressable
+          onPress={openDatePicker}
+          className="flex-row items-center justify-between rounded-2xl px-4 py-3"
+          style={{
+            backgroundColor: '#0B0F14',
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.08)',
+          }}>
+          <View
+            className="h-10 w-10 items-center justify-center rounded-2xl"
+            style={{ backgroundColor: 'rgba(201,179,122,0.12)' }}>
+            <FontAwesome name="calendar" size={16} color="#C9B37A" />
+          </View>
+          <View className="ml-3 flex-1">
+            <Text className="text-[11px] font-extrabold" style={{ color: '#9CA3AF', letterSpacing: 0.6 }}>
+              PICKUP DATE
+            </Text>
+            <Text className="mt-1 text-base font-extrabold text-gray-100">
               {startAt.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
             </Text>
           </View>
-          <FontAwesome name="chevron-down" size={14} color="#6B7280" />
+          <FontAwesome name="chevron-down" size={14} color="#9CA3AF" />
         </Pressable>
 
-        <Pressable onPress={openTimePicker} className="justify-between rounded-full bg-white px-4 py-2 flex-row items-center">
-          <FontAwesome name="clock-o" size={20} color="#111827" />
-          <View className="flex-1 ml-3">
-            <Text className="text-md font-bold tracking-wide text-gray-400">Pickup time</Text>
-            <Text className="mt-0.5 text-lg font-extrabold text-gray-900">
+        <Pressable
+          onPress={openTimePicker}
+          className="flex-row items-center justify-between rounded-2xl px-4 py-3"
+          style={{
+            backgroundColor: '#0B0F14',
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.08)',
+          }}>
+          <View
+            className="h-10 w-10 items-center justify-center rounded-2xl"
+            style={{ backgroundColor: 'rgba(201,179,122,0.12)' }}>
+            <FontAwesome name="clock-o" size={16} color="#C9B37A" />
+          </View>
+          <View className="ml-3 flex-1">
+            <Text className="text-[11px] font-extrabold" style={{ color: '#9CA3AF', letterSpacing: 0.6 }}>
+              PICKUP TIME
+            </Text>
+            <Text className="mt-1 text-base font-extrabold text-gray-100">
               {startAt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
             </Text>
           </View>
-          <FontAwesome name="chevron-down" size={14} color="#6B7280" />
+          <FontAwesome name="chevron-down" size={14} color="#9CA3AF" />
         </Pressable>
       </View>
 
-      <Text className="mt-4 text-lg font-bold text-gray-900">Duration (hours)</Text>
-      <Text className="mt-1 text-md font-semibold text-gray-700">
+      <Text className="mt-5 text-[13px] font-extrabold" style={{ letterSpacing: 2, color: '#9CA3AF' }}>
+        DURATION (HOURS)
+      </Text>
+      <Text className="mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
         Between {minHours} and {MAX_HOURS} hours
       </Text>
-      <View className="mt-3 flex-row items-center justify-between rounded-2xl bg-gray-50 px-3 py-2">
-        <Pressable onPress={() => adjustDuration(-1)} className="h-10 w-10 items-center justify-center rounded-xl bg-gray-100">
-          <FontAwesome name="minus" size={14} color="#111827" />
+      <View
+        className="mt-3 flex-row items-center justify-between rounded-2xl px-3 py-2"
+        style={{
+          backgroundColor: '#0B0F14',
+          borderWidth: 1,
+          borderColor: 'rgba(255,255,255,0.08)',
+        }}>
+        <Pressable
+          onPress={() => adjustDuration(-1)}
+          className="h-10 w-10 items-center justify-center rounded-xl"
+          style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+          <FontAwesome name="minus" size={14} color="#C9B37A" />
         </Pressable>
         <TextInput
           value={String(durationHours)}
           onChangeText={onDurationText}
           keyboardType="number-pad"
-          className="min-w-[80px] text-center text-lg font-extrabold text-gray-900"
+          placeholderTextColor="#9CA3AF"
+          className="min-w-[80px] text-center text-lg font-extrabold"
+          style={{ color: '#F3F4F6' }}
         />
-        <Pressable onPress={() => adjustDuration(1)} className="h-10 w-10 items-center justify-center rounded-xl bg-gray-100">
-          <FontAwesome name="plus" size={14} color="#111827" />
+        <Pressable
+          onPress={() => adjustDuration(1)}
+          className="h-10 w-10 items-center justify-center rounded-xl"
+          style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+          <FontAwesome name="plus" size={14} color="#C9B37A" />
         </Pressable>
       </View>
 
-      <Pressable onPress={continueNext} className="mt-6 items-center rounded-full bg-[#111827] py-3">
-        <Text className="text-lg font-extrabold text-white">Next — see available vehicles</Text>
+      <Pressable
+        onPress={continueNext}
+        className="mt-6 items-center rounded-2xl py-4"
+        style={{ backgroundColor: '#C9B37A' }}>
+        <Text className="text-sm font-extrabold" style={{ color: '#0B0F14' }}>
+          Next — see available vehicles
+        </Text>
       </Pressable>
 
       <Modal transparent visible={picker != null && Platform.OS !== 'android'} animationType="fade" onRequestClose={() => setPicker(null)}>
-        <Pressable className="flex-1 bg-black/40 px-5" onPress={() => setPicker(null)}>
-          <View className="mt-auto rounded-3xl bg-white p-4" onStartShouldSetResponder={() => true}>
+        <Pressable
+          className="flex-1 px-5"
+          style={{ backgroundColor: 'rgba(2,6,23,0.7)' }}
+          onPress={() => setPicker(null)}>
+          <View
+            className="mt-auto rounded-3xl p-4"
+            onStartShouldSetResponder={() => true}
+            style={{
+              backgroundColor: '#0B0F14',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.08)',
+            }}>
             <View className="flex-row items-center justify-between">
-              <Text className="text-base font-extrabold text-gray-900">{picker === 'date' ? 'Pickup date' : 'Pickup time'}</Text>
+              <Text className="text-base font-extrabold text-gray-100">
+                {picker === 'date' ? 'Pickup date' : 'Pickup time'}
+              </Text>
               <Pressable onPress={() => setPicker(null)}>
-                <Text className="text-sm font-extrabold text-[#1D2DD9]">Done</Text>
+                <Text className="text-sm font-extrabold" style={{ color: '#C9B37A' }}>
+                  Done
+                </Text>
               </Pressable>
             </View>
             <View className="mt-3">
@@ -218,6 +298,8 @@ export function TripSchedulePanel() {
                 mode={picker === 'date' ? 'date' : 'time'}
                 value={startAt}
                 onChange={picker === 'date' ? onDateChange : onTimeChange}
+                textColor="#F3F4F6"
+                themeVariant="dark"
               />
             </View>
           </View>

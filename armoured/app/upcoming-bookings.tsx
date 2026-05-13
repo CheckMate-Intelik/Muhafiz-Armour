@@ -1,11 +1,12 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { apiGet, ensureUserSession, isNotAuthenticatedError } from '@/lib/api';
+import { isNotAuthenticatedError } from '@/lib/api';
+import { useBookingsStore } from '@/store/bookingsStore';
 import { UserBookingCard, type UserBookingListItem } from '../components/UserBookingCard';
 
 function normalizeStatus(status: string | null | undefined) {
@@ -29,34 +30,23 @@ function sortByStartTime(a: UserBookingListItem, b: UserBookingListItem) {
 }
 
 export default function UpcomingBookingsScreen() {
-  const [rows, setRows] = useState<UserBookingListItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const userBookings = useBookingsStore((s) => s.userBookings);
+  const userLoading = useBookingsStore((s) => s.userLoading);
+  const userLoaded = useBookingsStore((s) => s.userLoaded);
+  const refreshUserBookings = useBookingsStore((s) => s.refreshUserBookings);
+  const loading = userLoading && !userLoaded;
 
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const s = await ensureUserSession();
-        const data = await apiGet<UserBookingListItem[]>(`/bookings`, s.userId);
-        if (cancelled) return;
-        setRows(Array.isArray(data) ? data : []);
-      } catch (e) {
-        if (isNotAuthenticatedError(e)) {
-          router.replace('/login' as any);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    refreshUserBookings().catch((e) => {
+      if (isNotAuthenticatedError(e)) router.replace('/login' as any);
+    });
+  }, [refreshUserBookings]);
 
   const upcoming = useMemo(() => {
-    return rows.filter((b) => isUpcomingStatus(b.status)).sort(sortByStartTime);
-  }, [rows]);
+    return (userBookings as UserBookingListItem[])
+      .filter((b) => isUpcomingStatus(b.status))
+      .sort(sortByStartTime);
+  }, [userBookings]);
 
   return (
     <LinearGradient

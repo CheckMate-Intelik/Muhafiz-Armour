@@ -13,6 +13,7 @@ import {
   setStoredDriverSession,
   setStoredUserSession,
 } from '@/lib/api';
+import { useBookingsStore } from '@/store/bookingsStore';
 
 export type UserProfile = {
   id: string;
@@ -110,12 +111,14 @@ export const useStore = create<AuthState>((set, get) => ({
 
   switchRole: async (role) => {
     await setActiveRole(role);
+    useBookingsStore.getState().resetBookings();
     set({ activeRole: role, error: null });
     await get().hydrate();
   },
 
   logout: async () => {
     const role = get().activeRole;
+    useBookingsStore.getState().resetBookings();
     if (role === 'DRIVER') {
       await setStoredDriverSession(null);
       set({ driverSession: null, driverProfile: null, error: null });

@@ -1,9 +1,11 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   AppState,
   Image,
+  Linking,
   Pressable,
   ScrollView,
   Text,
@@ -13,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { apiGet, ensureUserSession, isNotAuthenticatedError } from '@/lib/api';
+import { useBookingsStore } from '@/store/bookingsStore';
 import { UserBookingCard, type UserBookingListItem } from '../../components/UserBookingCard';
 import { ActiveBookingHeroCard } from '../../components/ActiveBookingHeroCard';
 
@@ -41,11 +44,29 @@ function pickSoonestUpcoming(rows: UserBookingListItem[]) {
   return sorted[0] ?? null;
 }
 
+const QUICK_ACTION_CARD = {
+  radius: 14,
+  bg: '#0B0F14',
+  border: '#C9B37A',
+  height: 100,
+} as const;
+
+const NEW_BOOKING_GOLD = '#D4AF37';
+const SUPPORT_MUTED = '#E0E0E0';
+
+async function openSupport() {
+  const mail = 'mailto:support@muhafizarmour.com?subject=Support%20request';
+  try {
+    await Linking.openURL(mail);
+  } catch {
+    Alert.alert('Support', 'Email us at support@muhafizarmour.com');
+  }
+}
+
 export default function Home() {
-  const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>('');
-  const [activeBooking, setActiveBooking] = useState<UserBookingListItem | null>(null);
-  const [upcomingBooking, setUpcomingBooking] = useState<UserBookingListItem | null>(null);
+  const userBookings = useBookingsStore((s) => s.userBookings);
+  const refreshUserBookings = useBookingsStore((s) => s.refreshUserBookings);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,7 +74,6 @@ export default function Home() {
       try {
         const s = await ensureUserSession();
         if (cancelled) return;
-        setUserId(s.userId);
         const sessionName = (s.name ?? '').trim();
         if (sessionName.length > 0 && sessionName.toLowerCase() !== 'user') {
           setUserName(sessionName);
@@ -76,46 +96,42 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
     let sub: any = null;
-    async function loadBookings() {
-      if (!userId) return;
-      try {
-        const rows = await apiGet<UserBookingListItem[]>(`/bookings`, userId);
-        const list = Array.isArray(rows) ? rows : [];
-        const active = list.find((x) => normalizeStatus(x?.status) === 'IN_PROGRESS') ?? null;
-        if (cancelled) return;
-        setActiveBooking(active);
-        setUpcomingBooking(pickSoonestUpcoming(list));
-      } catch {
-        // ignore
-      }
-    }
-    void (async () => {
-      await loadBookings();
-      sub = AppState.addEventListener('change', (state) => {
-        if (state === 'active') void loadBookings();
-      });
-    })();
+    void refreshUserBookings().catch((e) => {
+      if (isNotAuthenticatedError(e)) router.replace('/login' as any);
+    });
+    sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refreshUserBookings().catch(() => null);
+    });
     return () => {
-      cancelled = true;
       if (sub) sub.remove();
     };
-  }, [userId]);
+  }, [refreshUserBookings]);
+
+  const activeBooking = useMemo<UserBookingListItem | null>(
+    () =>
+      (userBookings.find((x) => normalizeStatus(x?.status) === 'IN_PROGRESS') as UserBookingListItem | undefined) ??
+      null,
+    [userBookings],
+  );
+  const upcomingBooking = useMemo<UserBookingListItem | null>(
+    () => pickSoonestUpcoming(userBookings as UserBookingListItem[]),
+    [userBookings],
+  );
 
   return (
     <LinearGradient
-      colors={['rgb(23, 45, 92)', 'rgb(22, 37, 68)', '#020617']}
+      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.3, 1]}
+      locations={[0, 0.5, 1]}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-[18px] font-semibold text-gray-200">Welcome!</Text>
-              <Text className="text-lg font-semibold text-gray-200">{userName || 'User'}</Text>
+              <Text className="text-[22px] font-semibold text-gray-200">Welcome!</Text>
+              <Text className="text-2xl font-semibold text-gray-200">{userName || 'User'}</Text>
             </View>
             <View className="flex-row items-center gap-2">
               <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
@@ -152,11 +168,49 @@ export default function Home() {
               }
             />
 
-            <Pressable
-              onPress={() => router.push('/new-booking' as any)}
-              className="mb-2 items-center justify-center rounded-2xl bg-[#C9B37A] py-4">
-              <Text className="text-sm font-extrabold text-black">New booking</Text>
-            </Pressable>
+            <View className="mt-5">
+              <Text
+                className="text-[13px] font-extrabold"
+                style={{ letterSpacing: 2, color: '#9CA3AF' }}>
+                QUICK ACTIONS
+              </Text>
+              <View className="mt-3 flex-row gap-3">
+                <Pressable
+                  onPress={() => router.push('/new-booking' as any)}
+                  className="mb-2 flex-1 items-center justify-center"
+                  style={{
+                    height: QUICK_ACTION_CARD.height,
+                    borderRadius: QUICK_ACTION_CARD.radius,
+                    backgroundColor: QUICK_ACTION_CARD.bg,
+                    borderWidth: 1,
+                    borderColor: QUICK_ACTION_CARD.border,
+                  }}>
+                  <FontAwesome name="shield" size={32} color={NEW_BOOKING_GOLD} />
+                  <Text
+                    className="mt-2 text-center text-sm font-semibold"
+                    style={{ color: NEW_BOOKING_GOLD }}>
+                    New Booking
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => void openSupport()}
+                  className="mb-2 flex-1 items-center justify-center"
+                  style={{
+                    height: QUICK_ACTION_CARD.height,
+                    borderRadius: QUICK_ACTION_CARD.radius,
+                    backgroundColor: QUICK_ACTION_CARD.bg,
+                    borderWidth: 1,
+                    borderColor: QUICK_ACTION_CARD.border,
+                  }}>
+                  <FontAwesome name="headphones" size={30} color={SUPPORT_MUTED} />
+                  <Text
+                    className="mt-2 text-center text-sm font-semibold"
+                    style={{ color: SUPPORT_MUTED }}>
+                    Support
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
           </View>
         </ScrollView>
       </SafeAreaView>

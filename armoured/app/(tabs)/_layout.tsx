@@ -4,10 +4,8 @@ import { useEffect } from 'react';
 import { AppState, Pressable, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { apiGet, ensureUserSession } from '@/lib/api';
 import { useStore } from '@/store/store';
-
-type UserBooking = { id: string; status: string };
+import { useBookingsStore } from '@/store/bookingsStore';
 
 const SNOOZE_KEY = 'armoured:ongoing-trip-snooze:v1';
 const IN_MEMORY_SNOOZE_KEY = '__armouredOngoingTripSnoozeUntilMs';
@@ -69,8 +67,8 @@ export default function TabLayout() {
         snooze = await readSnooze();
         if (snooze) return;
 
-        const s = await ensureUserSession();
-        const rows = await apiGet<UserBooking[]>(`/bookings`, s.userId);
+        await useBookingsStore.getState().refreshUserBookings();
+        const rows = useBookingsStore.getState().userBookings;
         const ongoing = Array.isArray(rows) ? rows.find((b) => b.status === 'IN_PROGRESS') : undefined;
         if (cancelled) return;
         if (!ongoing?.id) {
@@ -129,7 +127,7 @@ export default function TabLayout() {
           borderRadius: 28,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.92)',
+          backgroundColor: 'rgb(193, 155, 59)',
           borderTopWidth: 0,
           shadowColor: '#000',
           shadowOpacity: 0.08,
@@ -161,17 +159,17 @@ export default function TabLayout() {
                 // paddingHorizontal: focused ? 14 : 0,
                 // paddingVertical: 10,
                 borderRadius: 100,
-                backgroundColor: focused ? 'white' : 'transparent',
+                backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
                 width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="home" size={24} color={focused ? 'black' : 'white'} />
+              <FontAwesome name="home" size={28} color={focused ? '#C9B37A' : 'black'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'black',
+                    color: '#C9B37A',
                     marginLeft: 8,
-                    fontSize: 13,
+                    fontSize: 15,
                     fontWeight: '600',
                   }}
                 >
@@ -184,7 +182,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="activities"
         options={{
           title: 'History',
           tabBarIcon: ({ color, focused }) => (
@@ -194,17 +192,17 @@ export default function TabLayout() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 100,
-                backgroundColor: focused ? 'white' : 'transparent',
+                backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
                 width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="history" size={22} color={focused ? 'black' : 'white'} />
+              <FontAwesome name="history" size={28} color={focused ? '#C9B37A' : 'black'} />
               {focused && (
                 <Text
                   style={{
-                    color: 'black',
+                    color: '#C9B37A',
                     marginLeft: 8,
-                    fontSize: 13,
+                    fontSize: 15,
                     fontWeight: '600',
                   }}
                 >
@@ -229,17 +227,17 @@ export default function TabLayout() {
                 // paddingHorizontal: focused ? 14 : 0,
                 // paddingVertical: 10,
                 borderRadius: 100,
-                backgroundColor: focused ? 'white' : 'transparent',
+                backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
                 width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="user" size={24} color={focused ? 'black' : 'white'}/>
+              <FontAwesome name="user" size={28} color={focused ? '#C9B37A' : 'black'}/>
               {focused && (
                 <Text
                   style={{
-                    color: 'black',
+                    color: '#C9B37A',
                     marginLeft: 8,
-                    fontSize: 13,
+                    fontSize: 15,
                     fontWeight: '600',
                   }}
                 >

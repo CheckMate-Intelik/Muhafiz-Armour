@@ -16,6 +16,7 @@ import {
   ensureUserSession,
 } from '@/lib/api';
 import { useStore } from '@/store/store';
+import { useBookingsStore } from '@/store/bookingsStore';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const USER_SNOOZE_KEY = 'armoured:ongoing-trip-snooze:v1';
@@ -212,7 +213,7 @@ export default function BookingDetailsScreen() {
     if (!shouldPoll) return;
     const st = display.status;
     if (st === 'COMPLETED') {
-      router.replace(isDriverMode ? ('/(driver-tabs)/dashboard' as any) : ('/(tabs)' as any));
+      router.replace(isDriverMode ? ('/(driver-tabs)' as any) : ('/(tabs)' as any));
       return;
     }
     if (st === 'REJECTED' || st === 'EXPIRED') {
@@ -260,6 +261,7 @@ export default function BookingDetailsScreen() {
             setBusyId(bookingIdParam);
             const s = await ensureDriverSession();
             await driverPatch(`/driver/bookings/${bookingIdParam}/cancel`, s.driverId);
+            await useBookingsStore.getState().refreshDriverBookings().catch(() => null);
             router.back();
           } catch (e) {
             Alert.alert('Failed', e instanceof Error ? e.message : 'Cancel trip failed');
@@ -283,6 +285,7 @@ export default function BookingDetailsScreen() {
             const s = await ensureUserSession();
             await apiPatch(`/bookings/${bookingIdParam}/cancel`, s.userId);
             await load();
+            await useBookingsStore.getState().refreshUserBookings().catch(() => null);
             router.replace('/(tabs)' as any);
           } catch (e) {
             Alert.alert('Failed', e instanceof Error ? e.message : 'Cancel failed');
@@ -301,8 +304,25 @@ export default function BookingDetailsScreen() {
       const s = await ensureUserSession();
       const updated = await apiPost<UserLiveBooking>(`/bookings/${display.id}/extend`, s.userId, { mode });
       setFetchedUser(updated);
+      await useBookingsStore.getState().refreshUserBookings().catch(() => null);
     } catch (e) {
       Alert.alert('Extension denied', e instanceof Error ? e.message : 'Conflict or error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function respondDriver(accept: boolean) {
+    const id = display.id;
+    if (!id || id === '—') return;
+    try {
+      setBusy(true);
+      const s = await ensureDriverSession();
+      await driverPatch(`/driver/bookings/${id}/respond`, s.driverId, { accept });
+      await useBookingsStore.getState().refreshDriverBookings().catch(() => null);
+      router.replace('/(driver-tabs)/bookings' as any);
+    } catch (e) {
+      Alert.alert('Failed', e instanceof Error ? e.message : 'Request failed');
     } finally {
       setBusy(false);
     }
@@ -318,7 +338,8 @@ export default function BookingDetailsScreen() {
             setBusy(true);
             const s = await ensureDriverSession();
             await driverPatch(`/driver/bookings/${bookingIdParam}/complete`, s.driverId);
-            router.replace('/(driver-tabs)/dashboard' as any);
+            await useBookingsStore.getState().refreshDriverBookings().catch(() => null);
+            router.replace('/(driver-tabs)' as any);
           } catch (e) {
             Alert.alert('Failed', e instanceof Error ? e.message : 'Complete failed');
           } finally {
@@ -331,12 +352,12 @@ export default function BookingDetailsScreen() {
 
   if (!bookingId) {
     return (
-      // <LinearGradient
-      //   colors={['rgb(26, 68, 160)', 'rgb(22, 34, 63)', '#020617']}
-      //   start={{ x: 0.5, y: 0 }}
-      //   end={{ x: 0.5, y: 1 }}
-      //   locations={[0, 0.45, 1]}
-      //   style={{ flex: 1 }}>
+      <LinearGradient
+        colors={['rgb(26, 68, 160)', 'rgb(22, 34, 63)', '#020617']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        locations={[0, 0.45, 1]}
+        style={{ flex: 1 }}>
         <SafeAreaView className="flex-1 items-center justify-center px-5">
           <Text className="text-sm font-semibold text-gray-100">Missing booking.</Text>
           <Pressable
@@ -348,7 +369,7 @@ export default function BookingDetailsScreen() {
             </Text>
           </Pressable>
         </SafeAreaView>
-      // </LinearGradient>
+      </LinearGradient>
     );
   }
 
@@ -414,6 +435,8 @@ export default function BookingDetailsScreen() {
   const showUserCancel = !isDriverMode && userMayCancel;
   const showDriverComplete = isDriverMode && st === 'IN_PROGRESS';
   const showDriverCancel = isDriverMode && st === 'CONFIRMED';
+  const showDriverRespond =
+    isDriverMode && (st === 'REQUESTED' || st === 'PENDING_DRIVER');
   const showUserInfoDuringTrip = !isDriverMode && st === 'IN_PROGRESS';
 
   return (
@@ -503,6 +526,34 @@ export default function BookingDetailsScreen() {
                   </Text>
                 </Pressable>
               </View>
+            </View>
+          ) : null}
+
+          {showDriverRespond ? (
+            <View className="mt-4 flex-row gap-3">
+              <Pressable
+                disabled={busy}
+                onPress={() => void respondDriver(false)}
+                className="flex-1 items-center justify-center rounded-2xl py-4"
+                style={{
+                  backgroundColor: '#0B0F14',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.12)',
+                  opacity: busy ? 0.6 : 1,
+                }}>
+                <Text className="text-sm font-extrabold text-gray-100">
+                  {busy ? 'Please wait…' : 'Decline'}
+                </Text>
+              </Pressable>
+              <Pressable
+                disabled={busy}
+                onPress={() => void respondDriver(true)}
+                className="flex-1 items-center justify-center rounded-2xl py-4"
+                style={{ backgroundColor: '#C9B37A', opacity: busy ? 0.6 : 1 }}>
+                <Text className="text-sm font-extrabold" style={{ color: '#0B0F14' }}>
+                  {busy ? 'Please wait…' : 'Accept'}
+                </Text>
+              </Pressable>
             </View>
           ) : null}
 

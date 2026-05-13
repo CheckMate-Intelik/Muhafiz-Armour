@@ -66,57 +66,62 @@ export function TripRouteCard({
         onPress={onPress}
         className="mb-4 overflow-hidden rounded-2xl"
         style={missionCardOuter}>
-        <View className="border-b border-gray-900 bg-black px-4 pb-3 pt-3.5">
+        <View
+          className="border-b px-4 pb-3 pt-3.5"
+          style={{ backgroundColor: '#000000', borderBottomColor: 'rgba(255,255,255,0.06)' }}>
           <View className="flex-row items-center justify-between">
             <Text
               numberOfLines={2}
-              className="flex-1 pr-2 text-[12px] font-extrabold"
-              style={{ color: '#D8DADF', letterSpacing: 0.4 }}>
+              className="flex-1 pr-2 text-[14px] font-extrabold"
+              style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
               {missionHeaderLine || meta?.label || '—'}
             </Text>
-            <FontAwesome name="car" size={22} color="#B8BBC0" />
+            <FontAwesome name="car" size={22} color="#C9B37A" />
           </View>
         </View>
 
-        <View className="px-4 py-4">
+        <View className="px-4 py-4" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
           <View className="flex-row">
             <View className="mr-3 w-5 items-center">
-              <View className="h-3 w-3 rounded-full bg-[#D9D9D9]" />
-              <View className="my-2 w-[2px] flex-1 bg-[rgb(42,156,61)]" />
-              <View className="h-3 w-3 rounded-full bg-[#D9D9D9]" />
+              <View
+                className="h-3 w-3 rounded-full"
+                style={{ borderWidth: 2, borderColor: '#F59E0B', backgroundColor: 'transparent' }}
+              />
+              <View className="my-2 w-[2px] flex-1" style={{ backgroundColor: 'rgba(34,197,94,0.7)' }} />
+              <View className="h-3 w-3 rounded-full" style={{ borderWidth: 2, borderColor: '#E5E7EB' }} />
             </View>
 
             <View className="flex-1">
               <View className="flex-row">
                 <View className="flex-1 pr-3">
-                  <Text className="text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                  <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                     FROM:
                   </Text>
-                  <Text numberOfLines={2} className="mt-1 text-[16px] font-semibold text-gray-100">
+                  <Text numberOfLines={2} className="mt-1 text-[18px] font-extrabold text-gray-100">
                     {from || '—'}
                   </Text>
                 </View>
 
                 {missionCostLabel ? (
                   <View className="w-[90px] items-end">
-                    <Text className="text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                    <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                       COST:
                     </Text>
-                    <Text numberOfLines={1} className="mt-1 text-[14px] font-semibold text-gray-100">
+                    <Text numberOfLines={1} className="mt-1 text-[14px] font-extrabold text-gray-100">
                       {missionCostLabel}
                     </Text>
                   </View>
                 ) : null}
               </View>
 
-              <View className="mt-3 border-t border-[#55585D]" />
+              <View className="mt-3 border-t" style={{ borderTopColor: 'rgba(255,255,255,0.06)' }} />
 
               <View className="mt-3 flex-row items-start justify-between">
                 <View className="min-w-0 flex-1 pr-2">
-                  <Text className="text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                  <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                     TO:
                   </Text>
-                  <Text numberOfLines={2} className="mt-1 text-[16px] font-semibold text-gray-100">
+                  <Text numberOfLines={2} className="mt-1 text-[18px] font-extrabold text-gray-100">
                     {to || '—'}
                   </Text>
                 </View>
@@ -195,11 +200,13 @@ const cardShadow = {
 };
 
 const missionCardOuter = {
-  backgroundColor: '#3B3E43',
+  backgroundColor: '#0B0F14',
+  borderColor: 'rgba(255,255,255,0.06)',
+  borderWidth: 1,
   shadowColor: '#000',
-  shadowOpacity: 0.22,
-  shadowRadius: 14,
-  shadowOffset: { width: 0, height: 10 },
-  elevation: 6,
+  shadowOpacity: 0.28,
+  shadowRadius: 18,
+  shadowOffset: { width: 0, height: 14 },
+  elevation: 8,
 };
 

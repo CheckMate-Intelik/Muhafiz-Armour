@@ -51,19 +51,28 @@ export function VehicleCard({
   const city = (vehicle.location ?? '').trim();
   const isDark = appearance === 'dark';
   const defaultClass = isDark
-    ? 'mb-3 w-[100%] rounded-2xl bg-[#3B3E43] p-2.5'
+    ? 'mb-3 w-[100%] rounded-2xl p-2.5'
     : 'mb-3 w-[100%] rounded-2xl bg-white p-2.5';
   const metaIcon = isDark ? '#B8BBC0' : 'rgb(126, 126, 126)';
   const titleClass = isDark ? 'mt-0.5 text-lg font-bold text-gray-100' : 'mt-0.5 text-lg font-bold text-gray-800';
-  const rateClass = isDark ? 'text-lg font-bold text-gray-200' : 'text-lg font-bold text-gray-600';
-  const footerBorder = isDark ? 'border-[#55585D]' : 'border-gray-200';
+  const rateClass = isDark ? 'text-lg font-bold text-[#C9B37A]' : 'text-lg font-bold text-gray-600';
+  const footerBorder = isDark ? 'border-white/10' : 'border-gray-200';
   const footerText = isDark ? 'ml-1 flex-1 text-xs font-bold text-gray-300' : 'ml-1 flex-1 text-xs font-bold text-gray-500';
 
   return (
     <Wrapper
       onPress={onPress}
       className={className ?? defaultClass}
-      style={isDark ? missionCardShadow : cardShadow}>
+      style={
+        isDark
+          ? {
+              ...missionCardShadow,
+              backgroundColor: '#0B0F14',
+              borderColor: 'rgba(255,255,255,0.06)',
+              borderWidth: 1,
+            }
+          : cardShadow
+      }>
       <View className="relative overflow-hidden rounded-xl bg-gray-100">
         <Image source={{ uri: firstImage }} style={{ width: '100%', height: 160 }} resizeMode="cover" />
 

@@ -27,30 +27,38 @@ export default function TripScheduleScreen() {
 
   if (!ready) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
-        <View className="flex-1" />
-      </SafeAreaView>
+      <LinearGradient
+        colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        locations={[0, 0.5, 1]}
+        style={{ flex: 1 }}>
+        <SafeAreaView className="flex-1" />
+      </LinearGradient>
     );
   }
 
   return (
     <LinearGradient
-      colors={['rgb(77, 76, 76)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
-      start={{ x: 1, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      locations={[0, 0.3, 0.6, 1]}
+      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      locations={[0, 0.5, 1]}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
-      <View className="px-5 pt-4">
-        <View className="flex-row items-center justify-between">
-          <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-            <FontAwesome name="arrow-left" size={16} color="#111827" />
-          </Pressable>
-          <Text className="text-xl font-extrabold text-gray-200">When & how long</Text>
-          <View className="h-10 w-10" />
+        <View className="px-5 pt-4">
+          <View className="flex-row items-center justify-between">
+            <Pressable
+              onPress={() => router.back()}
+              className="h-10 w-10 items-center justify-center rounded-2xl"
+              style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+              <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
+            </Pressable>
+            <Text className="text-lg font-bold text-gray-200">When & how long</Text>
+            <View className="h-10 w-10" />
+          </View>
         </View>
-      </View>
-      <View className="flex-1 px-5 pt-2">
+        <View className="flex-1 px-5 pt-2">
           <TripSchedulePanel />
         </View>
       </SafeAreaView>

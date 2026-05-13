@@ -27,50 +27,58 @@ export default function ProfileScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(51, 47, 56)', 'rgb(88, 88, 90)', 'rgb(112, 112, 112)', 'rgb(202, 202, 202)', 'rgb(247, 248, 255)']}
-      start={{ x: 1, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      locations={[0, 0.4, 0.7, 0.9, 1]}
+      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      locations={[0, 0.5, 1]}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
-        <View className="px-5 pt-4">
-          <View className="flex-row items-center">
-            <Text className="text-2xl font-extrabold text-gray-100" style={{ letterSpacing: 0.8 }}>
-              PROFILE
-            </Text>
-          </View>
-        </View>
-
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
-          <View
-            className="items-center overflow-hidden rounded-2xl bg-black"
-            style={{
-              shadowColor: '#000',
-              shadowOpacity: 0.22,
-              shadowRadius: 14,
-              shadowOffset: { width: 0, height: 10 },
-              elevation: 6,
-            }}>
-            <View className="w-full border-b border-gray-900 bg-black pb-2 pt-4 rounded-t-xl">
-              <Text
-                className="text-center text-md font-extrabold"
-                style={{ color: '#D8DADF', letterSpacing: 0.4 }}>
-                ACCOUNT
-              </Text>
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text className="text-2xl font-semibold text-[#C9B37A]">Profile</Text>
+              {/* <Text className="text-lg font-semibold text-gray-200">
+                {profile?.name ?? (loading ? 'Loading…' : 'User')}
+              </Text> */}
             </View>
-            <View className="items-center py-5 rounded-xl w-full bg-[#3B3E43]">
-              <Image
-                source={{ uri: 'https://i.pravatar.cc/240?img=12' }}
-                style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: '#515458' }}
-              />
-              <Text className="mt-4 text-xl font-bold text-gray-100">
-                {profile?.name ?? (loading ? 'Loading…' : '—')}
-              </Text>
-              <Text className="mt-1 text-sm font-semibold" style={{ color: '#B8BBC0' }}>
-                Member since {memberSince}
-              </Text>
+            <View className="flex-row items-center gap-2">
+              <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
+                <FontAwesome name="bell-o" size={16} color="#111827" />
+              </Pressable>
+              <Image source={{ uri: 'https://i.pravatar.cc/96?img=12' }} style={{ width: 36, height: 36, borderRadius: 18 }} />
             </View>
           </View>
+
+          <View className="mt-4">
+            <View
+              className="items-center overflow-hidden rounded-2xl bg-black"
+              style={{
+                shadowColor: '#000',
+                shadowOpacity: 0.22,
+                shadowRadius: 14,
+                shadowOffset: { width: 0, height: 10 },
+                elevation: 6,
+              }}>
+              <View className="w-full border-b border-gray-900 bg-black pb-2 pt-4 rounded-t-xl">
+                <Text
+                  className="text-center text-md font-extrabold"
+                  style={{ color: '#C9B37A', letterSpacing: 0.4 }}>
+                  ACCOUNT
+                </Text>
+              </View>
+              <View className="items-center py-5 rounded-xl w-full bg-[#0B0F14]">
+                <Image
+                  source={{ uri: 'https://i.pravatar.cc/240?img=12' }}
+                  style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: '#515458' }}
+                />
+                <Text className="mt-4 text-xl font-bold text-[#C9B37A]">
+                  {profile?.name ?? (loading ? 'Loading…' : '—')}
+                </Text>
+                <Text className="mt-1 text-sm font-semibold" style={{ color: '#B8BBC0' }}>
+                  Member since {memberSince}
+                </Text>
+              </View>
+            </View>
 
           <View className="mt-4 overflow-hidden rounded-2xl p-4" style={cardShadow}>
             <DetailRow icon="phone" label="Phone" value={profile?.phone ?? '—'} />
@@ -103,6 +111,7 @@ export default function ProfileScreen() {
                 router.replace('/login' as any);
               }}
             />
+          </View>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -166,7 +175,7 @@ function ActionRow({
 }
 
 const cardShadow = {
-  backgroundColor: '#3B3E43',
+  backgroundColor: '#0B0F14',
   shadowColor: '#000',
   shadowOpacity: 0.22,
   shadowRadius: 14,

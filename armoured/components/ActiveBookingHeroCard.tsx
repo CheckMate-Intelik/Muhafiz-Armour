@@ -48,12 +48,12 @@ function InfoBox({
   value: string;
 }) {
   return (
-    <View className="flex-1 items-center justify-center px-2 py-3" style={{ minHeight: 72 }}>
-      <FontAwesome name={icon} size={16} color="#C9B37A" />
-      <Text className="mt-1 text-[10px] font-bold" style={{ color: '#B8BBC0' }}>
+    <View className="flex-1 items-center justify-center px-2 py-3" style={{ minHeight: 80 }}>
+      <FontAwesome name={icon} size={18} color="#C9B37A" />
+      <Text className="mt-1 text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
         {label}
       </Text>
-      <Text numberOfLines={1} className="mt-0.5 text-[12px] font-extrabold text-gray-100">
+      <Text numberOfLines={1} className="mt-0.5 text-[14px] font-extrabold text-gray-100">
         {value}
       </Text>
     </View>
@@ -82,12 +82,12 @@ export function ActiveBookingHeroCard({
           elevation: 6,
         }}>
         <View className="bg-black px-4 py-3">
-          <Text className="text-[12px] font-extrabold" style={{ color: '#D8DADF', letterSpacing: 0.5 }}>
+          <Text className="text-[14px] font-extrabold" style={{ color: '#D8DADF', letterSpacing: 0.5 }}>
             ACTIVE BOOKING
           </Text>
         </View>
         <View className="px-4 py-5">
-          <Text className="text-sm font-semibold text-gray-100">{emptyLabel}</Text>
+          <Text className="text-base font-semibold text-gray-100">{emptyLabel}</Text>
         </View>
       </View>
     );
@@ -122,17 +122,17 @@ export function ActiveBookingHeroCard({
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center">
             <View className="mr-2 h-2 w-2 rounded-full" style={{ backgroundColor: '#22C55E' }} />
-            <Text className="text-[12px] font-extrabold" style={{ color: '#22C55E', letterSpacing: 0.5 }}>
+            <Text className="text-[14px] font-extrabold" style={{ color: '#22C55E', letterSpacing: 0.5 }}>
               ACTIVE NOW
             </Text>
           </View>
 
           <View className="flex-row items-center">
-            <Text className="mr-2 text-[11px] font-semibold" style={{ color: '#9CA3AF' }}>
+            <Text className="mr-2 text-[12px] font-semibold" style={{ color: '#9CA3AF' }}>
               Booking ID: #{String(booking.id)}
             </Text>
             <View className="h-7 w-7 items-center justify-center rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-              <FontAwesome name="copy" size={14} color="#9CA3AF" />
+              <FontAwesome name="copy" size={16} color="#9CA3AF" />
             </View>
           </View>
         </View>
@@ -151,24 +151,24 @@ export function ActiveBookingHeroCard({
               </View>
 
               <View className="flex-1">
-                <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+                <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                   Pickup
                 </Text>
-                <Text numberOfLines={1} className="mt-1 text-[16px] font-extrabold text-gray-100">
+                <Text numberOfLines={1} className="mt-1 text-[18px] font-extrabold text-gray-100">
                   {(booking.pickupLocation ?? '').trim() || '—'}
                 </Text>
-                <Text className="mt-0.5 text-[11px] font-semibold" style={{ color: '#9CA3AF' }}>
+                <Text className="mt-0.5 text-[12px] font-semibold" style={{ color: '#9CA3AF' }}>
                   {start ? `${formatDayLabel(start)}, ${formatTimeLabel(start)}` : '—'}
                 </Text>
 
                 <View className="mt-4">
-                  <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+                  <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                     Drop-off
                   </Text>
-                  <Text numberOfLines={1} className="mt-1 text-[16px] font-extrabold text-gray-100">
+                  <Text numberOfLines={1} className="mt-1 text-[18px] font-extrabold text-gray-100">
                     {(booking.dropLocation ?? '').trim() || '—'}
                   </Text>
-                  <Text className="mt-0.5 text-[11px] font-semibold" style={{ color: '#9CA3AF' }}>
+                  <Text className="mt-0.5 text-[12px] font-semibold" style={{ color: '#9CA3AF' }}>
                     {end ? `${formatDayLabel(end)}, ${formatTimeLabel(end)}` : '—'}
                   </Text>
                 </View>
@@ -189,7 +189,7 @@ export function ActiveBookingHeroCard({
               <View className="absolute -right-10 -top-10 h-32 w-32 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.03)' }} />
               <View className="absolute -left-10 -bottom-10 h-32 w-32 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.03)' }} />
               <View className="flex-1 items-center justify-center">
-                <FontAwesome name="car" size={44} color="rgba(229,231,235,0.22)" />
+                <FontAwesome name="car" size={48} color="rgba(229,231,235,0.22)" />
               </View>
             </View>
           </View>
