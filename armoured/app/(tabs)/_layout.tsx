@@ -184,23 +184,21 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="activities"
+        name="history"
         options={{
-          title: 'Activities',
+          title: 'History',
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
-                // paddingHorizontal: focused ? 14 : 0,
-                // paddingVertical: 10,
                 borderRadius: 100,
                 backgroundColor: focused ? 'white' : 'transparent',
                 height: 46,
                 width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="list-alt" size={24} color={focused ? 'black' : 'white'} />
+              <FontAwesome name="history" size={22} color={focused ? 'black' : 'white'} />
               {focused && (
                 <Text
                   style={{
@@ -210,7 +208,7 @@ export default function TabLayout() {
                     fontWeight: '600',
                   }}
                 >
-                  Activities
+                  History
                 </Text>
               )}
             </View>

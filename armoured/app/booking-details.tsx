@@ -212,11 +212,11 @@ export default function BookingDetailsScreen() {
     if (!shouldPoll) return;
     const st = display.status;
     if (st === 'COMPLETED') {
-      router.replace(isDriverMode ? ('/(driver-tabs)/dashboard' as any) : ('/(tabs)/activities' as any));
+      router.replace(isDriverMode ? ('/(driver-tabs)/dashboard' as any) : ('/(tabs)' as any));
       return;
     }
     if (st === 'REJECTED' || st === 'EXPIRED') {
-      router.replace(isDriverMode ? ('/(driver-tabs)' as any) : ('/(tabs)/activities' as any));
+      router.replace(isDriverMode ? ('/(driver-tabs)' as any) : ('/(tabs)' as any));
     }
   }, [shouldPoll, display.status, isDriverMode]);
 
@@ -283,7 +283,7 @@ export default function BookingDetailsScreen() {
             const s = await ensureUserSession();
             await apiPatch(`/bookings/${bookingIdParam}/cancel`, s.userId);
             await load();
-            router.replace('/(tabs)/activities' as any);
+            router.replace('/(tabs)' as any);
           } catch (e) {
             Alert.alert('Failed', e instanceof Error ? e.message : 'Cancel failed');
           } finally {
@@ -331,32 +331,37 @@ export default function BookingDetailsScreen() {
 
   if (!bookingId) {
     return (
-      <LinearGradient
-        colors={['rgb(77, 76, 76)', 'rgb(165, 165, 165)', 'rgb(235, 235, 235)', 'rgb(247, 248, 255)']}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        locations={[0, 0.3, 0.5, 1]}
-        style={{ flex: 1 }}>
+      // <LinearGradient
+      //   colors={['rgb(26, 68, 160)', 'rgb(22, 34, 63)', '#020617']}
+      //   start={{ x: 0.5, y: 0 }}
+      //   end={{ x: 0.5, y: 1 }}
+      //   locations={[0, 0.45, 1]}
+      //   style={{ flex: 1 }}>
         <SafeAreaView className="flex-1 items-center justify-center px-5">
-          <Text className="text-sm font-semibold text-gray-600">Missing booking.</Text>
-          <Pressable onPress={() => router.back()} className="mt-4 rounded-2xl bg-[#1D2DD9] px-4 py-3">
-            <Text className="text-xs font-extrabold text-white">Go back</Text>
+          <Text className="text-sm font-semibold text-gray-100">Missing booking.</Text>
+          <Pressable
+            onPress={() => router.back()}
+            className="mt-4 rounded-2xl px-4 py-3"
+            style={{ backgroundColor: '#C9B37A' }}>
+            <Text className="text-xs font-extrabold" style={{ color: '#0B0F14' }}>
+              Go back
+            </Text>
           </Pressable>
         </SafeAreaView>
-      </LinearGradient>
+      // </LinearGradient>
     );
   }
 
   if (isLiveRoute && shouldPoll && !pollReady) {
     return (
       <LinearGradient
-        colors={['rgb(77, 76, 76)', 'rgb(165, 165, 165)', 'rgb(235, 235, 235)', 'rgb(247, 248, 255)']}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        locations={[0, 0.3, 0.5, 1]}
+        colors={['#1a2744', '#0f172a', '#020617']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        locations={[0, 0.45, 1]}
         style={{ flex: 1 }}>
         <SafeAreaView className="flex-1 items-center justify-center">
-          <Text className="text-sm font-semibold text-gray-500">Loading…</Text>
+          <Text className="text-sm font-semibold text-gray-100">Loading…</Text>
         </SafeAreaView>
       </LinearGradient>
     );
@@ -365,28 +370,34 @@ export default function BookingDetailsScreen() {
   if (isLiveRoute && shouldPoll && pollReady && !hasLiveRow) {
     return (
       <LinearGradient
-        colors={['rgb(77, 76, 76)', 'rgb(165, 165, 165)', 'rgb(235, 235, 235)', 'rgb(247, 248, 255)']}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        locations={[0, 0.3, 0.5, 1]}
+        colors={['#1a2744', '#0f172a', '#020617']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        locations={[0, 0.45, 1]}
         style={{ flex: 1 }}>
         <SafeAreaView className="flex-1">
           <View className="px-5 pt-4">
             <View className="flex-row items-center justify-between">
               <Pressable
                 onPress={() => void dismissLive()}
-                className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-                <FontAwesome name="arrow-left" size={16} color="#111827" />
+                className="h-10 w-10 items-center justify-center rounded-2xl"
+                style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+                <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
               </Pressable>
               <Text className="text-lg font-bold text-gray-200">Booking details</Text>
               <View className="h-10 w-10" />
             </View>
           </View>
           <View className="flex-1 items-center justify-center px-5">
-            <Text className="text-base font-extrabold text-gray-900">No active trip</Text>
-            <Text className="mt-2 text-xs font-semibold text-gray-500">This trip may have ended.</Text>
-            <Pressable onPress={() => void dismissLive()} className="mt-4 rounded-2xl bg-[#1D2DD9] px-4 py-3">
-              <Text className="text-xs font-extrabold text-white">
+            <Text className="text-base font-extrabold text-gray-100">No active trip</Text>
+            <Text className="mt-2 text-xs font-semibold" style={{ color: '#B8BBC0' }}>
+              This trip may have ended.
+            </Text>
+            <Pressable
+              onPress={() => void dismissLive()}
+              className="mt-4 rounded-2xl px-4 py-3"
+              style={{ backgroundColor: '#C9B37A' }}>
+              <Text className="text-xs font-extrabold" style={{ color: '#0B0F14' }}>
                 {isDriverMode ? 'Back to bookings' : 'Back to home'}
               </Text>
             </Pressable>
@@ -407,25 +418,27 @@ export default function BookingDetailsScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(77, 76, 76)', 'rgb(165, 165, 165)', 'rgb(235, 235, 235)', 'rgb(247, 248, 255)']}
-      start={{ x: 1, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      locations={[0, 0.3, 0.5, 1]}
+      colors={['#1a2744', '#0f172a', '#020617']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      locations={[0, 0.45, 1]}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
             <Pressable
               onPress={onPressBack}
-              className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-              <FontAwesome name="arrow-left" size={16} color="#111827" />
+              className="h-10 w-10 items-center justify-center rounded-2xl"
+              style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+              <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
             </Pressable>
             <Text className="text-lg font-bold text-gray-200">Booking details</Text>
             {shouldPoll ? (
               <Pressable
                 onPress={() => void load()}
-                className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-                <FontAwesome name="refresh" size={16} color="#111827" />
+                className="h-10 w-10 items-center justify-center rounded-2xl"
+                style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+                <FontAwesome name="refresh" size={16} color="#9CA3AF" />
               </Pressable>
             ) : (
               <View className="h-10 w-10" />
@@ -450,8 +463,10 @@ export default function BookingDetailsScreen() {
           />
 
           {showUserInfoDuringTrip ? (
-            <View className="mt-4 rounded-2xl bg-gray-50 px-4 py-3">
-              <Text className="text-xs font-semibold text-gray-600">
+            <View
+              className="mt-4 rounded-2xl px-4 py-3"
+              style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+              <Text className="text-xs font-semibold" style={{ color: '#B8BBC0' }}>
                 You’ll be notified here once the driver completes the trip.
               </Text>
             </View>
@@ -459,21 +474,31 @@ export default function BookingDetailsScreen() {
 
           {showUserExtend ? (
             <View className="mt-4 gap-3">
-              <Text className="text-xs font-extrabold text-gray-900">Extend booking</Text>
+              <Text className="text-xs font-extrabold text-gray-100">Extend booking</Text>
               <View className="flex-row gap-3">
                 <Pressable
                   disabled={busy}
                   onPress={() => void extendUser('ADD_2_HOURS')}
-                  className={`flex-1 items-center rounded-2xl py-3 ${busy ? 'bg-gray-200' : 'bg-[#1D2DD9]'}`}>
-                  <Text className={`text-xs font-extrabold ${busy ? 'text-gray-500' : 'text-white'}`}>
+                  className="flex-1 items-center rounded-2xl py-3"
+                  style={{
+                    backgroundColor: busy ? 'rgba(255,255,255,0.06)' : '#C9B37A',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.06)',
+                  }}>
+                  <Text className="text-xs font-extrabold" style={{ color: busy ? '#9CA3AF' : '#0B0F14' }}>
                     +2 hours
                   </Text>
                 </Pressable>
                 <Pressable
                   disabled={busy}
                   onPress={() => void extendUser('ADD_1_DAY')}
-                  className={`flex-1 items-center rounded-2xl py-3 ${busy ? 'bg-gray-200' : 'bg-[#1D2DD9]'}`}>
-                  <Text className={`text-xs font-extrabold ${busy ? 'text-gray-500' : 'text-white'}`}>
+                  className="flex-1 items-center rounded-2xl py-3"
+                  style={{
+                    backgroundColor: busy ? 'rgba(255,255,255,0.06)' : '#C9B37A',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.06)',
+                  }}>
+                  <Text className="text-xs font-extrabold" style={{ color: busy ? '#9CA3AF' : '#0B0F14' }}>
                     +1 day
                   </Text>
                 </Pressable>

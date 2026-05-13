@@ -1,0 +1,214 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Pressable, Text, View } from 'react-native';
+
+export type ActiveBookingHeroData = {
+  id: string;
+  pickupLocation?: string | null;
+  dropLocation?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  vehicle?: {
+    vehicleType?: string | null;
+    armourLevel?: string | null;
+    seatingCapacity?: number | null;
+  } | null;
+};
+
+function safeDate(value: string | null | undefined) {
+  const d = new Date((value ?? '').trim());
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function formatDayLabel(d: Date) {
+  return d.toLocaleString(undefined, { weekday: 'short' });
+}
+
+function formatTimeLabel(d: Date) {
+  return d.toLocaleString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
+
+function timeRemainingLabel(endTime?: string | null) {
+  const e = safeDate(endTime);
+  if (!e) return '—';
+  const diffMs = e.getTime() - Date.now();
+  if (!Number.isFinite(diffMs) || diffMs <= 0) return '—';
+  const totalMinutes = Math.floor(diffMs / (60 * 1000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m`;
+}
+
+function InfoBox({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ComponentProps<typeof FontAwesome>['name'];
+  label: string;
+  value: string;
+}) {
+  return (
+    <View className="flex-1 items-center justify-center px-2 py-3" style={{ minHeight: 72 }}>
+      <FontAwesome name={icon} size={16} color="#C9B37A" />
+      <Text className="mt-1 text-[10px] font-bold" style={{ color: '#B8BBC0' }}>
+        {label}
+      </Text>
+      <Text numberOfLines={1} className="mt-0.5 text-[12px] font-extrabold text-gray-100">
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+export function ActiveBookingHeroCard({
+  booking,
+  emptyLabel,
+  onPress,
+}: {
+  booking: ActiveBookingHeroData | null;
+  emptyLabel: string;
+  onPress?: (b: ActiveBookingHeroData) => void;
+}) {
+  if (!booking) {
+    return (
+      <View
+        className="mb-4 overflow-hidden rounded-2xl"
+        style={{
+          backgroundColor: '#3B3E43',
+          shadowColor: '#000',
+          shadowOpacity: 0.22,
+          shadowRadius: 14,
+          shadowOffset: { width: 0, height: 10 },
+          elevation: 6,
+        }}>
+        <View className="bg-black px-4 py-3">
+          <Text className="text-[12px] font-extrabold" style={{ color: '#D8DADF', letterSpacing: 0.5 }}>
+            ACTIVE BOOKING
+          </Text>
+        </View>
+        <View className="px-4 py-5">
+          <Text className="text-sm font-semibold text-gray-100">{emptyLabel}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  const start = safeDate(booking.startTime);
+  const end = safeDate(booking.endTime);
+  const vehicleType = (booking.vehicle?.vehicleType ?? '').trim() || '—';
+  const armourLevel = (booking.vehicle?.armourLevel ?? '').trim() || '—';
+  const seating = booking.vehicle?.seatingCapacity != null ? String(booking.vehicle.seatingCapacity) : '—';
+  const remaining = timeRemainingLabel(booking.endTime);
+
+  const onCardPress = onPress ? () => onPress(booking) : undefined;
+
+  return (
+    <Pressable
+      disabled={!onCardPress}
+      onPress={onCardPress}
+      className="mb-4 overflow-hidden rounded-2xl"
+      style={{
+        backgroundColor: '#0B0F14',
+        borderColor: 'rgba(255,255,255,0.06)',
+        borderWidth: 1,
+        shadowColor: '#000',
+        shadowOpacity: 0.28,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 14 },
+        elevation: 8,
+      }}>
+      {/* Top section */}
+      <View className="px-4 pt-4">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <View className="mr-2 h-2 w-2 rounded-full" style={{ backgroundColor: '#22C55E' }} />
+            <Text className="text-[12px] font-extrabold" style={{ color: '#22C55E', letterSpacing: 0.5 }}>
+              ACTIVE NOW
+            </Text>
+          </View>
+
+          <View className="flex-row items-center">
+            <Text className="mr-2 text-[11px] font-semibold" style={{ color: '#9CA3AF' }}>
+              Booking ID: #{String(booking.id)}
+            </Text>
+            <View className="h-7 w-7 items-center justify-center rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+              <FontAwesome name="copy" size={14} color="#9CA3AF" />
+            </View>
+          </View>
+        </View>
+
+        <View className="mt-4 flex-row">
+          {/* Route (left) */}
+          <View className="flex-1 pr-3">
+            <View className="flex-row">
+              <View className="mr-3 w-5 items-center">
+                <View
+                  className="h-3 w-3 rounded-full"
+                  style={{ borderWidth: 2, borderColor: '#F59E0B', backgroundColor: 'transparent' }}
+                />
+                <View className="my-2 w-[2px] flex-1" style={{ backgroundColor: 'rgba(34,197,94,0.7)' }} />
+                <View className="h-3 w-3 rounded-full" style={{ borderWidth: 2, borderColor: '#E5E7EB' }} />
+              </View>
+
+              <View className="flex-1">
+                <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+                  Pickup
+                </Text>
+                <Text numberOfLines={1} className="mt-1 text-[16px] font-extrabold text-gray-100">
+                  {(booking.pickupLocation ?? '').trim() || '—'}
+                </Text>
+                <Text className="mt-0.5 text-[11px] font-semibold" style={{ color: '#9CA3AF' }}>
+                  {start ? `${formatDayLabel(start)}, ${formatTimeLabel(start)}` : '—'}
+                </Text>
+
+                <View className="mt-4">
+                  <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+                    Drop-off
+                  </Text>
+                  <Text numberOfLines={1} className="mt-1 text-[16px] font-extrabold text-gray-100">
+                    {(booking.dropLocation ?? '').trim() || '—'}
+                  </Text>
+                  <Text className="mt-0.5 text-[11px] font-semibold" style={{ color: '#9CA3AF' }}>
+                    {end ? `${formatDayLabel(end)}, ${formatTimeLabel(end)}` : '—'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Vehicle visual area (right) */}
+          <View className="w-[120px] items-end justify-end">
+            <View
+              className="h-[110px] w-[120px] overflow-hidden rounded-2xl"
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.04)',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.06)',
+              }}>
+              {/* Subtle pattern + placeholder vehicle icon to match screenshot composition */}
+              <View className="absolute -right-10 -top-10 h-32 w-32 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.03)' }} />
+              <View className="absolute -left-10 -bottom-10 h-32 w-32 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.03)' }} />
+              <View className="flex-1 items-center justify-center">
+                <FontAwesome name="car" size={44} color="rgba(229,231,235,0.22)" />
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Bottom info row */}
+      <View className="mt-4" style={{ borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' }}>
+        <View className="flex-row" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
+          <InfoBox icon="car" label="Vehicle Type" value={vehicleType} />
+          <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+          <InfoBox icon="shield" label="Armour Level" value={armourLevel} />
+          <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+          <InfoBox icon="users" label="Seating" value={seating} />
+          <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+          <InfoBox icon="clock-o" label="Time Remaining" value={remaining} />
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+

@@ -143,7 +143,7 @@ export default function TripSetupScreen() {
       Alert.alert('Location required', 'Select drop-off location on the map.');
       return;
     }
-    router.replace('/(tabs)' as any);
+    router.replace('/trip-schedule' as any);
   }
 
   return (

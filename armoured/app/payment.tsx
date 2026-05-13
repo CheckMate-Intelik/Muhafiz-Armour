@@ -91,7 +91,7 @@ export default function PaymentScreen() {
 
         <Pressable
           className="mt-5 items-center justify-center rounded-2xl bg-[#111827] py-4"
-          onPress={() => router.replace('/(tabs)/activities')}>
+          onPress={() => router.replace('/(tabs)' as any)}>
           <Text className="text-base font-extrabold text-white">Pay now</Text>
         </Pressable>
       </ScrollView>

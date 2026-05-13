@@ -21,7 +21,7 @@ export default function TripScheduleScreen() {
 
   useEffect(() => {
     if (!ready) {
-      router.replace('/(tabs)' as any);
+      router.replace('/trip-setup' as any);
     }
   }, [ready]);
 
