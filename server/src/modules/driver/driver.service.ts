@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UpdateDriverProfileDto } from './dto/update-driver-profile.dto';
 
 @Injectable()
 export class DriverService {
@@ -14,6 +15,7 @@ export class DriverService {
         name: true,
         phone: true,
         email: true,
+        profileImageUrl: true,
         isApproved: true,
         isBlocked: true,
         createdAt: true,
@@ -21,6 +23,33 @@ export class DriverService {
     });
     if (!driver) throw new NotFoundException('Driver not found');
     return driver;
+  }
+
+  async updateProfile(id: string, dto: UpdateDriverProfileDto) {
+    const existing = await this.prisma.driver.findUnique({ where: { id }, select: { id: true } });
+    if (!existing) throw new NotFoundException('Driver not found');
+
+    const profileImageUrl =
+      dto.profileImageUrl === undefined
+        ? undefined
+        : dto.profileImageUrl === null || String(dto.profileImageUrl).trim() === ''
+          ? null
+          : String(dto.profileImageUrl).trim();
+
+    return this.prisma.driver.update({
+      where: { id },
+      data: profileImageUrl === undefined ? {} : { profileImageUrl },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        email: true,
+        profileImageUrl: true,
+        isApproved: true,
+        isBlocked: true,
+        createdAt: true,
+      },
+    });
   }
 
   async listMyRequests(driverId: string) {

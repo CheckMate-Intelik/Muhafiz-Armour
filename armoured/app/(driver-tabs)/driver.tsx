@@ -1,19 +1,22 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useEffect, useMemo } from 'react';
-import { useStore } from '@/store/store';
+import { driverAvatarUrl, useStore } from '@/store/store';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function DriverProfileScreen() {
   const hydrate = useStore((s) => s.hydrate);
+  const uploadDriverProfilePhoto = useStore((s) => s.uploadDriverProfilePhoto);
   const refreshProfile = useStore((s) => s.refreshProfile);
   const logout = useStore((s) => s.logout);
   const switchRole = useStore((s) => s.switchRole);
   const profile = useStore((s) => s.driverProfile);
   const loading = useStore((s) => s.loading);
+  const [avatarBusy, setAvatarBusy] = useState(false);
 
   useEffect(() => {
     void hydrate();
@@ -25,6 +28,35 @@ export default function DriverProfileScreen() {
     if (Number.isNaN(d.getTime())) return '—';
     return `${d.getFullYear()}`;
   }, [profile?.createdAt]);
+
+  const avatarLarge = driverAvatarUrl(profile, 'lg');
+  const avatarSmall = driverAvatarUrl(profile, 'sm');
+
+  async function pickProfilePhoto() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert('Permission needed', 'Allow photo library access to set your profile picture.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
+    if (result.canceled) return;
+    const uri = result.assets[0]?.uri?.trim();
+    if (!uri) return;
+    setAvatarBusy(true);
+    try {
+      await uploadDriverProfilePhoto(uri);
+    } catch (e) {
+      const msg = e instanceof Error && e.message.trim().length > 0 ? e.message : 'Could not update profile photo';
+      Alert.alert('Upload failed', msg);
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
 
   return (
     <LinearGradient
@@ -43,7 +75,7 @@ export default function DriverProfileScreen() {
               <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
                 <FontAwesome name="bell-o" size={16} color="#111827" />
               </Pressable>
-              <Image source={{ uri: 'https://i.pravatar.cc/96?img=32' }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+              <Image source={{ uri: avatarSmall }} style={{ width: 36, height: 36, borderRadius: 18 }} />
             </View>
           </View>
 
@@ -65,10 +97,24 @@ export default function DriverProfileScreen() {
                 </Text>
               </View>
               <View className="w-full items-center rounded-xl bg-[#0B0F14] py-5">
-                <Image
-                  source={{ uri: 'https://i.pravatar.cc/240?img=32' }}
-                  style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: '#515458' }}
-                />
+                <Pressable
+                  onPress={() => void pickProfilePhoto()}
+                  disabled={avatarBusy}
+                  className="relative items-center justify-center">
+                  <Image
+                    source={{ uri: avatarLarge }}
+                    style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: '#515458' }}
+                  />
+                  {avatarBusy ? (
+                    <View className="absolute inset-0 items-center justify-center rounded-[60px] bg-black/50">
+                      <ActivityIndicator color="#C9B37A" />
+                    </View>
+                  ) : (
+                    <View className="absolute bottom-0 right-0 h-9 w-9 items-center justify-center rounded-full bg-[#C9B37A]">
+                      <FontAwesome name="camera" size={14} color="#0B0F14" />
+                    </View>
+                  )}
+                </Pressable>
                 <Text className="mt-4 text-xl font-bold text-[#C9B37A]">
                   {profile?.name ?? (loading ? 'Loading…' : '—')}
                 </Text>

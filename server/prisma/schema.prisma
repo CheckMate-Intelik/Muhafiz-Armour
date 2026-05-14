@@ -26,25 +26,27 @@ enum VehicleStatus {
 }
 
 model User {
-  id        String    @id @default(uuid()) @db.Uuid
-  name      String
-  phone     String    @unique
-  email     String?   @unique
-  passwordHash String?
-  isBlocked Boolean   @default(false)
-  createdAt DateTime  @default(now())
-  bookings  Booking[]
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String
+  phone            String    @unique
+  email            String?   @unique
+  passwordHash     String?
+  profileImageUrl  String?
+  isBlocked        Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  bookings         Booking[]
 }
 
 model Driver {
-  id         String   @id @default(uuid()) @db.Uuid
-  name       String
-  phone      String   @unique
-  email      String?  @unique
-  passwordHash String?
-  isApproved Boolean  @default(false)
-  isBlocked  Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  id               String   @id @default(uuid()) @db.Uuid
+  name             String
+  phone            String   @unique
+  email            String?  @unique
+  passwordHash     String?
+  profileImageUrl  String?
+  isApproved       Boolean  @default(false)
+  isBlocked        Boolean  @default(false)
+  createdAt        DateTime @default(now())
 
   vehicles  Vehicle[]
   bookings  Booking[]

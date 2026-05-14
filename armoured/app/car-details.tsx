@@ -1,11 +1,17 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Dimensions } from 'react-native';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Dimensions, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { PUBLIC_API_BASE_URL, driverGet, ensureDriverSession } from '@/lib/api';
+
+const GOLD = '#C9B37A';
+const CARD_BG = '#0B0F14';
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const H_PADDING = 20;
+const GALLERY_WIDTH = SCREEN_WIDTH;
 
 type VehicleDetails = {
   id: string;
@@ -24,10 +30,17 @@ type VehicleDetails = {
   certification: string;
   condition: string;
   seatingCapacity?: number;
+  features?: string[];
   owner: { id: string; name: string; rating: number };
 };
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const cardShadow = {
+  shadowColor: '#000',
+  shadowOpacity: 0.22,
+  shadowRadius: 14,
+  shadowOffset: { width: 0, height: 10 },
+  elevation: 6,
+};
 
 export default function CarDetailsScreen() {
   const params = useLocalSearchParams<{ vehicleId?: string; readonly?: string }>();
@@ -70,172 +83,271 @@ export default function CarDetailsScreen() {
     if (!vehicle) return 'Vehicle details';
     return `${vehicle.manufacturer ?? 'Armoured'} ${vehicle.generation ?? ''} ${vehicle.carModel ?? 'Vehicle'}`.trim();
   }, [vehicle]);
-  const images = vehicle?.imageUrls?.length ? vehicle.imageUrls : ['https://images.pexels.com/photos/358070/pexels-photo-358070.jpeg'];
-  const IMAGE_WIDTH = SCREEN_WIDTH;
+
+  const images = vehicle?.imageUrls?.length
+    ? vehicle.imageUrls
+    : ['https://images.pexels.com/photos/358070/pexels-photo-358070.jpeg'];
+
   const specificationCards = useMemo(() => {
     if (!vehicle) return [];
     return [
       { key: 'capacity', label: 'Capacity', value: `${vehicle.seatingCapacity ?? 4} seats`, icon: 'users' as const },
       { key: 'certification', label: 'Certification', value: vehicle.certification, icon: 'shield' as const },
       { key: 'location', label: 'City', value: vehicle.location, icon: 'map-marker' as const },
+      { key: 'condition', label: 'Condition', value: vehicle.condition, icon: 'check-circle' as const },
     ];
   }, [vehicle]);
 
   function onGalleryScrollEnd(offsetX: number) {
-    const nextIndex = Math.max(0, Math.min(images.length - 1, Math.round(offsetX / IMAGE_WIDTH)));
+    const nextIndex = Math.max(0, Math.min(images.length - 1, Math.round(offsetX / GALLERY_WIDTH)));
     setActiveImageIndex(nextIndex);
   }
 
+  const ownerName = vehicle?.owner?.name?.trim() || '—';
+  const ownerRating =
+    typeof vehicle?.owner?.rating === 'number' && Number.isFinite(vehicle.owner.rating)
+      ? vehicle.owner.rating
+      : 0;
+
   return (
-    <SafeAreaView className="flex-1 bg-[#F4F5F7]">
-      <ScrollView contentContainerStyle={{ paddingBottom: 130 }}>
-        
-        {loading ? <Text className="mt-8 text-sm font-semibold text-gray-500">Loading...</Text> : null}
-
-        {!loading && !vehicle ? (
-          <View className="mt-8 items-center px-5">
-            <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-xl bg-white">
-              <FontAwesome name="angle-left" size={18} color="#111827" />
-            </Pressable>
-            <Text className="mt-4 text-sm font-semibold text-gray-600">Vehicle details are unavailable.</Text>
-          </View>
-        ) : null}
-
-        {vehicle ? (
-          <View className="mt-4 rounded-3xl bg-white pb-4">
-            
-            <View className="bg-gray-300 rounded-t-3xl pt-4">
-              <View className="flex-row items-center justify-between mx-4">
-                <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-xl bg-white">
-                  <FontAwesome name="angle-left" size={18} color="#111827" />
-                </Pressable>
-              </View>  
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                className="mt-4"
-                onMomentumScrollEnd={(e) => onGalleryScrollEnd(e.nativeEvent.contentOffset.x)}>
-                {images.map((img) => (
-                  <Image key={img} source={{ uri: img }} style={{ width: IMAGE_WIDTH, height: 220 }} resizeMode="cover" />
-                ))}
-              </ScrollView>
-              <View className="mt-3 flex-row items-center justify-center">
-                {images.map((img, index) => {
-                  const active = index === activeImageIndex;
-                  return <View key={`${img}-${index}`} className={`mx-1 h-2 w-2 rounded-full ${active ? 'bg-black' : 'bg-gray-500'}`} />;
-                })}
-              </View>
-
-              <View className="mt-4 px-4 py-3">
-
-                {/* <Text className="mt-5 text-base font-extrabold text-gray-900">Overview</Text> */}
-                <Text className="text-2xl font-bold text-gray-900">{vehicle.carModel}</Text>
-                <Text className="mb-3 text-md font-semibold text-gray-500">
-                  {vehicle.generation ?? '—'}
-                </Text>
-
-                <View className="border-t border-gray-400 pt-4">
-                  <View className="flex-row">
-                    <View className="flex-1 pr-2">
-                      <Row label="Brand" value={vehicle.manufacturer ?? '—'} />
-                    </View>
-                    <View className="flex-1 px-2">
-                      <Row label="Year" value={vehicle.year?.toString() ?? '—'} />
-                    </View>
-                    <View className="flex-1 pl-2">
-                      <Row label="Color" value={vehicle.color ?? '—'} />
-                    </View>
-                  </View>
-
-                  <View className="flex-row mt-4 mb-2">
-                    <View className="flex-1 pr-2">
-                      <Row label="Armour level" value={vehicle.armourLevel} />
-                    </View>
-                    <View className="flex-1 px-2">
-                      <Row label="Vehicle type" value={vehicle.vehicleType} />
-                    </View>
-                    <View className="flex-1 pl-2">
-                      <Row label="Number plate" value={vehicle.numberPlate ?? '—'} />
-                    </View>
-                  </View>
-                  {/* <View className="mt-4">
-                    <Row label="Registration" value={vehicle.registrationNumber ?? '—'} />
-                  </View> */}
-                </View>
-              </View>
+    <LinearGradient
+      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      locations={[0, 0.5, 1]}
+      style={{ flex: 1 }}>
+      <SafeAreaView className="flex-1">
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: isReadonly ? 120 : 140 }}
+          showsVerticalScrollIndicator={false}>
+          <View className="px-5 pt-4">
+            <View className="flex-row items-center justify-between">
+              <Pressable
+                onPress={() => router.back()}
+                className="h-10 w-10 items-center justify-center rounded-full bg-white"
+                accessibilityRole="button"
+                accessibilityLabel="Go back">
+                <FontAwesome name="angle-left" size={18} color="#111827" />
+              </Pressable>
+              <Text className="flex-1 px-3 text-center text-sm font-extrabold" style={{ color: GOLD }} numberOfLines={1}>
+                {loading ? '…' : title}
+              </Text>
+              <View className="h-10 w-10" />
             </View>
-
-            <Text className="mt-4 text-sm font-extrabold text-gray-900 px-4">Specification</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2 px-4">
-              {specificationCards.map((item) => (
-                <View key={item.key} className="mr-2 w-[110px] rounded-2xl bg-[#EEF1F8] px-3 py-3">
-                  <View className="h-7 w-7 items-center justify-center rounded-full bg-white">
-                    <FontAwesome name={item.icon} size={16} color="#1D2DD9" />
-                  </View>
-                  <Text className="mt-3 text-[10px] font-bold text-gray-500">{item.label}</Text>
-                  <Text className="mt-1 text-xs font-extrabold text-gray-900">{item.value}</Text>
-                </View>
-              ))}
-            </ScrollView>
-
-            {/* <Text className="mt-4 text-sm font-extrabold text-gray-900 px-4">Features</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
-              {vehicle.features.map((f) => (
-                <View key={f} className="mr-2 rounded-full bg-gray-100 px-3 py-2">
-                  <Text className="text-[11px] font-semibold text-gray-700">{f}</Text>
-                </View>
-              ))}
-            </ScrollView> */}
-
-            <View className="mt-5 flex-row items-center justify-between rounded-2xl bg-gray-50 px-4 mx-4 py-3">
-              <View>
-                <Text className="text-[12px] font-bold text-gray-400">Owner</Text>
-                <Text className="text-[14px] font-extrabold text-gray-900">{vehicle.owner.name}</Text>
-              </View>
-              <Text className="text-sm font-extrabold text-amber-500">★ {vehicle.owner.rating.toFixed(1)}</Text>
-            </View>
-
           </View>
-        ) : null}
-      </ScrollView>
-      {vehicle ? (
-        <View
-          className="flex-row items-center justify-between border-t border-gray-100 bg-white px-5 py-4"
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 50,
-            shadowColor: '#000',
-            shadowOpacity: 0.08,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: -4 },
-            elevation: 10,
-          }}>
-          <View>
-            <Text className="text-[12px] font-bold text-gray-400">Price details</Text>
-            <Text className="text-xl font-extrabold text-gray-900">Rs {vehicle.baseRatePerHour}/hr</Text>
-          </View>
-          {!isReadonly ? (
-            <Pressable
-              onPress={() => router.push({ pathname: '/book-confirm' as any, params: { vehicleId: vehicle.id } })}
-              className="rounded-2xl bg-[#111827] px-6 py-3">
-              <Text className="text-sm font-extrabold text-white">Book Now</Text>
-            </Pressable>
+
+          {loading ? (
+            <Text className="mt-10 px-5 text-center text-sm font-semibold text-gray-300">Loading…</Text>
           ) : null}
-        </View>
-      ) : null}
-    </SafeAreaView>
+
+          {!loading && !vehicle ? (
+            <View className="mt-8 items-center px-5">
+              <Text className="text-center text-sm font-semibold text-gray-300">Vehicle details are unavailable.</Text>
+            </View>
+          ) : null}
+
+          {vehicle ? (
+            <>
+              <View className="mt-4 overflow-hidden" style={{ marginHorizontal: -H_PADDING }}>
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onMomentumScrollEnd={(e) => onGalleryScrollEnd(e.nativeEvent.contentOffset.x)}>
+                  {images.map((img) => (
+                    <Image
+                      key={img}
+                      source={{ uri: img }}
+                      style={{ width: GALLERY_WIDTH, height: 240 }}
+                      resizeMode="cover"
+                    />
+                  ))}
+                </ScrollView>
+                <View
+                  className="flex-row items-center justify-center py-3"
+                  style={{ backgroundColor: '#000000' }}>
+                  {images.map((img, index) => {
+                    const active = index === activeImageIndex;
+                    return (
+                      <View
+                        key={`${img}-${index}`}
+                        className="mx-1 h-2 w-2 rounded-full"
+                        style={{ backgroundColor: active ? GOLD : 'rgba(255,255,255,0.25)' }}
+                      />
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View className="mt-4 px-5">
+                <View
+                  className="overflow-hidden rounded-2xl border"
+                  style={{
+                    backgroundColor: CARD_BG,
+                    borderColor: 'rgba(255,255,255,0.06)',
+                    ...cardShadow,
+                  }}>
+                  <View
+                    className="border-b px-4 pb-3 pt-3.5"
+                    style={{ backgroundColor: '#000000', borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                    <Text
+                      className="text-center text-[11px] font-extrabold"
+                      style={{ color: GOLD, letterSpacing: 0.5 }}>
+                      VEHICLE
+                    </Text>
+                    <Text className="mt-1 text-center text-xl font-extrabold text-gray-100" numberOfLines={2}>
+                      {vehicle.carModel ?? 'Vehicle'}
+                    </Text>
+                    <Text className="mt-0.5 text-center text-sm font-semibold" style={{ color: '#9CA3AF' }} numberOfLines={1}>
+                      {vehicle.generation?.trim() || vehicle.manufacturer || '—'}
+                    </Text>
+                  </View>
+
+                  <View className="px-4 py-4" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                    <View className="flex-row">
+                      <View className="flex-1 pr-1">
+                        <DetailRow label="Brand" value={vehicle.manufacturer ?? '—'} />
+                      </View>
+                      <View className="flex-1 px-1">
+                        <DetailRow label="Year" value={vehicle.year != null ? String(vehicle.year) : '—'} />
+                      </View>
+                      <View className="flex-1 pl-1">
+                        <DetailRow label="Color" value={vehicle.color ?? '—'} />
+                      </View>
+                    </View>
+                    <View className="mt-4 flex-row">
+                      <View className="flex-1 pr-1">
+                        <DetailRow label="Armour" value={vehicle.armourLevel} />
+                      </View>
+                      <View className="flex-1 px-1">
+                        <DetailRow label="Type" value={vehicle.vehicleType} />
+                      </View>
+                      <View className="flex-1 pl-1">
+                        <DetailRow label="Plate" value={vehicle.numberPlate ?? '—'} />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                <Text className="mt-5 text-[11px] font-extrabold" style={{ color: GOLD, letterSpacing: 0.5 }}>
+                  SPECIFICATION
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2 pb-1">
+                  {specificationCards.map((item) => (
+                    <View
+                      key={item.key}
+                      className="mr-3 w-[118px] rounded-2xl border px-3 py-3"
+                      style={{
+                        backgroundColor: CARD_BG,
+                        borderColor: 'rgba(255,255,255,0.06)',
+                        ...cardShadow,
+                      }}>
+                      <View
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                        style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+                        <FontAwesome name={item.icon} size={14} color={GOLD} />
+                      </View>
+                      <Text className="mt-3 text-[10px] font-bold" style={{ color: '#9CA3AF' }}>
+                        {item.label}
+                      </Text>
+                      <Text className="mt-1 text-xs font-extrabold text-gray-100" numberOfLines={3}>
+                        {item.value}
+                      </Text>
+                    </View>
+                  ))}
+                </ScrollView>
+
+                {Array.isArray(vehicle.features) && vehicle.features.length > 0 ? (
+                  <>
+                    <Text className="mt-4 text-[11px] font-extrabold" style={{ color: GOLD, letterSpacing: 0.5 }}>
+                      FEATURES
+                    </Text>
+                    <View className="mt-2 flex-row flex-wrap gap-2">
+                      {vehicle.features.map((f) => (
+                        <View
+                          key={f}
+                          className="rounded-full border px-3 py-1.5"
+                          style={{ borderColor: 'rgba(255,255,255,0.12)', backgroundColor: 'rgba(255,255,255,0.04)' }}>
+                          <Text className="text-[11px] font-semibold text-gray-200">{f}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </>
+                ) : null}
+
+                <View
+                  className="mt-5 flex-row items-center justify-between rounded-2xl border px-4 py-3"
+                  style={{
+                    backgroundColor: CARD_BG,
+                    borderColor: 'rgba(255,255,255,0.06)',
+                    ...cardShadow,
+                  }}>
+                  <View className="flex-1 pr-2">
+                    <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+                      Owner
+                    </Text>
+                    <Text className="mt-1 text-base font-extrabold text-gray-100" numberOfLines={1}>
+                      {ownerName}
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center rounded-full px-3 py-1.5" style={{ backgroundColor: 'rgba(201,179,122,0.15)' }}>
+                    <FontAwesome name="star" size={12} color={GOLD} />
+                    <Text className="ml-1 text-sm font-extrabold" style={{ color: GOLD }}>
+                      {ownerRating.toFixed(1)}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </>
+          ) : null}
+        </ScrollView>
+
+        {vehicle && !isReadonly ? (
+          <View
+            className="absolute bottom-0 left-0 right-0 border-t px-5 py-4"
+            style={{
+              backgroundColor: CARD_BG,
+              borderTopColor: 'rgba(255,255,255,0.08)',
+              shadowColor: '#000',
+              shadowOpacity: 0.35,
+              shadowRadius: 16,
+              shadowOffset: { width: 0, height: -6 },
+              elevation: 16,
+            }}>
+            <View className="flex-row items-center justify-between">
+              <View className="flex-1 pr-3">
+                <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+                  Rate
+                </Text>
+                <Text className="mt-0.5 text-xl font-extrabold" style={{ color: GOLD }}>
+                  Rs {vehicle.baseRatePerHour}/hr
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => router.push({ pathname: '/book-confirm' as any, params: { vehicleId: vehicle.id } })}
+                className="rounded-2xl px-6 py-3.5"
+                style={{ backgroundColor: GOLD }}>
+                <Text className="text-sm font-extrabold" style={{ color: '#0B0F14' }}>
+                  Book now
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <View className="mb-2">
-      <Text className="text-[13px] text-gray-800">{label}</Text>
-      <Text className="text-[13px] font-bold text-gray-900">{value}</Text>
+    <View>
+      <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+        {label}
+      </Text>
+      <Text className="mt-1 text-[13px] font-extrabold text-gray-100" numberOfLines={2}>
+        {value}
+      </Text>
     </View>
   );
 }

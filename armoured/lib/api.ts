@@ -276,8 +276,64 @@ export async function apiPatch<T>(path: string, userId: string, body?: unknown):
     headers: { 'content-type': 'application/json', 'x-user-id': userId },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`PATCH ${path} failed`);
+  if (!res.ok) {
+    const details = await safeReadError(res);
+    throw new Error(details ?? `PATCH ${path} failed`);
+  }
   return (await res.json()) as T;
+}
+
+function guessImageMime(uri: string) {
+  const lower = uri.toLowerCase();
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  if (lower.endsWith('.heic')) return 'image/heic';
+  return 'image/jpeg';
+}
+
+export async function apiUploadProfileImage(userId: string, fileUri: string): Promise<{ url: string }> {
+  const form = new FormData();
+  form.append('file', { uri: fileUri, type: guessImageMime(fileUri), name: 'profile.jpg' } as unknown as Blob);
+  const res = await fetch(`${API_BASE_URL}/media/upload/profile`, {
+    method: 'POST',
+    headers: { 'x-user-id': userId },
+    body: form,
+  });
+  if (!res.ok) {
+    const details = await safeReadError(res);
+    throw new Error(details ?? 'Profile image upload failed');
+  }
+  return (await res.json()) as { url: string };
+}
+
+export async function driverUploadVehicleImage(driverId: string, fileUri: string): Promise<{ url: string }> {
+  const form = new FormData();
+  form.append('file', { uri: fileUri, type: guessImageMime(fileUri), name: 'vehicle.jpg' } as unknown as Blob);
+  const res = await fetch(`${API_BASE_URL}/media/upload/vehicle`, {
+    method: 'POST',
+    headers: { 'x-driver-id': driverId },
+    body: form,
+  });
+  if (!res.ok) {
+    const details = await safeReadError(res);
+    throw new Error(details ?? 'Vehicle image upload failed');
+  }
+  return (await res.json()) as { url: string };
+}
+
+export async function driverUploadProfileImage(driverId: string, fileUri: string): Promise<{ url: string }> {
+  const form = new FormData();
+  form.append('file', { uri: fileUri, type: guessImageMime(fileUri), name: 'profile.jpg' } as unknown as Blob);
+  const res = await fetch(`${API_BASE_URL}/media/upload/profile`, {
+    method: 'POST',
+    headers: { 'x-driver-id': driverId },
+    body: form,
+  });
+  if (!res.ok) {
+    const details = await safeReadError(res);
+    throw new Error(details ?? 'Profile image upload failed');
+  }
+  return (await res.json()) as { url: string };
 }
 
 export async function driverGet<T>(path: string, driverId: string): Promise<T> {

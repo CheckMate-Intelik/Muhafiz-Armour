@@ -160,7 +160,7 @@ export function UserBookingCard({
                 </View>
               ) : null}
 
-              <Text numberOfLines={1} className="text-[18px] font-semibold text-gray-100">
+              <Text numberOfLines={1} className="text-[16px] font-semibold text-gray-100">
                 {(booking.pickupLocation ?? '').trim() || '—'}
               </Text>
               <View className="mt-1 flex-row items-center">
@@ -169,9 +169,22 @@ export function UserBookingCard({
                   {(booking.dropLocation ?? '').trim() || '—'}
                 </Text>
               </View>
-              <Text className="mt-2 text-[14px] font-semibold" style={{ color: '#B8BBC0' }}>
-                {durationLabel(booking.startTime, booking.endTime)}
-              </Text>
+
+              <View className="flex-row items-end justify-between">
+                <Text className="mt-2 text-[14px] font-semibold" style={{ color: '#B8BBC0' }}>
+                  {durationLabel(booking.startTime, booking.endTime)}
+                </Text>
+                <View className="ml-3 items-end">
+                <View className="flex-row items-center">
+                  <View className="mr-2 rounded-full px-3" style={{ backgroundColor: pill.bg }}>
+                    <Text className="text-[14px] font-extrabold" style={{ color: pill.fg }}>
+                      {pill.label}
+                    </Text>
+                  </View>
+                  <FontAwesome name="angle-right" size={20} color="#B8BBC0" />
+                </View>
+              </View>
+            </View>
 
               {isActiveCard ? (
                 <View className="mt-4 flex-row justify-between gap-2">
@@ -218,16 +231,7 @@ export function UserBookingCard({
               ) : null}
             </View>
 
-            <View className="ml-3 items-end">
-              <View className="flex-row items-center">
-                <View className="mr-2 rounded-full px-3 py-2" style={{ backgroundColor: pill.bg }}>
-                  <Text className="text-[14px] font-extrabold" style={{ color: pill.fg }}>
-                    {pill.label}
-                  </Text>
-                </View>
-                <FontAwesome name="angle-right" size={20} color="#B8BBC0" />
-              </View>
-            </View>
+            
           </View>
         </Pressable>
       )}

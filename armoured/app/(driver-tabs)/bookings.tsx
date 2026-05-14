@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BookingSummaryCard } from '@/components/BookingSummaryCard';
 import { driverGet, ensureDriverSession, isNotAuthenticatedError } from '@/lib/api';
 import { useBookingsStore } from '@/store/bookingsStore';
+import { driverAvatarUrl, useStore } from '@/store/store';
 
 function driverMissionBanner(status: string) {
   const s = (status ?? '').trim().toUpperCase();
@@ -40,6 +41,9 @@ type DriverVehicle = {
 };
 
 export default function DriverBookingsScreen() {
+  const hydrate = useStore((s) => s.hydrate);
+  const driverProfile = useStore((s) => s.driverProfile);
+  const headerAvatarUri = driverAvatarUrl(driverProfile, 'sm');
   const params = useLocalSearchParams<{ tab?: string }>();
   const initialTab: BookingTab =
     (params.tab ?? '').toLowerCase() === 'history' ? 'Booking History' : 'Booking Requests';
@@ -55,6 +59,10 @@ export default function DriverBookingsScreen() {
   const driverLoaded = useBookingsStore((s) => s.driverLoaded);
   const refreshDriverBookings = useBookingsStore((s) => s.refreshDriverBookings);
   const loading = vehiclesLoading || (driverLoading && !driverLoaded);
+
+  useEffect(() => {
+    void hydrate();
+  }, [hydrate]);
 
   useEffect(() => {
     const wanted = (params.tab ?? '').toLowerCase();
@@ -124,7 +132,7 @@ export default function DriverBookingsScreen() {
               <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
                 <FontAwesome name="bell-o" size={16} color="#111827" />
               </Pressable>
-              <Image source={{ uri: 'https://i.pravatar.cc/96?img=32' }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+              <Image source={{ uri: headerAvatarUri }} style={{ width: 36, height: 36, borderRadius: 18 }} />
             </View>
           </View>
 

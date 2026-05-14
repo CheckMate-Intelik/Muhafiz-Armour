@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { isNotAuthenticatedError } from '@/lib/api';
-import { useStore } from '@/store/store';
+import { useStore, driverAvatarUrl } from '@/store/store';
 import { useBookingsStore, type DriverBooking } from '@/store/bookingsStore';
 import {
   ActiveBookingHeroCard,
@@ -63,7 +63,9 @@ function pickSoonestUpcoming(rows: DriverBooking[]) {
 export default function DriverDashboardScreen() {
   const hydrate = useStore((s) => s.hydrate);
   const profile = useStore((s) => s.driverProfile);
+  const driverSession = useStore((s) => s.driverSession);
   const profileLoading = useStore((s) => s.loading);
+  const headerAvatarUri = driverAvatarUrl(profile, 'sm');
 
   const driverActive = useBookingsStore((s) => s.driverActive);
   const driverCompleted = useBookingsStore((s) => s.driverCompleted);
@@ -83,7 +85,8 @@ export default function DriverDashboardScreen() {
 
   const completedTrips = driverCompleted.length;
   const totalEarnings = driverCompleted.reduce((sum, t) => sum + (t.totalPrice ?? 0), 0);
-  const driverName = (profile?.name ?? '').trim() || 'Driver';
+  const driverName =
+    (profile?.name ?? driverSession?.name ?? '').trim() || 'Driver';
 
   const activeBookings = useMemo(
     () => driverActive.filter((b) => normalizeStatus(b.status) === 'IN_PROGRESS'),
@@ -105,7 +108,7 @@ export default function DriverDashboardScreen() {
             <View>
               <Text className="text-[22px] font-bold text-[#C9B37A]">Welcome!</Text>
               <Text className="text-2xl font-bold text-[#C9B37A]">
-                {profileLoading && !profile?.name ? '…' : driverName}
+                {profileLoading && !profile?.name && !driverSession?.name ? '…' : driverName}
               </Text>
             </View>
             <View className="flex-row items-center gap-2">
@@ -113,7 +116,7 @@ export default function DriverDashboardScreen() {
                 <FontAwesome name="bell-o" size={16} color="#111827" />
               </Pressable>
               <Image
-                source={{ uri: 'https://i.pravatar.cc/96?img=32' }}
+                source={{ uri: headerAvatarUri }}
                 style={{ width: 36, height: 36, borderRadius: 18 }}
               />
             </View>

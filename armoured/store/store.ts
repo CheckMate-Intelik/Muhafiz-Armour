@@ -3,7 +3,11 @@ import { create } from 'zustand';
 import {
   AppRole,
   apiGet,
+  apiPatch,
+  apiUploadProfileImage,
   driverGet,
+  driverPatch,
+  driverUploadProfileImage,
   ensureDriverSession,
   ensureUserSession,
   getActiveRole,
@@ -20,6 +24,7 @@ export type UserProfile = {
   name: string;
   phone: string;
   email: string | null;
+  profileImageUrl: string | null;
   isBlocked: boolean;
   createdAt: string;
 };
@@ -29,10 +34,28 @@ export type DriverProfile = {
   name: string;
   phone: string;
   email: string | null;
+  profileImageUrl: string | null;
   isApproved: boolean;
   isBlocked: boolean;
   createdAt: string;
 };
+
+export const DEFAULT_USER_AVATAR_SM = 'https://i.pravatar.cc/96?img=12';
+export const DEFAULT_USER_AVATAR_LG = 'https://i.pravatar.cc/240?img=12';
+export const DEFAULT_DRIVER_AVATAR_SM = 'https://i.pravatar.cc/96?img=32';
+export const DEFAULT_DRIVER_AVATAR_LG = 'https://i.pravatar.cc/240?img=32';
+
+export function userAvatarUrl(profile: UserProfile | null | undefined, size: 'sm' | 'lg' = 'sm') {
+  const u = profile?.profileImageUrl?.trim();
+  if (u) return u;
+  return size === 'lg' ? DEFAULT_USER_AVATAR_LG : DEFAULT_USER_AVATAR_SM;
+}
+
+export function driverAvatarUrl(profile: DriverProfile | null | undefined, size: 'sm' | 'lg' = 'sm') {
+  const u = profile?.profileImageUrl?.trim();
+  if (u) return u;
+  return size === 'lg' ? DEFAULT_DRIVER_AVATAR_LG : DEFAULT_DRIVER_AVATAR_SM;
+}
 
 export type AuthState = {
   activeRole: AppRole;
@@ -45,6 +68,8 @@ export type AuthState = {
 
   hydrate: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  uploadUserProfilePhoto: (localUri: string) => Promise<void>;
+  uploadDriverProfilePhoto: (localUri: string) => Promise<void>;
   switchRole: (role: AppRole) => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -100,6 +125,20 @@ export const useStore = create<AuthState>((set, get) => ({
       if (!existingDriver) throw new Error('Not authenticated');
       const driverProfile = await driverGet<DriverProfile>(`/driver/me`, existingDriver.driverId);
       set({ driverProfile });
+      await setStoredDriverSession({
+        driverId: existingDriver.driverId,
+        email: driverProfile.email ?? undefined,
+        phone: driverProfile.phone,
+        name: driverProfile.name,
+      });
+      set({
+        driverSession: {
+          driverId: existingDriver.driverId,
+          email: driverProfile.email ?? undefined,
+          phone: driverProfile.phone,
+          name: driverProfile.name,
+        },
+      });
       return;
     }
 
@@ -107,6 +146,34 @@ export const useStore = create<AuthState>((set, get) => ({
     if (!existing) throw new Error('Not authenticated');
     const profile = await apiGet<UserProfile>(`/users/me`, existing.userId);
     set({ profile });
+    await setStoredUserSession({
+      userId: existing.userId,
+      email: profile.email ?? undefined,
+      phone: profile.phone,
+      name: profile.name,
+    });
+    set({
+      session: {
+        userId: existing.userId,
+        email: profile.email ?? undefined,
+        phone: profile.phone,
+        name: profile.name,
+      },
+    });
+  },
+
+  uploadUserProfilePhoto: async (localUri: string) => {
+    const session = await ensureUserSession();
+    const { url } = await apiUploadProfileImage(session.userId, localUri);
+    await apiPatch('/users/me', session.userId, { profileImageUrl: url });
+    await get().refreshProfile();
+  },
+
+  uploadDriverProfilePhoto: async (localUri: string) => {
+    const session = await ensureDriverSession();
+    const { url } = await driverUploadProfileImage(session.driverId, localUri);
+    await driverPatch('/driver/me', session.driverId, { profileImageUrl: url });
+    await get().refreshProfile();
   },
 
   switchRole: async (role) => {

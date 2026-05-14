@@ -1,6 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   Alert,
   AppState,
@@ -14,8 +14,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { apiGet, ensureUserSession, isNotAuthenticatedError } from '@/lib/api';
+import { isNotAuthenticatedError } from '@/lib/api';
 import { useBookingsStore } from '@/store/bookingsStore';
+import { useStore, userAvatarUrl } from '@/store/store';
 import { UserBookingCard, type UserBookingListItem } from '../../components/UserBookingCard';
 import { ActiveBookingHeroCard } from '../../components/ActiveBookingHeroCard';
 
@@ -64,36 +65,25 @@ async function openSupport() {
 }
 
 export default function Home() {
-  const [userName, setUserName] = useState<string>('');
+  const hydrate = useStore((s) => s.hydrate);
+  const profile = useStore((s) => s.profile);
+  const session = useStore((s) => s.session);
   const userBookings = useBookingsStore((s) => s.userBookings);
   const refreshUserBookings = useBookingsStore((s) => s.refreshUserBookings);
 
   useEffect(() => {
-    let cancelled = false;
-    async function loadSession() {
-      try {
-        const s = await ensureUserSession();
-        if (cancelled) return;
-        const sessionName = (s.name ?? '').trim();
-        if (sessionName.length > 0 && sessionName.toLowerCase() !== 'user') {
-          setUserName(sessionName);
-          return;
-        }
-        const me = await apiGet<{ name?: string }>(`/users/me`, s.userId);
-        if (cancelled) return;
-        const profileName = (me?.name ?? '').trim();
-        if (profileName.length > 0) setUserName(profileName);
-      } catch (e) {
-        if (isNotAuthenticatedError(e)) {
-          router.replace('/login' as any);
-        }
-      }
-    }
-    void loadSession();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    void hydrate();
+  }, [hydrate]);
+
+  const userName = useMemo(() => {
+    const fromProfile = (profile?.name ?? '').trim();
+    if (fromProfile.length > 0) return fromProfile;
+    const fromSession = (session?.name ?? '').trim();
+    if (fromSession.length > 0 && fromSession.toLowerCase() !== 'user') return fromSession;
+    return 'User';
+  }, [profile?.name, session?.name]);
+
+  const headerAvatarUri = userAvatarUrl(profile, 'sm');
 
   useEffect(() => {
     let sub: any = null;
@@ -131,13 +121,13 @@ export default function Home() {
           <View className="flex-row items-center justify-between">
             <View>
               <Text className="text-[22px] font-semibold text-gray-200">Welcome!</Text>
-              <Text className="text-2xl font-semibold text-gray-200">{userName || 'User'}</Text>
+              <Text className="text-2xl font-semibold text-gray-200">{userName}</Text>
             </View>
             <View className="flex-row items-center gap-2">
               <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
                 <FontAwesome name="bell-o" size={16} color="#111827" />
               </Pressable>
-              <Image source={{ uri: 'https://i.pravatar.cc/96?img=12' }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+              <Image source={{ uri: headerAvatarUri }} style={{ width: 36, height: 36, borderRadius: 18 }} />
             </View>
           </View>
 

@@ -6,6 +6,7 @@ import { AuthUser } from '../auth/auth-user.decorator';
 import { JwtPayload } from '../auth/auth.types';
 import { DriverService } from './driver.service';
 import { RespondDto } from './dto/respond.dto';
+import { UpdateDriverProfileDto } from './dto/update-driver-profile.dto';
 
 @Controller('driver')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -21,6 +22,11 @@ export class DriverController {
   @Get('me')
   async me(@AuthUser() user: JwtPayload) {
     return this.drivers.getById(user.sub);
+  }
+
+  @Patch('me')
+  async patchMe(@AuthUser() user: JwtPayload, @Body() dto: UpdateDriverProfileDto) {
+    return this.drivers.updateProfile(user.sub, dto);
   }
 
   @Get('bookings/active')

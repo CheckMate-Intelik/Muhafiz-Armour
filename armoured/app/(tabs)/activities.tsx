@@ -7,8 +7,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { isNotAuthenticatedError } from '@/lib/api';
 import { useBookingsStore } from '@/store/bookingsStore';
+import { useStore, userAvatarUrl } from '@/store/store';
 
-type RideStatus = 'Schedule' | 'Recent' | 'Completed' | 'Canceled';
+type RideStatus = 'Schedule' | 'Completed' | 'Canceled';
 
 type Booking = {
   id: string;
@@ -27,6 +28,9 @@ function normalizeStatus(status: string | null | undefined) {
 }
 
 export default function ActivitiesScreen() {
+  const hydrate = useStore((s) => s.hydrate);
+  const profile = useStore((s) => s.profile);
+  const headerAvatarUri = userAvatarUrl(profile, 'sm');
   const [status, setStatus] = useState<RideStatus>('Schedule');
   const userBookings = useBookingsStore((s) => s.userBookings);
   const userLoading = useBookingsStore((s) => s.userLoading);
@@ -34,6 +38,10 @@ export default function ActivitiesScreen() {
   const refreshUserBookings = useBookingsStore((s) => s.refreshUserBookings);
   const bookings = userBookings as unknown as Booking[];
   const loading = userLoading && !userLoaded;
+
+  useEffect(() => {
+    void hydrate();
+  }, [hydrate]);
 
   useEffect(() => {
     refreshUserBookings().catch((e) => {
@@ -50,13 +58,16 @@ export default function ActivitiesScreen() {
           const s = normalizeStatus(b.status);
           return s === 'REJECTED' || s === 'EXPIRED';
         });
-      case 'Recent':
-        return bookings.filter((b) => normalizeStatus(b.status) === 'IN_PROGRESS');
       case 'Schedule':
       default:
         return bookings.filter((b) => {
           const s = normalizeStatus(b.status);
-          return s === 'REQUESTED' || s === 'PENDING_DRIVER' || s === 'CONFIRMED';
+          return (
+            s === 'REQUESTED' ||
+            s === 'PENDING_DRIVER' ||
+            s === 'CONFIRMED' ||
+            s === 'IN_PROGRESS'
+          );
         });
     }
   }, [bookings, status]);
@@ -79,7 +90,7 @@ export default function ActivitiesScreen() {
               <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
                 <FontAwesome name="bell-o" size={16} color="#111827" />
               </Pressable>
-              <Image source={{ uri: 'https://i.pravatar.cc/96?img=12' }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+              <Image source={{ uri: headerAvatarUri }} style={{ width: 36, height: 36, borderRadius: 18 }} />
             </View>
           </View>
 
@@ -89,7 +100,6 @@ export default function ActivitiesScreen() {
             {(
               [
                 { key: 'Schedule', label: 'SCHEDULED', icon: 'calendar' },
-                { key: 'Recent', label: 'RECENT', icon: 'clock-o' },
                 { key: 'Completed', label: 'COMPLETED', icon: 'check' },
                 { key: 'Canceled', label: 'CANCELED', icon: 'times' },
               ] as const
@@ -148,14 +158,15 @@ export default function ActivitiesScreen() {
             {rides.map((r) => (
           (() => {
             const vehicleName = `${r.vehicle?.manufacturer ?? ''} ${r.vehicle?.carModel ?? ''}`.trim();
+            const bookingStatus = normalizeStatus(r.status);
             const headerStatusLabel =
-              status === 'Schedule'
-                ? 'SCHEDULED MISSION'
-                : status === 'Recent'
-                  ? 'RECENT MISSION'
-                  : status === 'Completed'
-                    ? 'COMPLETED MISSION'
-                    : 'CANCELED MISSION';
+              bookingStatus === 'COMPLETED'
+                ? 'COMPLETED MISSION'
+                : bookingStatus === 'REJECTED' || bookingStatus === 'EXPIRED'
+                  ? 'CANCELED MISSION'
+                  : bookingStatus === 'IN_PROGRESS'
+                    ? 'ACTIVE MISSION'
+                    : 'SCHEDULED MISSION';
             const driverAndArmour = `${r.driver?.name ?? '—'} • ${r.vehicle?.armourLevel ?? '—'}`.trim();
             const costLabel = typeof r.totalPrice === 'number' ? `Rs ${r.totalPrice.toFixed(2)}` : '—';
             return (

@@ -22,6 +22,10 @@ export class VehicleService {
     if (!validArmours.has(dto.armourLevel)) throw new BadRequestException('Invalid armour level');
     if (!validVehicleTypes.has(dto.vehicleType)) throw new BadRequestException('Invalid vehicle type');
 
+    const imageUrls = (dto.imageUrls ?? [])
+      .map((u) => (typeof u === 'string' ? u.trim() : ''))
+      .filter((u) => /^https:\/\//i.test(u));
+
     return this.prisma.vehicle.create({
       data: {
         driverId,
@@ -34,7 +38,7 @@ export class VehicleService {
         color: dto.color.trim(),
         numberPlate: dto.numberPlate.trim(),
         registrationNumber: dto.registrationNumber.trim(),
-        imageUrls: dto.imageUrls ?? [],
+        imageUrls,
         baseRatePerHour: dto.baseRatePerHour,
         seatingCapacity: dto.seatingCapacity != null ? Math.round(Number(dto.seatingCapacity)) : 4,
         location: dto.location.trim(),
