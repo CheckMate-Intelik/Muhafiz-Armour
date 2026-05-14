@@ -95,7 +95,7 @@ export function UserBookingCard({
     <View
       className="mb-4 overflow-hidden rounded-2xl"
       style={{
-        backgroundColor: '#0B0F14',
+        backgroundColor: '#222222',
         borderColor: 'rgba(255,255,255,0.06)',
         borderWidth: 1,
         shadowColor: '#000',

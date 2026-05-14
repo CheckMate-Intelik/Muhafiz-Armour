@@ -75,8 +75,8 @@ export default function DriverVehiclesScreen() {
         <View className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-[18px] font-semibold text-gray-200">Vehicles</Text>
-              <Text className="text-lg font-semibold text-gray-200">Your fleet</Text>
+              <Text className="text-[20px] font-bold text-[#C9B37A]">My Vehicles</Text>
+              {/* <Text className="text-lg font-semibold text-gray-200">Your fleet</Text> */}
             </View>
           </View>
 
@@ -121,15 +121,17 @@ export default function DriverVehiclesScreen() {
           onPress={() => router.push('/register-vehicle')}
           className="absolute bottom-[120px] left-1/2 z-10 w-[170px] -translate-x-1/2 flex-row items-center justify-center rounded-full py-4 shadow-lg"
           style={{
-            backgroundColor: '#C9B37A',
+            backgroundColor: '#0B0F14',
+            borderWidth: 1,
+            borderColor: '#C9B37A',
             shadowColor: '#000',
             shadowOpacity: 0.25,
             shadowRadius: 14,
             shadowOffset: { width: 0, height: 8 },
             elevation: 10,
           }}>
-          <FontAwesome name="plus" size={14} color="#0B0F14" />
-          <Text className="ml-2 text-xs font-extrabold" style={{ color: '#0B0F14' }}>Add vehicle</Text>
+          <FontAwesome name="plus" size={14} color="#C9B37A" />
+          <Text className="ml-2 text-sm font-bold" style={{ color: '#C9B37A' }}>Add vehicle</Text>
         </Pressable>
 
         <ScrollView contentContainerStyle={{ paddingBottom: 180 }} className="px-5 pt-4">

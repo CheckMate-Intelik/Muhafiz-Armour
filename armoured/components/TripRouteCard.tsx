@@ -80,7 +80,7 @@ export function TripRouteCard({
           </View>
         </View>
 
-        <View className="px-4 py-4" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
+        <View className="px-4 py-4" style={{ backgroundColor: '#222222' }}>
           <View className="flex-row">
             <View className="mr-3 w-5 items-center">
               <View

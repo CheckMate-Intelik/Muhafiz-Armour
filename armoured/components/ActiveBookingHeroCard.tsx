@@ -74,7 +74,7 @@ export function ActiveBookingHeroCard({
       <View
         className="mb-4 overflow-hidden rounded-2xl"
         style={{
-          backgroundColor: '#3B3E43',
+          backgroundColor: '#222222',
           shadowColor: '#000',
           shadowOpacity: 0.22,
           shadowRadius: 14,

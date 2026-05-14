@@ -117,8 +117,8 @@ export default function DriverBookingsScreen() {
         <View className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-[18px] font-semibold text-gray-200">Bookings</Text>
-              <Text className="text-lg font-semibold text-gray-200">Your missions</Text>
+              <Text className="text-[20px] font-semibold text-[#C9B37A]">Bookings</Text>
+              <Text className="text-lg font-semibold text-[#C9B37A]">My missions</Text>
             </View>
             <View className="flex-row items-center gap-2">
               <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">

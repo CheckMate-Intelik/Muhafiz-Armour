@@ -150,9 +150,10 @@ export default function DriverTabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
-                width: focused ? '350%' : 52,
+                width: focused ? '300%' : 52,
+                marginLeft: 10,
               }}>
-              <FontAwesome name="home" size={28} color={focused ? '#C9B37A' : 'black'} />
+              <FontAwesome name="home" size={focused ? 24 : 28} color={focused ? '#C9B37A' : 'black'} />
               {focused && (
                 <Text
                   style={{
@@ -182,9 +183,9 @@ export default function DriverTabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
-                width: focused ? '350%' : 52,
+                width: focused ? '370%' : 52,
               }}>
-              <FontAwesome name="list-alt" size={28} color={focused ? '#C9B37A' : 'black'} />
+              <FontAwesome name="list-alt" size={focused ? 24 : 28} color={focused ? '#C9B37A' : 'black'} />
               {focused && (
                 <Text
                   style={{
@@ -216,7 +217,7 @@ export default function DriverTabLayout() {
                 height: 46,
                 width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="car" size={26} color={focused ? '#C9B37A' : 'black'} />
+              <FontAwesome name="car" size={focused ? 24 : 28} color={focused ? '#C9B37A' : 'black'} />
               {focused && (
                 <Text
                   style={{
@@ -246,9 +247,10 @@ export default function DriverTabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
-                width: focused ? '350%' : 52,
+                width: focused ? '300%' : 52,
+                marginRight: 10,
               }}>
-              <FontAwesome name="user" size={28} color={focused ? '#C9B37A' : 'black'} />
+              <FontAwesome name="user" size={focused ? 24 : 28} color={focused ? '#C9B37A' : 'black'} />
               {focused && (
                 <Text
                   style={{

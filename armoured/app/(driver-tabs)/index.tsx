@@ -30,7 +30,7 @@ const ACTIVE_CARD_SIDE_INSET = Math.max(
 );
 
 const listCardShadow = {
-  backgroundColor: '#0B0F14',
+  backgroundColor: 'rgba(255, 255, 255, 0.13)',
   borderColor: 'rgba(255,255,255,0.06)',
   borderWidth: 1,
   shadowColor: '#000',
@@ -103,8 +103,8 @@ export default function DriverDashboardScreen() {
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="pt-4">
           <View className="flex-row items-center justify-between px-5">
             <View>
-              <Text className="text-[22px] font-semibold text-gray-200">Welcome!</Text>
-              <Text className="text-2xl font-semibold text-gray-200">
+              <Text className="text-[22px] font-bold text-[#C9B37A]">Welcome!</Text>
+              <Text className="text-2xl font-bold text-[#C9B37A]">
                 {profileLoading && !profile?.name ? '…' : driverName}
               </Text>
             </View>
@@ -120,8 +120,8 @@ export default function DriverDashboardScreen() {
           </View>
 
           <View className="mt-5 flex-row gap-3 px-5">
-            <View className="flex-1 overflow-hidden rounded-2xl" style={listCardShadow}>
-              <View className="bg-black px-4 py-3">
+            <View className="flex-1 rounded-2xl">
+              <View className="bg-black px-4 py-3 rounded-t-2xl">
                 <View className="flex-row items-center justify-between">
                   <Text
                     className="text-[11px] font-extrabold"
@@ -135,7 +135,7 @@ export default function DriverDashboardScreen() {
                   </View>
                 </View>
               </View>
-              <View className="px-4 py-4">
+              <View className="px-4 py-4 rounded-b-2xl bg-[#222222]">
                 <Text className="text-2xl font-bold text-gray-100">Rs {totalEarnings.toFixed(2)}</Text>
                 <Text className="mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
                   This period
@@ -143,8 +143,8 @@ export default function DriverDashboardScreen() {
               </View>
             </View>
 
-            <View className="flex-1 overflow-hidden rounded-2xl" style={listCardShadow}>
-              <View className="bg-black px-4 py-3">
+            <View className="flex-1 rounded-2xl bg-black">
+              <View className="px-4 py-3 rounded-t-2xl">
                 <View className="flex-row items-center justify-between">
                   <Text
                     className="text-[11px] font-extrabold"
@@ -158,7 +158,7 @@ export default function DriverDashboardScreen() {
                   </View>
                 </View>
               </View>
-              <View className="px-4 py-4">
+              <View className="px-4 py-4 rounded-b-2xl bg-[#222222]">
                 <Text className="text-2xl font-extrabold text-gray-100">{completedTrips}</Text>
                 <Text className="mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
                   All time
