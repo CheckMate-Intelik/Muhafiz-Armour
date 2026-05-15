@@ -88,10 +88,10 @@ export default function AdminDashboardPage() {
           <>
             <MetricCard title="Pending vehicles" value={`${data.vehicles.pending}`} hint="Awaiting approval" href="/admin/vehicles" />
             <MetricCard title="Active bookings" value={`${data.bookings.active}`} hint="Confirmed / in progress" href="/admin/bookings" />
-            <MetricCard title="Pending booking requests" value={`${data.bookings.pendingDriver}`} hint="Awaiting driver action" href="/admin/bookings" />
+            <MetricCard title="Pending booking requests" value={`${data.bookings.pendingDispatcher}`} hint="Awaiting dispatcher action" href="/admin/bookings" />
             <MetricCard title="Completed bookings" value={`${data.bookings.completed}`} hint={`Total bookings: ${data.bookings.total}`} href="/admin/bookings" />
 
-            <MetricCard title="Drivers" value={`${data.drivers.total}`} hint={`Approved: ${data.drivers.approved} • Blocked: ${data.drivers.blocked}`} href="/admin/drivers" />
+            <MetricCard title="Dispatchers" value={`${data.dispatchers.total}`} hint={`Approved: ${data.dispatchers.approved} • Blocked: ${data.dispatchers.blocked}`} href="/admin/dispatchers" />
             <MetricCard title="Vehicles" value={`${data.vehicles.total}`} hint={`Approved: ${data.vehicles.approved} • Pending: ${data.vehicles.pending}`} href="/admin/vehicles" />
             <MetricCard title="Users" value={`${data.users.total}`} hint={`Blocked: ${data.users.blocked}`} href="/admin/users" />
             <MetricCard title="Bookings" value={`${data.bookings.total}`} hint={`Active: ${data.bookings.active} • Completed: ${data.bookings.completed}`} href="/admin/bookings" />

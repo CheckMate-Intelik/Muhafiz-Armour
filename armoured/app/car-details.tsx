@@ -5,7 +5,7 @@ import { Dimensions, Image, Pressable, ScrollView, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { PUBLIC_API_BASE_URL, driverGet, ensureDriverSession } from '@/lib/api';
+import { PUBLIC_API_BASE_URL, dispatcherGet, ensureDispatcherSession } from '@/lib/api';
 
 const GOLD = '#C9B37A';
 const CARD_BG = '#0B0F14';
@@ -60,8 +60,8 @@ export default function CarDetailsScreen() {
       try {
         let data: { vehicle?: VehicleDetails | null } | null = null;
         if (isReadonly) {
-          const s = await ensureDriverSession();
-          data = await driverGet<{ vehicle?: VehicleDetails | null }>(`/driver/vehicles/${vehicleId}`, s.driverId);
+          const s = await ensureDispatcherSession();
+          data = await dispatcherGet<{ vehicle?: VehicleDetails | null }>(`/dispatcher/vehicles/${vehicleId}`, s.dispatcherId);
         } else {
           const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/${vehicleId}`);
           if (!res.ok) return;

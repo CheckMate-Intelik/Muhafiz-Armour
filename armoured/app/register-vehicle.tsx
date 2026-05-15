@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { PUBLIC_API_BASE_URL, driverPost, driverUploadVehicleImage, ensureDriverSession } from '@/lib/api';
+import { PUBLIC_API_BASE_URL, dispatcherPost, dispatcherUploadVehicleImage, ensureDispatcherSession } from '@/lib/api';
 
 const GOLD = '#C9B37A';
 const CARD = '#0B0F14';
@@ -160,12 +160,12 @@ export default function RegisterVehicleScreen() {
     if (!validateCurrentStep()) return;
     try {
       setSubmitting(true);
-      const s = await ensureDriverSession();
+      const s = await ensureDispatcherSession();
       const imageUrls =
         imageUris.length > 0
-          ? await Promise.all(imageUris.map((uri) => driverUploadVehicleImage(s.driverId, uri).then((r) => r.url)))
+          ? await Promise.all(imageUris.map((uri) => dispatcherUploadVehicleImage(s.dispatcherId, uri).then((r) => r.url)))
           : [];
-      await driverPost(`/driver/vehicles`, s.driverId, {
+      await dispatcherPost(`/dispatcher/vehicles`, s.dispatcherId, {
         armourLevel: armourLevel.trim(),
         vehicleType: vehicleType.trim(),
         carModel: carModel.trim(),

@@ -141,10 +141,10 @@ export default function ProfileScreen() {
             <Divider />
             <ActionRow
               icon="exchange"
-              title="Switch to Driver mode"
+              title="Switch to Dispatcher mode"
               onPress={async () => {
-                await switchRole('DRIVER');
-                router.replace('/(driver-tabs)' as any);
+                await switchRole('DISPATCHER');
+                router.replace('/(dispatcher-tabs)' as any);
               }}
             />
             <Divider />

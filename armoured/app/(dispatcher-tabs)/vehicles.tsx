@@ -7,7 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { VehicleCard } from '@/components/VehicleCard';
-import { driverGet, ensureDriverSession, isNotAuthenticatedError } from '@/lib/api';
+import { dispatcherGet, ensureDispatcherSession, isNotAuthenticatedError } from '@/lib/api';
 
 type VehicleTab = 'Approved' | 'Pending';
 
@@ -28,7 +28,7 @@ type Vehicle = {
   isApproved: boolean;
 };
 
-export default function DriverVehiclesScreen() {
+export default function DispatcherVehiclesScreen() {
   const [tab, setTab] = useState<VehicleTab>('Approved');
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,8 +39,8 @@ export default function DriverVehiclesScreen() {
     async function run() {
       try {
         setLoading(true);
-        const s = await ensureDriverSession();
-        const data = await driverGet<Vehicle[]>(`/driver/vehicles`, s.driverId);
+        const s = await ensureDispatcherSession();
+        const data = await dispatcherGet<Vehicle[]>(`/dispatcher/vehicles`, s.dispatcherId);
         if (cancelled) return;
         setVehicles(Array.isArray(data) ? data : []);
       } catch (e) {

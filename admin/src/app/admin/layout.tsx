@@ -17,8 +17,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link className="sidebar-link" href="/admin/bookings">
             Bookings
           </Link>
-          <Link className="sidebar-link" href="/admin/drivers">
-            Drivers
+          <Link className="sidebar-link" href="/admin/dispatchers">
+            Dispatchers
           </Link>
           <Link className="sidebar-link" href="/admin/vehicles">
             Vehicles

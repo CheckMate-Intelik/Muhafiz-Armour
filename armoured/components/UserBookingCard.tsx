@@ -13,6 +13,7 @@ export type UserBookingListItem = {
     vehicleType?: string | null;
     armourLevel?: string | null;
     seatingCapacity?: number | null;
+    imageUrls?: string[];
   } | null;
 };
 
@@ -60,7 +61,7 @@ function statusPill(status?: string | null) {
   const s = normalizeStatus(status);
   if (s === 'IN_PROGRESS') return { label: 'Active', bg: '#10B981', fg: '#052E1B' };
   if (s === 'CONFIRMED') return { label: 'Confirmed', bg: '#F59E0B', fg: '#1F1300' };
-  if (s === 'REQUESTED' || s === 'PENDING_DRIVER') return { label: 'Pending', bg: '#F59E0B', fg: '#1F1300' };
+  if (s === 'REQUESTED' || s === 'PENDING_DISPATCHER') return { label: 'Pending', bg: '#F59E0B', fg: '#1F1300' };
   if (s === 'COMPLETED') return { label: 'Completed', bg: '#60A5FA', fg: '#0B1220' };
   if (s === 'REJECTED' || s === 'EXPIRED') return { label: 'Canceled', bg: '#F87171', fg: '#2A0B0B' };
   return { label: s || '—', bg: '#E5E7EB', fg: '#111827' };

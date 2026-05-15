@@ -12,22 +12,22 @@ type UserSession = {
   email?: string;
 };
 
-type DriverSession = {
-  driverId: string;
+type DispatcherSession = {
+  dispatcherId: string;
   phone?: string;
   name?: string;
   email?: string;
 };
 
-export type AppRole = 'USER' | 'DRIVER';
+export type AppRole = 'USER' | 'DISPATCHER';
 
 let session: UserSession | null = null;
 let sessionPromise: Promise<UserSession> | null = null;
-let driverSession: DriverSession | null = null;
-let driverSessionPromise: Promise<DriverSession> | null = null;
+let dispatcherSession: DispatcherSession | null = null;
+let dispatcherSessionPromise: Promise<DispatcherSession> | null = null;
 
 const STORAGE_KEY = 'armoured:user-session:v1';
-const DRIVER_STORAGE_KEY = 'armoured:driver-session:v1';
+const DISPATCHER_STORAGE_KEY = 'armoured:dispatcher-session:v1';
 const ACTIVE_ROLE_KEY = 'armoured:active-role:v1';
 
 export async function getStoredUserSession(): Promise<UserSession | null> {
@@ -57,14 +57,14 @@ export async function setStoredUserSession(next: UserSession | null) {
   session = next;
 }
 
-export async function getStoredDriverSession(): Promise<DriverSession | null> {
-  const raw = await safeGetItem(DRIVER_STORAGE_KEY);
+export async function getStoredDispatcherSession(): Promise<DispatcherSession | null> {
+  const raw = await safeGetItem(DISPATCHER_STORAGE_KEY);
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw) as Partial<DriverSession>;
-    if (typeof parsed.driverId !== 'string' || parsed.driverId.trim().length === 0) return null;
+    const parsed = JSON.parse(raw) as Partial<DispatcherSession>;
+    if (typeof parsed.dispatcherId !== 'string' || parsed.dispatcherId.trim().length === 0) return null;
     return {
-      driverId: parsed.driverId,
+      dispatcherId: parsed.dispatcherId,
       phone: typeof parsed.phone === 'string' ? parsed.phone : undefined,
       name: typeof parsed.name === 'string' ? parsed.name : undefined,
       email: typeof parsed.email === 'string' ? parsed.email : undefined,
@@ -74,14 +74,14 @@ export async function getStoredDriverSession(): Promise<DriverSession | null> {
   }
 }
 
-export async function setStoredDriverSession(next: DriverSession | null) {
+export async function setStoredDispatcherSession(next: DispatcherSession | null) {
   if (!next) {
-    await safeRemoveItem(DRIVER_STORAGE_KEY);
-    driverSession = null;
+    await safeRemoveItem(DISPATCHER_STORAGE_KEY);
+    dispatcherSession = null;
     return;
   }
-  await safeSetItem(DRIVER_STORAGE_KEY, JSON.stringify(next));
-  driverSession = next;
+  await safeSetItem(DISPATCHER_STORAGE_KEY, JSON.stringify(next));
+  dispatcherSession = next;
 }
 
 export async function loginUser(input: { phone?: string; name?: string; email?: string; password?: string }) {
@@ -145,17 +145,17 @@ export async function signupUser(input: { phone?: string; name?: string; email?:
   return next;
 }
 
-export async function loginDriver(input: { phone?: string; name?: string; email?: string; password?: string }) {
+export async function loginDispatcher(input: { phone?: string; name?: string; email?: string; password?: string }) {
   const email = input.email?.trim();
   const phone = (input.phone?.trim() || email || '').trim();
-  const name = (input.name?.trim() || 'Driver').trim();
+  const name = (input.name?.trim() || 'Dispatcher').trim();
   if (!phone) throw new Error('Missing identifier');
 
   const res = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      role: 'DRIVER',
+      role: 'DISPATCHER',
       email: input.email,
       password: input.password,
       phone,
@@ -166,25 +166,25 @@ export async function loginDriver(input: { phone?: string; name?: string; email?
     const details = await safeReadError(res);
     throw new Error(details ?? 'Login failed');
   }
-  const data = (await res.json()) as { driver?: { id?: string } };
-  const driverId = data.driver?.id;
-  if (!driverId) throw new Error('Missing driver id');
-  const next: DriverSession = { driverId, phone, name, email: input.email };
-  await setStoredDriverSession(next);
+  const data = (await res.json()) as { dispatcher?: { id?: string } };
+  const dispatcherId = data.dispatcher?.id;
+  if (!dispatcherId) throw new Error('Missing dispatcher id');
+  const next: DispatcherSession = { dispatcherId, phone, name, email: input.email };
+  await setStoredDispatcherSession(next);
   return next;
 }
 
-export async function signupDriver(input: { phone?: string; name?: string; email?: string; password: string }) {
+export async function signupDispatcher(input: { phone?: string; name?: string; email?: string; password: string }) {
   const email = input.email?.trim();
   const phone = (input.phone?.trim() || email || '').trim();
-  const name = (input.name?.trim() || 'Driver').trim();
+  const name = (input.name?.trim() || 'Dispatcher').trim();
   if (!phone) throw new Error('Missing identifier');
 
   const res = await fetch(`${API_BASE_URL}/auth/signup`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      role: 'DRIVER',
+      role: 'DISPATCHER',
       phone,
       name,
       email: input.email,
@@ -198,11 +198,11 @@ export async function signupDriver(input: { phone?: string; name?: string; email
     throw new Error(details ?? 'Account creation failed');
   }
 
-  const data = (await res.json()) as { driver?: { id?: string } };
-  const driverId = data.driver?.id;
-  if (!driverId) throw new Error('Missing driver id');
-  const next: DriverSession = { driverId, phone, name, email: input.email };
-  await setStoredDriverSession(next);
+  const data = (await res.json()) as { dispatcher?: { id?: string } };
+  const dispatcherId = data.dispatcher?.id;
+  if (!dispatcherId) throw new Error('Missing dispatcher id');
+  const next: DispatcherSession = { dispatcherId, phone, name, email: input.email };
+  await setStoredDispatcherSession(next);
   return next;
 }
 
@@ -226,23 +226,23 @@ export async function ensureUserSession(): Promise<UserSession> {
   }
 }
 
-export async function ensureDriverSession(): Promise<DriverSession> {
-  if (driverSession) return driverSession;
-  if (driverSessionPromise) return driverSessionPromise;
+export async function ensureDispatcherSession(): Promise<DispatcherSession> {
+  if (dispatcherSession) return dispatcherSession;
+  if (dispatcherSessionPromise) return dispatcherSessionPromise;
 
-  driverSessionPromise = (async () => {
-    const stored = await getStoredDriverSession();
+  dispatcherSessionPromise = (async () => {
+    const stored = await getStoredDispatcherSession();
     if (stored) {
-      driverSession = stored;
+      dispatcherSession = stored;
       return stored;
     }
     throw new Error('Not authenticated');
   })();
 
   try {
-    return await driverSessionPromise;
+    return await dispatcherSessionPromise;
   } finally {
-    driverSessionPromise = null;
+    dispatcherSessionPromise = null;
   }
 }
 
@@ -306,12 +306,12 @@ export async function apiUploadProfileImage(userId: string, fileUri: string): Pr
   return (await res.json()) as { url: string };
 }
 
-export async function driverUploadVehicleImage(driverId: string, fileUri: string): Promise<{ url: string }> {
+export async function dispatcherUploadVehicleImage(dispatcherId: string, fileUri: string): Promise<{ url: string }> {
   const form = new FormData();
   form.append('file', { uri: fileUri, type: guessImageMime(fileUri), name: 'vehicle.jpg' } as unknown as Blob);
   const res = await fetch(`${API_BASE_URL}/media/upload/vehicle`, {
     method: 'POST',
-    headers: { 'x-driver-id': driverId },
+    headers: { 'x-dispatcher-id': dispatcherId },
     body: form,
   });
   if (!res.ok) {
@@ -321,12 +321,12 @@ export async function driverUploadVehicleImage(driverId: string, fileUri: string
   return (await res.json()) as { url: string };
 }
 
-export async function driverUploadProfileImage(driverId: string, fileUri: string): Promise<{ url: string }> {
+export async function dispatcherUploadProfileImage(dispatcherId: string, fileUri: string): Promise<{ url: string }> {
   const form = new FormData();
   form.append('file', { uri: fileUri, type: guessImageMime(fileUri), name: 'profile.jpg' } as unknown as Blob);
   const res = await fetch(`${API_BASE_URL}/media/upload/profile`, {
     method: 'POST',
-    headers: { 'x-driver-id': driverId },
+    headers: { 'x-dispatcher-id': dispatcherId },
     body: form,
   });
   if (!res.ok) {
@@ -336,9 +336,9 @@ export async function driverUploadProfileImage(driverId: string, fileUri: string
   return (await res.json()) as { url: string };
 }
 
-export async function driverGet<T>(path: string, driverId: string): Promise<T> {
+export async function dispatcherGet<T>(path: string, dispatcherId: string): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { 'x-driver-id': driverId },
+    headers: { 'x-dispatcher-id': dispatcherId },
   });
   if (!res.ok) {
     const details = await safeReadError(res);
@@ -347,10 +347,10 @@ export async function driverGet<T>(path: string, driverId: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-export async function driverPost<T>(path: string, driverId: string, body: unknown): Promise<T> {
+export async function dispatcherPost<T>(path: string, dispatcherId: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-driver-id': driverId },
+    headers: { 'content-type': 'application/json', 'x-dispatcher-id': dispatcherId },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -360,10 +360,10 @@ export async function driverPost<T>(path: string, driverId: string, body: unknow
   return (await res.json()) as T;
 }
 
-export async function driverPatch<T>(path: string, driverId: string, body?: unknown): Promise<T> {
+export async function dispatcherPatch<T>(path: string, dispatcherId: string, body?: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: 'PATCH',
-    headers: { 'content-type': 'application/json', 'x-driver-id': driverId },
+    headers: { 'content-type': 'application/json', 'x-dispatcher-id': dispatcherId },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!res.ok) {
@@ -375,7 +375,7 @@ export async function driverPatch<T>(path: string, driverId: string, body?: unkn
 
 export async function getActiveRole(): Promise<AppRole> {
   const stored = await safeGetItem(ACTIVE_ROLE_KEY);
-  return stored === 'DRIVER' ? 'DRIVER' : 'USER';
+  return stored === 'DISPATCHER' ? 'DISPATCHER' : 'USER';
 }
 
 export async function setActiveRole(role: AppRole) {

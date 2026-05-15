@@ -14,6 +14,10 @@ import { ExtendBookingDto } from './dto/extend-booking.dto';
 
 const MAX_BOOKING_HOURS = 5 * 24;
 
+const USER_ACTIVE_BOOKING_STATUSES: Array<
+  'REQUESTED' | 'PENDING_DISPATCHER' | 'CONFIRMED' | 'IN_PROGRESS'
+> = ['REQUESTED', 'PENDING_DISPATCHER', 'CONFIRMED', 'IN_PROGRESS'];
+
 @Injectable()
 export class BookingService {
   constructor(
@@ -97,11 +101,13 @@ export class BookingService {
 
     const bufferMinutes = bufferMinutesForTrip(dto.pickupCity, dto.dropCity);
 
+    await this.assertUserHasNoOverlappingBooking(userId, startTime, endTime);
+
     const recentWindowStart = new Date(Date.now() - 2 * 60 * 1000);
     const existing = await this.prisma.booking.findFirst({
       where: {
         userId,
-        status: { in: ['REQUESTED', 'PENDING_DRIVER', 'CONFIRMED', 'IN_PROGRESS'] },
+        status: { in: ['REQUESTED', 'PENDING_DISPATCHER', 'CONFIRMED', 'IN_PROGRESS'] },
         pickupLocation,
         dropLocation,
         startTime,
@@ -109,7 +115,7 @@ export class BookingService {
         createdAt: { gte: recentWindowStart },
       },
       orderBy: { createdAt: 'desc' },
-      include: { user: true, driver: true, vehicle: true },
+      include: { user: true, dispatcher: true, vehicle: true },
     });
 
     if (existing) {
@@ -135,7 +141,7 @@ export class BookingService {
       },
       include: {
         user: true,
-        driver: true,
+        dispatcher: true,
         vehicle: true,
       },
     });
@@ -162,12 +168,12 @@ export class BookingService {
 
     return options.map((v: (typeof options)[number]) => ({
       vehicleId: v.id,
-      driverId: v.driverId,
+      dispatcherId: v.dispatcherId,
       armourLevel: v.armourLevel,
       vehicleType: v.vehicleType,
       baseRatePerHour: v.baseRatePerHour,
       location: v.location,
-      driverName: v.driver.name,
+      dispatcherName: v.dispatcher.name,
       estimatedPrice: Math.round(v.baseRatePerHour * durationHours),
     }));
   }
@@ -193,6 +199,8 @@ export class BookingService {
       throw new BadRequestException(`Duration must be at least ${effectiveMin} hours for this route`);
     }
 
+    await this.assertUserHasNoOverlappingBooking(userId, booking.startTime, nextEnd, bookingId);
+
     const buf = booking.bufferMinutes ?? bufferMinutesForTrip(booking.pickupCity, booking.dropCity);
 
     if (dto.vehicleId) {
@@ -203,7 +211,7 @@ export class BookingService {
     return this.prisma.booking.update({
       where: { id: bookingId },
       data: { endTime: nextEnd },
-      include: { user: true, driver: true, vehicle: true },
+      include: { user: true, dispatcher: true, vehicle: true },
     });
   }
 
@@ -213,14 +221,16 @@ export class BookingService {
     if (booking.userId !== userId) throw new BadRequestException('Not your booking');
     if (booking.status !== 'REQUESTED') throw new BadRequestException('Booking is not selectable');
 
-    const vehicle = await this.prisma.vehicle.findUnique({ where: { id: vehicleId }, include: { driver: true } });
+    const vehicle = await this.prisma.vehicle.findUnique({ where: { id: vehicleId }, include: { dispatcher: true } });
     if (!vehicle) throw new BadRequestException('Vehicle not found');
     if (!vehicle.isApproved) throw new BadRequestException('Vehicle not approved');
     if (vehicle.status !== 'AVAILABLE') throw new BadRequestException('Vehicle is not available');
     if (process.env.NODE_ENV === 'production') {
-      if (!vehicle.driver.isApproved || vehicle.driver.isBlocked) throw new BadRequestException('Driver not eligible');
+      if (!vehicle.dispatcher.isApproved || vehicle.dispatcher.isBlocked) {
+        throw new BadRequestException('Dispatcher not eligible');
+      }
     } else {
-      if (vehicle.driver.isBlocked) throw new BadRequestException('Driver not eligible');
+      if (vehicle.dispatcher.isBlocked) throw new BadRequestException('Dispatcher not eligible');
     }
 
     const buf = booking.bufferMinutes ?? bufferMinutesForTrip(booking.pickupCity, booking.dropCity);
@@ -235,11 +245,11 @@ export class BookingService {
         where: { id: bookingId },
         data: {
           vehicleId: vehicle.id,
-          driverId: vehicle.driverId,
-          status: 'PENDING_DRIVER',
+          dispatcherId: vehicle.dispatcherId,
+          status: 'PENDING_DISPATCHER',
           totalPrice: plannedPrice,
         },
-        include: { user: true, driver: true, vehicle: true },
+        include: { user: true, dispatcher: true, vehicle: true },
       });
       await tx.vehicle.update({
         where: { id: vehicle.id },
@@ -269,6 +279,8 @@ export class BookingService {
       throw new BadRequestException(`Total booking length may not exceed ${MAX_BOOKING_HOURS} hours`);
     }
 
+    await this.assertUserHasNoOverlappingBooking(userId, booking.startTime, newEnd, booking.id);
+
     const buf = booking.bufferMinutes ?? bufferMinutesForTrip(booking.pickupCity, booking.dropCity);
     const ok = await this.matching.assertVehicleAvailableForWindow(
       booking.vehicleId,
@@ -287,7 +299,7 @@ export class BookingService {
         endTime: newEnd,
         totalPrice: plannedPrice,
       },
-      include: { user: true, driver: true, vehicle: true },
+      include: { user: true, dispatcher: true, vehicle: true },
     });
   }
 
@@ -296,7 +308,7 @@ export class BookingService {
       where: { userId },
       orderBy: { createdAt: 'desc' },
       include: {
-        driver: true,
+        dispatcher: true,
         vehicle: true,
       },
     });
@@ -306,7 +318,7 @@ export class BookingService {
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.userId !== userId) throw new BadRequestException('Not your booking');
-    if (!['REQUESTED', 'PENDING_DRIVER', 'CONFIRMED', 'IN_PROGRESS'].includes(booking.status)) {
+    if (!['REQUESTED', 'PENDING_DISPATCHER', 'CONFIRMED', 'IN_PROGRESS'].includes(booking.status)) {
       throw new BadRequestException('Booking is not cancellable');
     }
 
@@ -317,9 +329,9 @@ export class BookingService {
         data: {
           status: 'REJECTED',
           actualEndTime: booking.actualEndTime ?? (booking.status === 'IN_PROGRESS' ? new Date() : booking.actualEndTime),
-          ...(vid ? { vehicleId: null, driverId: null } : {}),
+          ...(vid ? { vehicleId: null, dispatcherId: null } : {}),
         },
-        include: { user: true, driver: true, vehicle: true },
+        include: { user: true, dispatcher: true, vehicle: true },
       });
       if (vid) {
         await tx.vehicle.updateMany({
@@ -329,5 +341,27 @@ export class BookingService {
       }
       return updated;
     });
+  }
+
+  private async assertUserHasNoOverlappingBooking(
+    userId: string,
+    startTime: Date,
+    endTime: Date,
+    excludeBookingId?: string,
+  ) {
+    const others = await this.prisma.booking.findMany({
+      where: {
+        userId,
+        status: { in: [...USER_ACTIVE_BOOKING_STATUSES] },
+        ...(excludeBookingId ? { id: { not: excludeBookingId } } : {}),
+      },
+      select: { startTime: true, endTime: true },
+    });
+
+    for (const b of others) {
+      if (startTime < b.endTime && endTime > b.startTime) {
+        throw new BadRequestException('You already have a booking during this time');
+      }
+    }
   }
 }

@@ -5,16 +5,16 @@ import {
   apiGet,
   apiPatch,
   apiUploadProfileImage,
-  driverGet,
-  driverPatch,
-  driverUploadProfileImage,
-  ensureDriverSession,
+  dispatcherGet,
+  dispatcherPatch,
+  dispatcherUploadProfileImage,
+  ensureDispatcherSession,
   ensureUserSession,
   getActiveRole,
-  getStoredDriverSession,
+  getStoredDispatcherSession,
   getStoredUserSession,
   setActiveRole,
-  setStoredDriverSession,
+  setStoredDispatcherSession,
   setStoredUserSession,
 } from '@/lib/api';
 import { useBookingsStore } from '@/store/bookingsStore';
@@ -29,7 +29,7 @@ export type UserProfile = {
   createdAt: string;
 };
 
-export type DriverProfile = {
+export type DispatcherProfile = {
   id: string;
   name: string;
   phone: string;
@@ -42,8 +42,8 @@ export type DriverProfile = {
 
 export const DEFAULT_USER_AVATAR_SM = 'https://i.pravatar.cc/96?img=12';
 export const DEFAULT_USER_AVATAR_LG = 'https://i.pravatar.cc/240?img=12';
-export const DEFAULT_DRIVER_AVATAR_SM = 'https://i.pravatar.cc/96?img=32';
-export const DEFAULT_DRIVER_AVATAR_LG = 'https://i.pravatar.cc/240?img=32';
+export const DEFAULT_DISPATCHER_AVATAR_SM = 'https://i.pravatar.cc/96?img=32';
+export const DEFAULT_DISPATCHER_AVATAR_LG = 'https://i.pravatar.cc/240?img=32';
 
 export function userAvatarUrl(profile: UserProfile | null | undefined, size: 'sm' | 'lg' = 'sm') {
   const u = profile?.profileImageUrl?.trim();
@@ -51,25 +51,25 @@ export function userAvatarUrl(profile: UserProfile | null | undefined, size: 'sm
   return size === 'lg' ? DEFAULT_USER_AVATAR_LG : DEFAULT_USER_AVATAR_SM;
 }
 
-export function driverAvatarUrl(profile: DriverProfile | null | undefined, size: 'sm' | 'lg' = 'sm') {
+export function dispatcherAvatarUrl(profile: DispatcherProfile | null | undefined, size: 'sm' | 'lg' = 'sm') {
   const u = profile?.profileImageUrl?.trim();
   if (u) return u;
-  return size === 'lg' ? DEFAULT_DRIVER_AVATAR_LG : DEFAULT_DRIVER_AVATAR_SM;
+  return size === 'lg' ? DEFAULT_DISPATCHER_AVATAR_LG : DEFAULT_DISPATCHER_AVATAR_SM;
 }
 
 export type AuthState = {
   activeRole: AppRole;
   session: null | { userId: string; email?: string; phone?: string; name?: string };
-  driverSession: null | { driverId: string; email?: string; phone?: string; name?: string };
+  dispatcherSession: null | { dispatcherId: string; email?: string; phone?: string; name?: string };
   profile: UserProfile | null;
-  driverProfile: DriverProfile | null;
+  dispatcherProfile: DispatcherProfile | null;
   loading: boolean;
   error: string | null;
 
   hydrate: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   uploadUserProfilePhoto: (localUri: string) => Promise<void>;
-  uploadDriverProfilePhoto: (localUri: string) => Promise<void>;
+  uploadDispatcherProfilePhoto: (localUri: string) => Promise<void>;
   switchRole: (role: AppRole) => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -77,27 +77,32 @@ export type AuthState = {
 export const useStore = create<AuthState>((set, get) => ({
   activeRole: 'USER',
   session: null,
-  driverSession: null,
+  dispatcherSession: null,
   profile: null,
-  driverProfile: null,
+  dispatcherProfile: null,
   loading: false,
   error: null,
 
   hydrate: async () => {
     set({ loading: true, error: null });
     try {
-      const [role, storedUser, storedDriver] = await Promise.all([
+      const [role, storedUser, storedDispatcher] = await Promise.all([
         getActiveRole(),
         getStoredUserSession(),
-        getStoredDriverSession(),
+        getStoredDispatcherSession(),
       ]);
       set({
         activeRole: role,
         session: storedUser
           ? { userId: storedUser.userId, email: storedUser.email, phone: storedUser.phone, name: storedUser.name }
           : null,
-        driverSession: storedDriver
-          ? { driverId: storedDriver.driverId, email: storedDriver.email, phone: storedDriver.phone, name: storedDriver.name }
+        dispatcherSession: storedDispatcher
+          ? {
+              dispatcherId: storedDispatcher.dispatcherId,
+              email: storedDispatcher.email,
+              phone: storedDispatcher.phone,
+              name: storedDispatcher.name,
+            }
           : null,
       });
 
@@ -105,9 +110,16 @@ export const useStore = create<AuthState>((set, get) => ({
         const s = await ensureUserSession();
         set({ session: { userId: s.userId, email: s.email, phone: s.phone, name: s.name } });
       }
-      if (role === 'DRIVER' && !storedDriver) {
-        const s = await ensureDriverSession();
-        set({ driverSession: { driverId: s.driverId, email: s.email, phone: s.phone, name: s.name } });
+      if (role === 'DISPATCHER' && !storedDispatcher) {
+        const s = await ensureDispatcherSession();
+        set({
+          dispatcherSession: {
+            dispatcherId: s.dispatcherId,
+            email: s.email,
+            phone: s.phone,
+            name: s.name,
+          },
+        });
       }
       await get().refreshProfile();
     } catch (e) {
@@ -120,23 +132,26 @@ export const useStore = create<AuthState>((set, get) => ({
   refreshProfile: async () => {
     set({ error: null });
     const state = get();
-    if (state.activeRole === 'DRIVER') {
-      const existingDriver = state.driverSession;
-      if (!existingDriver) throw new Error('Not authenticated');
-      const driverProfile = await driverGet<DriverProfile>(`/driver/me`, existingDriver.driverId);
-      set({ driverProfile });
-      await setStoredDriverSession({
-        driverId: existingDriver.driverId,
-        email: driverProfile.email ?? undefined,
-        phone: driverProfile.phone,
-        name: driverProfile.name,
+    if (state.activeRole === 'DISPATCHER') {
+      const existingDispatcher = state.dispatcherSession;
+      if (!existingDispatcher) throw new Error('Not authenticated');
+      const dispatcherProfile = await dispatcherGet<DispatcherProfile>(
+        `/dispatcher/me`,
+        existingDispatcher.dispatcherId,
+      );
+      set({ dispatcherProfile });
+      await setStoredDispatcherSession({
+        dispatcherId: existingDispatcher.dispatcherId,
+        email: dispatcherProfile.email ?? undefined,
+        phone: dispatcherProfile.phone,
+        name: dispatcherProfile.name,
       });
       set({
-        driverSession: {
-          driverId: existingDriver.driverId,
-          email: driverProfile.email ?? undefined,
-          phone: driverProfile.phone,
-          name: driverProfile.name,
+        dispatcherSession: {
+          dispatcherId: existingDispatcher.dispatcherId,
+          email: dispatcherProfile.email ?? undefined,
+          phone: dispatcherProfile.phone,
+          name: dispatcherProfile.name,
         },
       });
       return;
@@ -169,10 +184,10 @@ export const useStore = create<AuthState>((set, get) => ({
     await get().refreshProfile();
   },
 
-  uploadDriverProfilePhoto: async (localUri: string) => {
-    const session = await ensureDriverSession();
-    const { url } = await driverUploadProfileImage(session.driverId, localUri);
-    await driverPatch('/driver/me', session.driverId, { profileImageUrl: url });
+  uploadDispatcherProfilePhoto: async (localUri: string) => {
+    const session = await ensureDispatcherSession();
+    const { url } = await dispatcherUploadProfileImage(session.dispatcherId, localUri);
+    await dispatcherPatch('/dispatcher/me', session.dispatcherId, { profileImageUrl: url });
     await get().refreshProfile();
   },
 
@@ -186,9 +201,9 @@ export const useStore = create<AuthState>((set, get) => ({
   logout: async () => {
     const role = get().activeRole;
     useBookingsStore.getState().resetBookings();
-    if (role === 'DRIVER') {
-      await setStoredDriverSession(null);
-      set({ driverSession: null, driverProfile: null, error: null });
+    if (role === 'DISPATCHER') {
+      await setStoredDispatcherSession(null);
+      set({ dispatcherSession: null, dispatcherProfile: null, error: null });
       return;
     }
     await setStoredUserSession(null);

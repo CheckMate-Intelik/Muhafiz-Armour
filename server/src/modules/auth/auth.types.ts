@@ -1,7 +1,6 @@
-export type AuthRole = 'USER' | 'DRIVER' | 'ADMIN';
+export type AuthRole = 'USER' | 'DISPATCHER' | 'ADMIN';
 
 export type JwtPayload = {
   sub: string;
   role: AuthRole;
 };
-

@@ -5,16 +5,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { driverAvatarUrl, useStore } from '@/store/store';
+import { dispatcherAvatarUrl, useStore } from '@/store/store';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function DriverProfileScreen() {
+export default function DispatcherProfileScreen() {
   const hydrate = useStore((s) => s.hydrate);
-  const uploadDriverProfilePhoto = useStore((s) => s.uploadDriverProfilePhoto);
+  const uploadDispatcherProfilePhoto = useStore((s) => s.uploadDispatcherProfilePhoto);
   const refreshProfile = useStore((s) => s.refreshProfile);
   const logout = useStore((s) => s.logout);
   const switchRole = useStore((s) => s.switchRole);
-  const profile = useStore((s) => s.driverProfile);
+  const profile = useStore((s) => s.dispatcherProfile);
   const loading = useStore((s) => s.loading);
   const [avatarBusy, setAvatarBusy] = useState(false);
 
@@ -29,8 +29,8 @@ export default function DriverProfileScreen() {
     return `${d.getFullYear()}`;
   }, [profile?.createdAt]);
 
-  const avatarLarge = driverAvatarUrl(profile, 'lg');
-  const avatarSmall = driverAvatarUrl(profile, 'sm');
+  const avatarLarge = dispatcherAvatarUrl(profile, 'lg');
+  const avatarSmall = dispatcherAvatarUrl(profile, 'sm');
 
   async function pickProfilePhoto() {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -49,7 +49,7 @@ export default function DriverProfileScreen() {
     if (!uri) return;
     setAvatarBusy(true);
     try {
-      await uploadDriverProfilePhoto(uri);
+      await uploadDispatcherProfilePhoto(uri);
     } catch (e) {
       const msg = e instanceof Error && e.message.trim().length > 0 ? e.message : 'Could not update profile photo';
       Alert.alert('Upload failed', msg);
@@ -93,7 +93,7 @@ export default function DriverProfileScreen() {
                 <Text
                   className="text-center text-md font-extrabold"
                   style={{ color: '#C9B37A', letterSpacing: 0.4 }}>
-                  DRIVER ACCOUNT
+                  DISPATCHER ACCOUNT
                 </Text>
               </View>
               <View className="w-full items-center rounded-xl bg-[#0B0F14] py-5">
@@ -139,7 +139,7 @@ export default function DriverProfileScreen() {
             <View className="mt-4 overflow-hidden rounded-2xl p-4" style={cardShadow}>
               <ActionRow icon="refresh" title="Refresh profile" onPress={() => void refreshProfile()} />
               <Divider />
-              <ActionRow icon="car" title="Vehicle management" onPress={() => router.push('/(driver-tabs)/vehicles' as any)} />
+              <ActionRow icon="car" title="Vehicle management" onPress={() => router.push('/(dispatcher-tabs)/vehicles' as any)} />
               <Divider />
               <ActionRow
                 icon="exchange"

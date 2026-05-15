@@ -4,59 +4,58 @@ import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { JwtPayload } from '../auth/auth.types';
-import { DriverService } from './driver.service';
+import { DispatcherService } from './dispatcher.service';
 import { RespondDto } from './dto/respond.dto';
-import { UpdateDriverProfileDto } from './dto/update-driver-profile.dto';
+import { UpdateDispatcherProfileDto } from './dto/update-dispatcher-profile.dto';
 
-@Controller('driver')
+@Controller('dispatcher')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('DRIVER')
-export class DriverController {
-  constructor(private readonly drivers: DriverService) {}
+@Roles('DISPATCHER')
+export class DispatcherController {
+  constructor(private readonly dispatchers: DispatcherService) {}
 
   @Get('requests')
   async requests(@AuthUser() user: JwtPayload) {
-    return this.drivers.listMyRequests(user.sub);
+    return this.dispatchers.listMyRequests(user.sub);
   }
 
   @Get('me')
   async me(@AuthUser() user: JwtPayload) {
-    return this.drivers.getById(user.sub);
+    return this.dispatchers.getById(user.sub);
   }
 
   @Patch('me')
-  async patchMe(@AuthUser() user: JwtPayload, @Body() dto: UpdateDriverProfileDto) {
-    return this.drivers.updateProfile(user.sub, dto);
+  async patchMe(@AuthUser() user: JwtPayload, @Body() dto: UpdateDispatcherProfileDto) {
+    return this.dispatchers.updateProfile(user.sub, dto);
   }
 
   @Get('bookings/active')
   async active(@AuthUser() user: JwtPayload) {
-    return this.drivers.listMyActive(user.sub);
+    return this.dispatchers.listMyActive(user.sub);
   }
 
   @Get('bookings/completed')
   async completed(@AuthUser() user: JwtPayload) {
-    return this.drivers.listMyCompleted(user.sub);
+    return this.dispatchers.listMyCompleted(user.sub);
   }
 
   @Patch('bookings/:id/respond')
   async respond(@AuthUser() user: JwtPayload, @Param('id') id: string, @Body() dto: RespondDto) {
-    return this.drivers.respondToBooking(user.sub, id, dto.accept);
+    return this.dispatchers.respondToBooking(user.sub, id, dto.accept);
   }
 
   @Patch('bookings/:id/start')
   async start(@AuthUser() user: JwtPayload, @Param('id') id: string) {
-    return this.drivers.startBooking(user.sub, id);
+    return this.dispatchers.startBooking(user.sub, id);
   }
 
   @Patch('bookings/:id/complete')
   async complete(@AuthUser() user: JwtPayload, @Param('id') id: string) {
-    return this.drivers.completeBooking(user.sub, id);
+    return this.dispatchers.completeBooking(user.sub, id);
   }
 
   @Patch('bookings/:id/cancel')
   async cancel(@AuthUser() user: JwtPayload, @Param('id') id: string) {
-    return this.drivers.cancelBooking(user.sub, id);
+    return this.dispatchers.cancelBooking(user.sub, id);
   }
 }
-

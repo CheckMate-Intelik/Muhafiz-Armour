@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
 import { clearSession, getSession } from '@/lib/session';
 
-export default function AdminDriversPage() {
+export default function AdminDispatchersPage() {
   const router = useRouter();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +21,7 @@ export default function AdminDriversPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.listDrivers();
+      const data = await api.listDispatchers();
       setRows(data);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
@@ -43,7 +43,7 @@ export default function AdminDriversPage() {
   async function toggleApprove(id: string, isApproved: boolean) {
     setBusyId(id);
     try {
-      await api.approveDriver(id, isApproved);
+      await api.approveDispatcher(id, isApproved);
       await load();
     } finally {
       setBusyId(null);
@@ -53,7 +53,7 @@ export default function AdminDriversPage() {
   async function toggleBlock(id: string, isBlocked: boolean) {
     setBusyId(id);
     try {
-      await api.blockDriver(id, isBlocked);
+      await api.blockDispatcher(id, isBlocked);
       await load();
     } finally {
       setBusyId(null);
@@ -64,7 +64,7 @@ export default function AdminDriversPage() {
     <>
       <div className="page-header">
         <div>
-          <h1 className="h1">Drivers</h1>
+          <h1 className="h1">Dispatchers</h1>
           <div className="muted">Click a row for details · Use actions without leaving the list</div>
         </div>
       </div>
@@ -91,15 +91,15 @@ export default function AdminDriversPage() {
                   className="row-click"
                   role="link"
                   tabIndex={0}
-                  onClick={() => router.push(`/admin/drivers/${d.id}`)}
+                  onClick={() => router.push(`/admin/dispatchers/${d.id}`)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      router.push(`/admin/drivers/${d.id}`);
+                      router.push(`/admin/dispatchers/${d.id}`);
                     }
                   }}>
                   <td className="right row-link" onClick={(e) => e.stopPropagation()}>
-                    <Link className="link" href={`/admin/drivers/${d.id}`}>
+                    <Link className="link" href={`/admin/dispatchers/${d.id}`}>
                       Open
                     </Link>
                   </td>
@@ -120,7 +120,7 @@ export default function AdminDriversPage() {
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="muted">
-                    No drivers.
+                    No dispatchers.
                   </td>
                 </tr>
               ) : null}

@@ -3,13 +3,13 @@ import { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function DriverOngoingTripScreen() {
+export default function DispatcherOngoingTripScreen() {
   const params = useLocalSearchParams<{ bookingId?: string }>();
   const bookingId = params.bookingId ?? '';
 
   useEffect(() => {
     if (!bookingId) {
-      router.replace('/(driver-tabs)' as any);
+      router.replace('/(dispatcher-tabs)' as any);
       return;
     }
     router.replace({ pathname: '/booking-details' as any, params: { id: bookingId, live: '1' } });

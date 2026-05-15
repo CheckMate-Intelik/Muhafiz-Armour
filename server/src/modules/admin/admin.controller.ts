@@ -7,6 +7,7 @@ import { UpdateApprovalDto } from './dto/update-approval.dto';
 import { UpdateBlockDto } from './dto/update-block.dto';
 import { CreateCatalogOptionDto } from './dto/create-catalog-option.dto';
 import { UpdateCatalogOptionDto } from './dto/update-catalog-option.dto';
+import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -30,25 +31,25 @@ export class AdminController {
     return this.admin.listBookings();
   }
 
-  @Get('drivers/lookup')
-  async lookupDriver(@Query('id') id: string) {
+  @Get('dispatchers/lookup')
+  async lookupDispatcher(@Query('id') id: string) {
     if (!id?.trim()) throw new BadRequestException('Missing id');
-    return this.admin.getDriver(id.trim());
+    return this.admin.getDispatcher(id.trim());
   }
 
-  @Get('drivers')
-  async listDrivers() {
-    return this.admin.listDrivers();
+  @Get('dispatchers')
+  async listDispatchers() {
+    return this.admin.listDispatchers();
   }
 
-  @Patch('drivers/:id/approve')
-  async approveDriver(@Param('id') id: string, @Body() dto: UpdateApprovalDto) {
-    return this.admin.setDriverApproval(id, dto.isApproved);
+  @Patch('dispatchers/:id/approve')
+  async approveDispatcher(@Param('id') id: string, @Body() dto: UpdateApprovalDto) {
+    return this.admin.setDispatcherApproval(id, dto.isApproved);
   }
 
-  @Patch('drivers/:id/block')
-  async blockDriver(@Param('id') id: string, @Body() dto: UpdateBlockDto) {
-    return this.admin.setDriverBlock(id, dto.isBlocked);
+  @Patch('dispatchers/:id/block')
+  async blockDispatcher(@Param('id') id: string, @Body() dto: UpdateBlockDto) {
+    return this.admin.setDispatcherBlock(id, dto.isBlocked);
   }
 
   @Get('vehicles/lookup')
@@ -65,6 +66,11 @@ export class AdminController {
   @Patch('vehicles/:id/approve')
   async approveVehicle(@Param('id') id: string, @Body() dto: UpdateApprovalDto) {
     return this.admin.setVehicleApproval(id, dto.isApproved);
+  }
+
+  @Patch('vehicles/:id')
+  async updateVehicle(@Param('id') id: string, @Body() dto: UpdateVehicleDto) {
+    return this.admin.updateVehicle(id, dto);
   }
 
   @Get('users/lookup')

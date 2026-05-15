@@ -10,9 +10,9 @@ import {
   apiGet,
   apiPatch,
   apiPost,
-  driverGet,
-  driverPatch,
-  ensureDriverSession,
+  dispatcherGet,
+  dispatcherPatch,
+  ensureDispatcherSession,
   ensureUserSession,
 } from '@/lib/api';
 import { useStore } from '@/store/store';
@@ -21,8 +21,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const USER_SNOOZE_KEY = 'armoured:ongoing-trip-snooze:v1';
 const USER_IN_MEMORY_SNOOZE_KEY = '__armouredOngoingTripSnoozeUntilMs';
-const DRIVER_SNOOZE_KEY = 'armoured_driver:ongoing-trip-snooze:v1';
-const DRIVER_IN_MEMORY_SNOOZE_KEY = '__armouredDriverOngoingTripSnoozeUntilMs';
+const DISPATCHER_SNOOZE_KEY = 'armoured_dispatcher:ongoing-trip-snooze:v1';
+const DISPATCHER_IN_MEMORY_SNOOZE_KEY = '__armouredDispatcherOngoingTripSnoozeUntilMs';
 
 type BookingParams = {
   id?: string;
@@ -33,7 +33,7 @@ type BookingParams = {
   startTime?: string;
   endTime?: string;
   totalPrice?: string;
-  driverName?: string;
+  dispatcherName?: string;
   customerName?: string;
   vehicleArmour?: string;
   vehicleType?: string;
@@ -48,11 +48,16 @@ type UserLiveBooking = {
   endTime: string;
   status: string;
   totalPrice: number | null;
-  driver?: { name: string } | null;
-  vehicle?: { armourLevel: string; vehicleType: string } | null;
+  dispatcher?: { name: string } | null;
+  vehicle?: {
+    armourLevel: string;
+    vehicleType: string;
+    manufacturer?: string | null;
+    carModel?: string | null;
+  } | null;
 };
 
-type DriverLiveBooking = {
+type DispatcherLiveBooking = {
   id: string;
   pickupLocation: string;
   dropLocation: string;
@@ -89,28 +94,30 @@ export default function BookingDetailsScreen() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [fetchedUser, setFetchedUser] = useState<UserLiveBooking | null>(null);
-  const [fetchedDriver, setFetchedDriver] = useState<DriverLiveBooking | null>(null);
+  const [fetchedDispatcher, setFetchedDispatcher] = useState<DispatcherLiveBooking | null>(null);
   const [pollReady, setPollReady] = useState(false);
 
   const activeRole = useStore((s) => s.activeRole);
-  const isDriverMode = activeRole === 'DRIVER';
+  const isDispatcherMode = activeRole === 'DISPATCHER';
 
   const bookingId = (params.id ?? '').trim();
   const isLiveRoute = params.live === '1';
-  const initialStatus = (params.status ?? '').trim();
+  const initialStatus = (params.status ?? '').trim().toUpperCase();
+  const hasParamDetails = Boolean((params.pickupLocation ?? '').trim() && (params.dropLocation ?? '').trim());
 
-  const shouldPoll =
+  const shouldFetch = Boolean(bookingId);
+  const shouldPollInterval =
     Boolean(bookingId) &&
     (isLiveRoute || initialStatus === 'IN_PROGRESS' || initialStatus === 'CONFIRMED');
 
   const load = useCallback(async () => {
-    if (!bookingId || !shouldPoll) return;
+    if (!bookingId || !shouldFetch) return;
     try {
-      if (isDriverMode) {
-        const s = await ensureDriverSession();
-        const active = await driverGet<DriverLiveBooking[]>(`/driver/bookings/active`, s.driverId);
+      if (isDispatcherMode) {
+        const s = await ensureDispatcherSession();
+        const active = await dispatcherGet<DispatcherLiveBooking[]>(`/dispatcher/bookings/active`, s.dispatcherId);
         const match = Array.isArray(active) ? active.find((b) => b.id === bookingId) : undefined;
-        setFetchedDriver(match ?? null);
+        setFetchedDispatcher(match ?? null);
       } else {
         const s = await ensureUserSession();
         const rows = await apiGet<UserLiveBooking[]>(`/bookings`, s.userId);
@@ -122,10 +129,10 @@ export default function BookingDetailsScreen() {
     } finally {
       setPollReady(true);
     }
-  }, [bookingId, shouldPoll, isDriverMode]);
+  }, [bookingId, shouldFetch, isDispatcherMode]);
 
   useEffect(() => {
-    if (!shouldPoll) {
+    if (!shouldFetch) {
       setPollReady(true);
       return;
     }
@@ -134,6 +141,7 @@ export default function BookingDetailsScreen() {
     let interval: ReturnType<typeof setInterval> | null = null;
     void load().then(() => {
       if (cancelled) return;
+      if (!shouldPollInterval) return;
       interval = setInterval(() => {
         void load().catch(() => null);
       }, 5000);
@@ -142,13 +150,12 @@ export default function BookingDetailsScreen() {
       cancelled = true;
       if (interval) clearInterval(interval);
     };
-  }, [shouldPoll, load]);
+  }, [shouldFetch, shouldPollInterval, load]);
 
   const display = useMemo((): DisplayBooking => {
-    const personLabel = isDriverMode ? 'Customer' : 'Driver';
-    if (shouldPoll) {
-      if (isDriverMode && fetchedDriver) {
-        const b = fetchedDriver;
+    const personLabel = isDispatcherMode ? 'Customer' : 'Dispatcher';
+    if (isDispatcherMode && fetchedDispatcher) {
+        const b = fetchedDispatcher;
         const v = b.vehicle;
         const vehicleName =
           [v?.manufacturer, v?.carModel].filter(Boolean).join(' ').trim() || v?.vehicleType || '—';
@@ -167,33 +174,35 @@ export default function BookingDetailsScreen() {
           startTime: b.startTime,
           endTime: b.endTime,
         };
-      }
-      if (!isDriverMode && fetchedUser) {
-        const b = fetchedUser;
-        const v = b.vehicle;
-        const payout = b.totalPrice ?? NaN;
-        const vehicleName =
-          (params.vehicleName ?? '').trim() || v?.vehicleType || '—';
-        return {
-          personLabel,
-          personName: b.driver?.name ?? '—',
-          status: b.status,
-          payoutLabel: Number.isFinite(payout) ? `Rs ${payout.toFixed(2)}` : '—',
-          vehicleName,
-          vehicleType: v?.vehicleType ?? '—',
-          vehicleArmour: v?.armourLevel ?? '—',
-          id: b.id,
-          pickupLocation: b.pickupLocation,
-          dropLocation: b.dropLocation,
-          startTime: b.startTime,
-          endTime: b.endTime,
-        };
-      }
+    }
+    if (!isDispatcherMode && fetchedUser) {
+      const b = fetchedUser;
+      const v = b.vehicle;
+      const payout = b.totalPrice ?? NaN;
+      const vehicleName =
+        [v?.manufacturer, v?.carModel].filter(Boolean).join(' ').trim() ||
+        (params.vehicleName ?? '').trim() ||
+        v?.vehicleType ||
+        '—';
+      return {
+        personLabel,
+        personName: b.dispatcher?.name ?? '—',
+        status: b.status,
+        payoutLabel: Number.isFinite(payout) ? `Rs ${payout.toFixed(2)}` : '—',
+        vehicleName,
+        vehicleType: v?.vehicleType ?? '—',
+        vehicleArmour: v?.armourLevel ?? '—',
+        id: b.id,
+        pickupLocation: b.pickupLocation,
+        dropLocation: b.dropLocation,
+        startTime: b.startTime,
+        endTime: b.endTime,
+      };
     }
     const payout = Number(params.totalPrice ?? '');
     return {
       personLabel,
-      personName: isDriverMode ? params.customerName ?? '—' : params.driverName ?? '—',
+      personName: isDispatcherMode ? params.customerName ?? '—' : params.dispatcherName ?? '—',
       status: params.status ?? '—',
       payoutLabel: Number.isFinite(payout) ? `Rs ${payout.toFixed(2)}` : '—',
       vehicleName: params.vehicleName ?? '—',
@@ -205,32 +214,32 @@ export default function BookingDetailsScreen() {
       startTime: params.startTime ?? '',
       endTime: params.endTime ?? '',
     };
-  }, [shouldPoll, isDriverMode, fetchedUser, fetchedDriver, params, bookingId]);
+  }, [isDispatcherMode, fetchedUser, fetchedDispatcher, params, bookingId]);
 
-  const hasLiveRow = isDriverMode ? fetchedDriver != null : fetchedUser != null;
+  const hasLiveRow = isDispatcherMode ? fetchedDispatcher != null : fetchedUser != null;
 
   useEffect(() => {
-    if (!shouldPoll) return;
+    if (!shouldPollInterval) return;
     const st = display.status;
     if (st === 'COMPLETED') {
-      router.replace(isDriverMode ? ('/(driver-tabs)' as any) : ('/(tabs)' as any));
+      router.replace(isDispatcherMode ? ('/(dispatcher-tabs)' as any) : ('/(tabs)' as any));
       return;
     }
     if (st === 'REJECTED' || st === 'EXPIRED') {
-      router.replace(isDriverMode ? ('/(driver-tabs)' as any) : ('/(tabs)' as any));
+      router.replace(isDispatcherMode ? ('/(dispatcher-tabs)' as any) : ('/(tabs)' as any));
     }
-  }, [shouldPoll, display.status, isDriverMode]);
+  }, [shouldPollInterval, display.status, isDispatcherMode]);
 
   async function dismissLive() {
     const untilMs = Date.now() + 6 * 60 * 60 * 1000;
-    if (isDriverMode) {
-      (globalThis as unknown as Record<string, number>)[DRIVER_IN_MEMORY_SNOOZE_KEY] = untilMs;
+    if (isDispatcherMode) {
+      (globalThis as unknown as Record<string, number>)[DISPATCHER_IN_MEMORY_SNOOZE_KEY] = untilMs;
       try {
-        await AsyncStorage.setItem(DRIVER_SNOOZE_KEY, JSON.stringify({ untilMs }));
+        await AsyncStorage.setItem(DISPATCHER_SNOOZE_KEY, JSON.stringify({ untilMs }));
       } catch {
         // ignore
       }
-      router.replace('/(driver-tabs)' as any);
+      router.replace('/(dispatcher-tabs)' as any);
     } else {
       (globalThis as unknown as Record<string, number>)[USER_IN_MEMORY_SNOOZE_KEY] = untilMs;
       try {
@@ -250,7 +259,7 @@ export default function BookingDetailsScreen() {
     }
   }
 
-  async function cancelTripDriver(bookingIdParam: string) {
+  async function cancelTripDispatcher(bookingIdParam: string) {
     Alert.alert('Cancel trip?', 'This will cancel the selected trip.', [
       { text: 'No', style: 'cancel' },
       {
@@ -259,9 +268,9 @@ export default function BookingDetailsScreen() {
         onPress: async () => {
           try {
             setBusyId(bookingIdParam);
-            const s = await ensureDriverSession();
-            await driverPatch(`/driver/bookings/${bookingIdParam}/cancel`, s.driverId);
-            await useBookingsStore.getState().refreshDriverBookings().catch(() => null);
+            const s = await ensureDispatcherSession();
+            await dispatcherPatch(`/dispatcher/bookings/${bookingIdParam}/cancel`, s.dispatcherId);
+            await useBookingsStore.getState().refreshDispatcherBookings().catch(() => null);
             router.back();
           } catch (e) {
             Alert.alert('Failed', e instanceof Error ? e.message : 'Cancel trip failed');
@@ -312,15 +321,15 @@ export default function BookingDetailsScreen() {
     }
   }
 
-  async function respondDriver(accept: boolean) {
+  async function respondDispatcher(accept: boolean) {
     const id = display.id;
     if (!id || id === '—') return;
     try {
       setBusy(true);
-      const s = await ensureDriverSession();
-      await driverPatch(`/driver/bookings/${id}/respond`, s.driverId, { accept });
-      await useBookingsStore.getState().refreshDriverBookings().catch(() => null);
-      router.replace('/(driver-tabs)/bookings' as any);
+      const s = await ensureDispatcherSession();
+      await dispatcherPatch(`/dispatcher/bookings/${id}/respond`, s.dispatcherId, { accept });
+      await useBookingsStore.getState().refreshDispatcherBookings().catch(() => null);
+      router.replace('/(dispatcher-tabs)/bookings' as any);
     } catch (e) {
       Alert.alert('Failed', e instanceof Error ? e.message : 'Request failed');
     } finally {
@@ -328,7 +337,29 @@ export default function BookingDetailsScreen() {
     }
   }
 
-  async function completeTripDriver(bookingIdParam: string) {
+  async function startTripDispatcher(bookingIdParam: string) {
+    Alert.alert('Start trip?', 'Mark this trip as in progress.', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Start',
+        onPress: async () => {
+          try {
+            setBusy(true);
+            const s = await ensureDispatcherSession();
+            await dispatcherPatch(`/dispatcher/bookings/${bookingIdParam}/start`, s.dispatcherId);
+            await useBookingsStore.getState().refreshDispatcherBookings().catch(() => null);
+            await load();
+          } catch (e) {
+            Alert.alert('Failed', e instanceof Error ? e.message : 'Start trip failed');
+          } finally {
+            setBusy(false);
+          }
+        },
+      },
+    ]);
+  }
+
+  async function completeTripDispatcher(bookingIdParam: string) {
     Alert.alert('Complete trip?', 'Mark this trip as completed.', [
       { text: 'No', style: 'cancel' },
       {
@@ -336,10 +367,10 @@ export default function BookingDetailsScreen() {
         onPress: async () => {
           try {
             setBusy(true);
-            const s = await ensureDriverSession();
-            await driverPatch(`/driver/bookings/${bookingIdParam}/complete`, s.driverId);
-            await useBookingsStore.getState().refreshDriverBookings().catch(() => null);
-            router.replace('/(driver-tabs)' as any);
+            const s = await ensureDispatcherSession();
+            await dispatcherPatch(`/dispatcher/bookings/${bookingIdParam}/complete`, s.dispatcherId);
+            await useBookingsStore.getState().refreshDispatcherBookings().catch(() => null);
+            router.replace('/(dispatcher-tabs)' as any);
           } catch (e) {
             Alert.alert('Failed', e instanceof Error ? e.message : 'Complete failed');
           } finally {
@@ -373,7 +404,7 @@ export default function BookingDetailsScreen() {
     );
   }
 
-  if (isLiveRoute && shouldPoll && !pollReady) {
+  if (shouldFetch && !pollReady && (!hasParamDetails || isLiveRoute)) {
     return (
       <LinearGradient
         colors={['#1a2744', '#0f172a', '#020617']}
@@ -388,7 +419,7 @@ export default function BookingDetailsScreen() {
     );
   }
 
-  if (isLiveRoute && shouldPoll && pollReady && !hasLiveRow) {
+  if (isLiveRoute && shouldPollInterval && pollReady && !hasLiveRow) {
     return (
       <LinearGradient
         colors={['#1a2744', '#0f172a', '#020617']}
@@ -419,7 +450,7 @@ export default function BookingDetailsScreen() {
               className="mt-4 rounded-2xl px-4 py-3"
               style={{ backgroundColor: '#C9B37A' }}>
               <Text className="text-xs font-extrabold" style={{ color: '#0B0F14' }}>
-                {isDriverMode ? 'Back to bookings' : 'Back to home'}
+                {isDispatcherMode ? 'Back to bookings' : 'Back to home'}
               </Text>
             </Pressable>
           </View>
@@ -428,16 +459,17 @@ export default function BookingDetailsScreen() {
     );
   }
 
-  const st = display.status;
+  const st = (display.status ?? '').trim().toUpperCase();
   const userMayCancel =
-    st === 'REQUESTED' || st === 'PENDING_DRIVER' || st === 'CONFIRMED';
-  const showUserExtend = !isDriverMode && (st === 'IN_PROGRESS' || st === 'CONFIRMED');
-  const showUserCancel = !isDriverMode && userMayCancel;
-  const showDriverComplete = isDriverMode && st === 'IN_PROGRESS';
-  const showDriverCancel = isDriverMode && st === 'CONFIRMED';
-  const showDriverRespond =
-    isDriverMode && (st === 'REQUESTED' || st === 'PENDING_DRIVER');
-  const showUserInfoDuringTrip = !isDriverMode && st === 'IN_PROGRESS';
+    st === 'REQUESTED' || st === 'PENDING_DISPATCHER' || st === 'CONFIRMED';
+  const showUserExtend = !isDispatcherMode && (st === 'IN_PROGRESS' || st === 'CONFIRMED');
+  const showUserCancel = !isDispatcherMode && userMayCancel;
+  const showDispatcherStart = isDispatcherMode && st === 'CONFIRMED';
+  const showDispatcherComplete = isDispatcherMode && st === 'IN_PROGRESS';
+  const showDispatcherCancel = isDispatcherMode && st === 'CONFIRMED';
+  const showDispatcherRespond =
+    isDispatcherMode && (st === 'REQUESTED' || st === 'PENDING_DISPATCHER');
+  const showUserInfoDuringTrip = !isDispatcherMode && st === 'IN_PROGRESS';
 
   return (
     <LinearGradient
@@ -456,7 +488,7 @@ export default function BookingDetailsScreen() {
               <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
             </Pressable>
             <Text className="text-lg font-bold text-gray-200">Booking details</Text>
-            {shouldPoll ? (
+            {shouldPollInterval ? (
               <Pressable
                 onPress={() => void load()}
                 className="h-10 w-10 items-center justify-center rounded-2xl"
@@ -490,7 +522,7 @@ export default function BookingDetailsScreen() {
               className="mt-4 rounded-2xl px-4 py-3"
               style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
               <Text className="text-xs font-semibold" style={{ color: '#B8BBC0' }}>
-                You’ll be notified here once the driver completes the trip.
+                You’ll be notified here once the dispatcher completes the trip.
               </Text>
             </View>
           ) : null}
@@ -529,11 +561,11 @@ export default function BookingDetailsScreen() {
             </View>
           ) : null}
 
-          {showDriverRespond ? (
+          {showDispatcherRespond ? (
             <View className="mt-4 flex-row gap-3">
               <Pressable
                 disabled={busy}
-                onPress={() => void respondDriver(false)}
+                onPress={() => void respondDispatcher(false)}
                 className="flex-1 items-center justify-center rounded-2xl py-4"
                 style={{
                   backgroundColor: '#0B0F14',
@@ -547,7 +579,7 @@ export default function BookingDetailsScreen() {
               </Pressable>
               <Pressable
                 disabled={busy}
-                onPress={() => void respondDriver(true)}
+                onPress={() => void respondDispatcher(true)}
                 className="flex-1 items-center justify-center rounded-2xl py-4"
                 style={{ backgroundColor: '#C9B37A', opacity: busy ? 0.6 : 1 }}>
                 <Text className="text-sm font-extrabold" style={{ color: '#0B0F14' }}>
@@ -557,12 +589,27 @@ export default function BookingDetailsScreen() {
             </View>
           ) : null}
 
-          {showDriverComplete ? (
+          {showDispatcherStart ? (
             <Pressable
               disabled={busy}
               onPress={() => {
                 const id = display.id;
-                if (id && id !== '—') void completeTripDriver(id);
+                if (id && id !== '—') void startTripDispatcher(id);
+              }}
+              className="mt-4 items-center justify-center rounded-2xl py-4"
+              style={{ backgroundColor: busy ? 'rgba(255,255,255,0.12)' : '#C9B37A', opacity: busy ? 0.6 : 1 }}>
+              <Text className="text-sm font-extrabold" style={{ color: busy ? '#9CA3AF' : '#0B0F14' }}>
+                {busy ? 'Please wait…' : 'Start trip'}
+              </Text>
+            </Pressable>
+          ) : null}
+
+          {showDispatcherComplete ? (
+            <Pressable
+              disabled={busy}
+              onPress={() => {
+                const id = display.id;
+                if (id && id !== '—') void completeTripDispatcher(id);
               }}
               className={`mt-4 items-center justify-center rounded-2xl py-4 ${busy ? 'bg-gray-200' : 'bg-emerald-600'}`}>
               <Text className={`text-sm font-extrabold ${busy ? 'text-gray-500' : 'text-white'}`}>
@@ -587,12 +634,12 @@ export default function BookingDetailsScreen() {
             </Pressable>
           ) : null}
 
-          {showDriverCancel ? (
+          {showDispatcherCancel ? (
             <Pressable
               disabled={busyId === display.id}
               onPress={() => {
                 const id = display.id;
-                if (id && id !== '—') void cancelTripDriver(id);
+                if (id && id !== '—') void cancelTripDispatcher(id);
               }}
               className={`mt-4 items-center justify-center rounded-full py-4 ${
                 busyId === display.id ? 'bg-gray-200' : 'bg-red-600'

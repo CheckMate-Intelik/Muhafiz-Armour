@@ -9,10 +9,10 @@ import { useBookingsStore } from '@/store/bookingsStore';
 
 type Snooze = { untilMs: number };
 
-const SNOOZE_KEY = 'armoured_driver:ongoing-trip-snooze:v1';
-const IN_MEMORY_SNOOZE_KEY = '__armouredDriverOngoingTripSnoozeUntilMs';
+const SNOOZE_KEY = 'armoured_dispatcher:ongoing-trip-snooze:v1';
+const IN_MEMORY_SNOOZE_KEY = '__armouredDispatcherOngoingTripSnoozeUntilMs';
 
-export default function DriverTabLayout() {
+export default function DispatcherTabLayout() {
   const pathname = usePathname();
   const activeRole = useStore((s) => s.activeRole);
   const hydrate = useStore((s) => s.hydrate);
@@ -59,14 +59,14 @@ export default function DriverTabLayout() {
     }
 
     async function checkOngoing() {
-      if (activeRole !== 'DRIVER') return;
+      if (activeRole !== 'DISPATCHER') return;
       if (pathname === '/login' || pathname === '/signup' || pathname === '/booking-details') return;
       try {
         snooze = await readSnooze();
         if (snooze) return;
 
-        await useBookingsStore.getState().refreshDriverBookings();
-        const rows = useBookingsStore.getState().driverActive;
+        await useBookingsStore.getState().refreshDispatcherBookings();
+        const rows = useBookingsStore.getState().dispatcherActive;
         const ongoing = Array.isArray(rows) ? rows.find((b) => b.status === 'IN_PROGRESS') : undefined;
         if (cancelled) return;
         if (!ongoing?.id) {
@@ -235,7 +235,7 @@ export default function DriverTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="driver"
+        name="dispatcher"
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, focused }) => (

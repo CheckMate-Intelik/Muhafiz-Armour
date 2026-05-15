@@ -22,8 +22,8 @@ export default function TabLayout() {
   }, [hydrate]);
 
   useEffect(() => {
-    if (activeRole === 'DRIVER') {
-      router.replace('/(driver-tabs)' as any);
+    if (activeRole === 'DISPATCHER') {
+      router.replace('/(dispatcher-tabs)' as any);
     }
   }, [activeRole]);
 

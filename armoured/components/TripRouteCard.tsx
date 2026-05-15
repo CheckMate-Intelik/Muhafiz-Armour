@@ -15,7 +15,7 @@ function getStatusMeta(status?: string | null): StatusMeta | null {
       return { label: 'Ongoing', bgClass: 'bg-emerald-100', textClass: 'text-emerald-800' };
     case 'CONFIRMED':
       return { label: 'Confirmed', bgClass: 'bg-blue-100', textClass: 'text-blue-800' };
-    case 'PENDING_DRIVER':
+    case 'PENDING_DISPATCHER':
       return { label: 'Pending', bgClass: 'bg-amber-100', textClass: 'text-amber-800' };
     case 'REQUESTED':
       return { label: 'Requested', bgClass: 'bg-amber-100', textClass: 'text-amber-800' };

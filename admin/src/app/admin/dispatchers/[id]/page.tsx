@@ -12,7 +12,7 @@ function fmt(dt: string | Date | null | undefined) {
   return new Date(dt).toLocaleString();
 }
 
-export default function AdminDriverDetailPage() {
+export default function AdminDispatcherDetailPage() {
   const router = useRouter();
   const params = useParams();
   const id = segmentParam(params.id);
@@ -30,7 +30,7 @@ export default function AdminDriverDetailPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getDriver(id);
+      const data = await api.getDispatcher(id);
       setRow(data);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
@@ -52,7 +52,7 @@ export default function AdminDriverDetailPage() {
     if (!row) return;
     setBusy(true);
     try {
-      await api.approveDriver(row.id, !row.isApproved);
+      await api.approveDispatcher(row.id, !row.isApproved);
       await load();
     } finally {
       setBusy(false);
@@ -63,7 +63,7 @@ export default function AdminDriverDetailPage() {
     if (!row) return;
     setBusy(true);
     try {
-      await api.blockDriver(row.id, !row.isBlocked);
+      await api.blockDispatcher(row.id, !row.isBlocked);
       await load();
     } finally {
       setBusy(false);
@@ -74,11 +74,11 @@ export default function AdminDriverDetailPage() {
     <>
       <div className="page-header">
         <div>
-          <Link className="link muted" href="/admin/drivers">
-            ← Drivers
+          <Link className="link muted" href="/admin/dispatchers">
+            ← Dispatchers
           </Link>
           <h1 className="h1" style={{ marginTop: 8 }}>
-            Driver
+            Dispatcher
           </h1>
           <div className="muted mono">{id || '—'}</div>
         </div>

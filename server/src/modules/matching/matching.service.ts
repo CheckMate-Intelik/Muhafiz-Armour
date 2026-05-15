@@ -42,7 +42,7 @@ export class MatchingService {
       where: {
         vehicleId,
         ...(excludeBookingId ? { id: { not: excludeBookingId } } : {}),
-        status: { in: ['PENDING_DRIVER', 'CONFIRMED', 'IN_PROGRESS'] },
+        status: { in: ['PENDING_DISPATCHER', 'CONFIRMED', 'IN_PROGRESS'] },
       },
       select: { startTime: true, endTime: true, bufferMinutes: true },
     });
@@ -59,12 +59,12 @@ export class MatchingService {
       where: {
         isApproved: true,
         status: 'AVAILABLE',
-        driver: enforceApprovals ? { isApproved: true, isBlocked: false } : { isBlocked: false },
+        dispatcher: enforceApprovals ? { isApproved: true, isBlocked: false } : { isBlocked: false },
       },
       include: {
-        driver: true,
+        dispatcher: true,
         bookings: {
-          where: { status: { in: ['PENDING_DRIVER', 'CONFIRMED', 'IN_PROGRESS'] } },
+          where: { status: { in: ['PENDING_DISPATCHER', 'CONFIRMED', 'IN_PROGRESS'] } },
           select: { startTime: true, endTime: true, bufferMinutes: true },
         },
       },

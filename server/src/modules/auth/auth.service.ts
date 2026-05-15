@@ -34,8 +34,8 @@ export class AuthService {
       return { token: await this.jwt.signAsync(payload), role: 'ADMIN' as AuthRole };
     }
 
-    const role = dto.role === 'DRIVER' ? 'DRIVER' : 'USER';
-    const name = (dto.name?.trim() || (role === 'DRIVER' ? 'Driver' : 'User')).slice(0, 80);
+    const role = dto.role === 'DISPATCHER' ? 'DISPATCHER' : 'USER';
+    const name = (dto.name?.trim() || (role === 'DISPATCHER' ? 'Dispatcher' : 'User')).slice(0, 80);
 
     const email = dto.email?.trim();
     const password = dto.password ?? '';
@@ -43,19 +43,22 @@ export class AuthService {
     if (email) {
       if (!password.trim()) throw new BadRequestException('password is required');
 
-      if (role === 'DRIVER') {
-        const driver = await this.prisma.driver.findUnique({ where: { email } });
-        if (!driver) throw new UnauthorizedException('Invalid credentials');
-        if (!driver.passwordHash) {
+      if (role === 'DISPATCHER') {
+        const dispatcher = await this.prisma.dispatcher.findUnique({ where: { email } });
+        if (!dispatcher) throw new UnauthorizedException('Invalid credentials');
+        if (!dispatcher.passwordHash) {
           const passwordHash = await this.hashPassword(password);
-          const upgraded = await this.prisma.driver.update({ where: { id: driver.id }, data: { passwordHash } });
-          const payload: JwtPayload = { sub: upgraded.id, role: 'DRIVER' };
-          return { token: await this.jwt.signAsync(payload), role: 'DRIVER' as AuthRole, driver: upgraded };
+          const upgraded = await this.prisma.dispatcher.update({
+            where: { id: dispatcher.id },
+            data: { passwordHash },
+          });
+          const payload: JwtPayload = { sub: upgraded.id, role: 'DISPATCHER' };
+          return { token: await this.jwt.signAsync(payload), role: 'DISPATCHER' as AuthRole, dispatcher: upgraded };
         }
-        const ok = await this.verifyPassword(password, driver.passwordHash);
+        const ok = await this.verifyPassword(password, dispatcher.passwordHash);
         if (!ok) throw new UnauthorizedException('Invalid credentials');
-        const payload: JwtPayload = { sub: driver.id, role: 'DRIVER' };
-        return { token: await this.jwt.signAsync(payload), role: 'DRIVER' as AuthRole, driver };
+        const payload: JwtPayload = { sub: dispatcher.id, role: 'DISPATCHER' };
+        return { token: await this.jwt.signAsync(payload), role: 'DISPATCHER' as AuthRole, dispatcher };
       }
 
       const user = await this.prisma.user.findUnique({ where: { email } });
@@ -75,14 +78,14 @@ export class AuthService {
     const phone = dto.phone?.trim();
     if (!phone) throw new BadRequestException('phone is required');
 
-    if (role === 'DRIVER') {
-      const driver = await this.prisma.driver.upsert({
+    if (role === 'DISPATCHER') {
+      const dispatcher = await this.prisma.dispatcher.upsert({
         where: { phone },
         update: { name },
         create: { phone, name },
       });
-      const payload: JwtPayload = { sub: driver.id, role: 'DRIVER' };
-      return { token: await this.jwt.signAsync(payload), role: 'DRIVER' as AuthRole, driver };
+      const payload: JwtPayload = { sub: dispatcher.id, role: 'DISPATCHER' };
+      return { token: await this.jwt.signAsync(payload), role: 'DISPATCHER' as AuthRole, dispatcher };
     }
 
     const user = await this.prisma.user.upsert({
@@ -98,8 +101,8 @@ export class AuthService {
     const phone = dto.phone?.trim() || dto.email?.trim();
     const email = dto.email?.trim();
     const password = dto.password ?? '';
-    const role = dto.role === 'DRIVER' ? 'DRIVER' : 'USER';
-    const name = (dto.name?.trim() || (role === 'DRIVER' ? 'Driver' : 'User')).slice(0, 80);
+    const role = dto.role === 'DISPATCHER' ? 'DISPATCHER' : 'USER';
+    const name = (dto.name?.trim() || (role === 'DISPATCHER' ? 'Dispatcher' : 'User')).slice(0, 80);
 
     if (!email) throw new BadRequestException('email is required');
     if (!phone) throw new BadRequestException('phone is required');
@@ -107,15 +110,15 @@ export class AuthService {
 
     const passwordHash = await this.hashPassword(password);
 
-    if (role === 'DRIVER') {
-      const existingByPhone = await this.prisma.driver.findUnique({ where: { phone } });
-      if (existingByPhone) throw new ConflictException('Driver already exists');
-      const existingByEmail = await this.prisma.driver.findUnique({ where: { email } });
-      if (existingByEmail) throw new ConflictException('Driver already exists');
+    if (role === 'DISPATCHER') {
+      const existingByPhone = await this.prisma.dispatcher.findUnique({ where: { phone } });
+      if (existingByPhone) throw new ConflictException('Dispatcher already exists');
+      const existingByEmail = await this.prisma.dispatcher.findUnique({ where: { email } });
+      if (existingByEmail) throw new ConflictException('Dispatcher already exists');
 
-      const driver = await this.prisma.driver.create({ data: { phone, name, email, passwordHash } });
-      const payload: JwtPayload = { sub: driver.id, role: 'DRIVER' };
-      return { token: await this.jwt.signAsync(payload), role: 'DRIVER' as AuthRole, driver };
+      const dispatcher = await this.prisma.dispatcher.create({ data: { phone, name, email, passwordHash } });
+      const payload: JwtPayload = { sub: dispatcher.id, role: 'DISPATCHER' };
+      return { token: await this.jwt.signAsync(payload), role: 'DISPATCHER' as AuthRole, dispatcher };
     }
 
     const existingByPhone = await this.prisma.user.findUnique({ where: { phone } });
@@ -146,4 +149,3 @@ export class AuthService {
     return timingSafeEqual(derivedKey, key);
   }
 }
-

@@ -7,25 +7,25 @@ import { RolesGuard } from '../auth/roles.guard';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { VehicleService } from './vehicle.service';
 
-@Controller('driver/vehicles')
+@Controller('dispatcher/vehicles')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('DRIVER')
+@Roles('DISPATCHER')
 export class VehicleController {
   constructor(private readonly vehicles: VehicleService) {}
 
   @Post()
   async create(@AuthUser() user: JwtPayload, @Body() dto: CreateVehicleDto) {
-    return this.vehicles.createForDriver(user.sub, dto);
+    return this.vehicles.createForDispatcher(user.sub, dto);
   }
 
   @Get()
   async list(@AuthUser() user: JwtPayload) {
-    return this.vehicles.listForDriver(user.sub);
+    return this.vehicles.listForDispatcher(user.sub);
   }
 
   @Get(':id')
   async details(@AuthUser() user: JwtPayload, @Param('id') id: string) {
-    const v = await this.vehicles.getForDriverById(user.sub, id);
+    const v = await this.vehicles.getForDispatcherById(user.sub, id);
     if (!v) return { vehicle: null };
 
     const featuresByLevel: Record<string, string[]> = {
@@ -54,12 +54,11 @@ export class VehicleController {
         condition: v.year && v.year >= new Date().getFullYear() - 2 ? 'Excellent condition' : 'Operational condition',
         features: featuresByLevel[v.armourLevel] ?? ['Bullet-resistant body', 'Secured transport'],
         owner: {
-          id: v.driver?.id ?? '',
-          name: v.driver?.name ?? 'Owner',
+          id: v.dispatcher?.id ?? '',
+          name: v.dispatcher?.name ?? 'Owner',
           rating: 4.9,
         },
       },
     };
   }
 }
-

@@ -1,6 +1,6 @@
 export function StatusBadge({ status }: { status: string }) {
   const cls =
-    status === 'PENDING' || status === 'PENDING_DRIVER' || status === 'REQUESTED'
+    status === 'PENDING' || status === 'PENDING_DISPATCHER' || status === 'REQUESTED'
       ? 'badge badge-yellow'
       : status === 'CONFIRMED' || status === 'COMPLETED'
         ? 'badge badge-green'

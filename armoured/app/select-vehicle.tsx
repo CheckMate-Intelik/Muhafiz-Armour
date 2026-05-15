@@ -1,20 +1,32 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
+import { APP_GRADIENT, AUTH_CARD, AUTH_GOLD } from '@/components/AuthForm';
 import { apiGet, apiPost, ensureUserSession } from '@/lib/api';
 
 type Option = {
   vehicleId: string;
-  driverId: string;
+  dispatcherId: string;
   armourLevel: string;
   vehicleType: string;
   baseRatePerHour: number;
   location: string;
-  driverName: string;
+  dispatcherName: string;
   estimatedPrice: number;
+};
+
+const CARD_SHADOW: ViewStyle = {
+  backgroundColor: AUTH_CARD,
+  borderColor: 'rgba(255,255,255,0.06)',
+  shadowColor: '#000',
+  shadowOpacity: 0.22,
+  shadowRadius: 14,
+  shadowOffset: { width: 0, height: 10 },
+  elevation: 6,
 };
 
 export default function SelectVehicleScreen() {
@@ -76,82 +88,91 @@ export default function SelectVehicleScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="px-5 pt-4">
-        <View className="flex-row items-center justify-between">
-          <Pressable
-            onPress={() => router.back()}
-            className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-            <FontAwesome name="arrow-left" size={16} color="#111827" />
-          </Pressable>
-          <Text className="text-base font-extrabold text-gray-900">Select vehicle</Text>
-          <View className="h-10 w-10" />
+    <LinearGradient
+      colors={[...APP_GRADIENT]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      locations={[0, 0.5, 1]}
+      style={{ flex: 1 }}>
+      <SafeAreaView className="flex-1">
+        <View className="px-5 pt-2">
+          <View className="flex-row items-center justify-between">
+            <Pressable
+              onPress={() => router.back()}
+              className="h-10 w-10 items-center justify-center rounded-full bg-white">
+              <FontAwesome name="angle-left" size={20} color="#111827" />
+            </Pressable>
+            <Text className="text-2xl font-semibold" style={{ color: AUTH_GOLD }}>
+              Select vehicle
+            </Text>
+            <View className="h-10 w-10" />
+          </View>
         </View>
-      </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 36 }} className="px-5 pt-4">
-        {loading ? (
-          <View className="mt-10 items-center">
-            <Text className="text-sm font-semibold text-gray-500">Loading options…</Text>
-          </View>
-        ) : null}
-
-        {visibleEmptyState ? (
-          <View className="mt-10 items-center">
-            <View className="h-14 w-14 items-center justify-center rounded-3xl bg-gray-100">
-              <FontAwesome name="car" size={20} color="#111827" />
+        <ScrollView contentContainerStyle={{ paddingBottom: 36 }} className="px-5 pt-4" keyboardShouldPersistTaps="handled">
+          {loading ? (
+            <View className="mt-10 items-center">
+              <Text className="text-sm font-semibold" style={{ color: '#9CA3AF' }}>
+                Loading options…
+              </Text>
             </View>
-            <Text className="mt-4 text-base font-extrabold text-gray-900">No vehicles available</Text>
-            <Text className="mt-1 text-xs font-semibold text-gray-500">Try a different time range.</Text>
-          </View>
-        ) : null}
+          ) : null}
 
-        {visibleOptions.map((o) => (
-          <Pressable
-            key={o.vehicleId}
-            onPress={() => select(o.vehicleId, o.estimatedPrice)}
-            className="mb-4 rounded-3xl bg-white p-4"
-            style={cardShadow}>
-            <View className="flex-row items-start justify-between">
-              <View className="flex-1">
-                <Text className="text-xs font-bold text-gray-400">Driver</Text>
-                <Text className="mt-1 text-base font-extrabold text-gray-900">{o.driverName}</Text>
-                <View className="mt-2 flex-row items-center gap-2">
-                  <View className="rounded-full bg-gray-100 px-3 py-1">
-                    <Text className="text-[10px] font-extrabold text-gray-800">{o.armourLevel}</Text>
-                  </View>
-                  <View className="rounded-full bg-gray-100 px-3 py-1">
-                    <Text className="text-[10px] font-extrabold text-gray-800">{o.vehicleType}</Text>
-                  </View>
-                  <View className="rounded-full bg-gray-100 px-3 py-1">
-                    <Text className="text-[10px] font-extrabold text-gray-800">{o.location}</Text>
-                  </View>
-                </View>
-              </View>
-              <View className="items-end">
-                <Text className="text-xs font-bold text-gray-400">Estimated</Text>
-                <Text className="mt-1 text-base font-extrabold text-[#1D2DD9]">
-                  Rs {o.estimatedPrice.toFixed(2)}
+          {visibleEmptyState ? (
+            <View className="mt-10 items-center rounded-2xl border px-4 py-8" style={CARD_SHADOW}>
+              <FontAwesome name="car" size={24} color={AUTH_GOLD} />
+              <Text className="mt-3 text-base font-extrabold text-gray-100">No vehicles available</Text>
+              <Text className="mt-1 text-center text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+                Try a different time range.
+              </Text>
+            </View>
+          ) : null}
+
+          {visibleOptions.map((o) => (
+            <Pressable
+              key={o.vehicleId}
+              onPress={() => select(o.vehicleId, o.estimatedPrice)}
+              className="mb-4 overflow-hidden rounded-2xl border"
+              style={CARD_SHADOW}>
+              <View className="border-b border-gray-900 bg-black px-4 py-2">
+                <Text className="text-center text-xs font-extrabold" style={{ color: AUTH_GOLD, letterSpacing: 0.4 }}>
+                  {o.armourLevel} • {o.vehicleType}
                 </Text>
               </View>
-            </View>
+              <View className="p-4">
+                <View className="flex-row items-start justify-between">
+                  <View className="flex-1 pr-2">
+                    <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
+                      Dispatcher
+                    </Text>
+                    <Text className="mt-1 text-base font-extrabold text-gray-100">{o.dispatcherName}</Text>
+                    <Text className="mt-2 text-xs font-semibold" style={{ color: '#B8BBC0' }}>
+                      {o.location}
+                    </Text>
+                  </View>
+                  <View className="items-end">
+                    <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
+                      Estimated
+                    </Text>
+                    <Text className="mt-1 text-base font-extrabold" style={{ color: AUTH_GOLD }}>
+                      Rs {o.estimatedPrice.toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
 
-            <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-[#1D2DD9] px-4 py-3">
-              <Text className="text-xs font-extrabold text-white">Choose this vehicle</Text>
-              <FontAwesome name="angle-right" size={16} color="#FFFFFF" />
-            </View>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </SafeAreaView>
+                <View
+                  className="mt-4 flex-row items-center justify-between rounded-2xl px-4 py-3"
+                  style={{ backgroundColor: AUTH_GOLD }}>
+                  <Text className="text-xs font-extrabold" style={{ color: AUTH_CARD }}>
+                    Choose this vehicle
+                  </Text>
+                  <FontAwesome name="angle-right" size={16} color={AUTH_CARD} />
+                </View>
+              </View>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
-
-const cardShadow = {
-  shadowColor: '#000',
-  shadowOpacity: 0.06,
-  shadowRadius: 12,
-  shadowOffset: { width: 0, height: 8 },
-  elevation: 3,
-};
-

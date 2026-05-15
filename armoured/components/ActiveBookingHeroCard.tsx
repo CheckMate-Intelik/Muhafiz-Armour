@@ -1,5 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 
 export type ActiveBookingHeroData = {
   id: string;
@@ -11,8 +11,16 @@ export type ActiveBookingHeroData = {
     vehicleType?: string | null;
     armourLevel?: string | null;
     seatingCapacity?: number | null;
+    imageUrls?: string[];
   } | null;
 };
+
+const FALLBACK_VEHICLE_IMAGE = 'https://images.pexels.com/photos/358070/pexels-photo-358070.jpeg';
+
+function vehicleImageUri(vehicle: ActiveBookingHeroData['vehicle']) {
+  const url = vehicle?.imageUrls?.[0]?.trim();
+  return url || FALLBACK_VEHICLE_IMAGE;
+}
 
 function safeDate(value: string | null | undefined) {
   const d = new Date((value ?? '').trim());
@@ -99,6 +107,7 @@ export function ActiveBookingHeroCard({
   const armourLevel = (booking.vehicle?.armourLevel ?? '').trim() || '—';
   const seating = booking.vehicle?.seatingCapacity != null ? String(booking.vehicle.seatingCapacity) : '—';
   const remaining = timeRemainingLabel(booking.endTime);
+  const vehicleImage = vehicleImageUri(booking.vehicle);
 
   const onCardPress = onPress ? () => onPress(booking) : undefined;
 
@@ -185,12 +194,11 @@ export function ActiveBookingHeroCard({
                 borderWidth: 1,
                 borderColor: 'rgba(255,255,255,0.06)',
               }}>
-              {/* Subtle pattern + placeholder vehicle icon to match screenshot composition */}
-              <View className="absolute -right-10 -top-10 h-32 w-32 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.03)' }} />
-              <View className="absolute -left-10 -bottom-10 h-32 w-32 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.03)' }} />
-              <View className="flex-1 items-center justify-center">
-                <FontAwesome name="car" size={48} color="rgba(229,231,235,0.22)" />
-              </View>
+              <Image
+                source={{ uri: vehicleImage }}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover"
+              />
             </View>
           </View>
         </View>

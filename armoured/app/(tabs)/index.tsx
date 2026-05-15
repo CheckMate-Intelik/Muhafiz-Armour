@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { isNotAuthenticatedError } from '@/lib/api';
-import { useBookingsStore } from '@/store/bookingsStore';
+import { useBookingsStore, type UserBooking } from '@/store/bookingsStore';
 import { useStore, userAvatarUrl } from '@/store/store';
 import { UserBookingCard, type UserBookingListItem } from '../../components/UserBookingCard';
 import { ActiveBookingHeroCard } from '../../components/ActiveBookingHeroCard';
@@ -26,7 +26,7 @@ function normalizeStatus(status: string | null | undefined) {
 
 function isUpcomingStatus(status: string | null | undefined) {
   const s = normalizeStatus(status);
-  return s === 'REQUESTED' || s === 'PENDING_DRIVER' || s === 'CONFIRMED';
+  return s === 'REQUESTED' || s === 'PENDING_DISPATCHER' || s === 'CONFIRMED';
 }
 
 function pickSoonestUpcoming(rows: UserBookingListItem[]) {
@@ -149,13 +149,33 @@ export default function Home() {
               emptyLabel="No upcoming bookings"
               showDateBox
               rightActionLabel="View all"
-              onRightActionPress={() => router.push('/upcoming-bookings' as any)}
-              onPress={(b: UserBookingListItem) =>
+              onRightActionPress={() =>
+                router.push({ pathname: '/(tabs)/activities' as any, params: { tab: 'upcoming' } })
+              }
+              onPress={(b: UserBookingListItem) => {
+                const row = b as UserBooking;
+                const v = row.vehicle;
+                const vehicleName =
+                  [v?.manufacturer, v?.carModel].filter(Boolean).join(' ').trim() ||
+                  [v?.vehicleType, v?.armourLevel].filter(Boolean).join(' · ') ||
+                  '';
                 router.push({
                   pathname: '/booking-details' as any,
-                  params: { id: String(b.id) },
-                })
-              }
+                  params: {
+                    id: String(b.id),
+                    pickupLocation: b.pickupLocation ?? '',
+                    dropLocation: b.dropLocation ?? '',
+                    status: b.status ?? '',
+                    startTime: b.startTime ?? '',
+                    endTime: b.endTime ?? '',
+                    totalPrice: b.totalPrice == null ? '' : String(b.totalPrice),
+                    dispatcherName: row.dispatcher?.name ?? '',
+                    vehicleArmour: v?.armourLevel ?? '',
+                    vehicleType: v?.vehicleType ?? '',
+                    vehicleName,
+                  },
+                });
+              }}
             />
 
             <View className="mt-5">

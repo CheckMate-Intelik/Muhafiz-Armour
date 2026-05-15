@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { UpdateDriverProfileDto } from './dto/update-driver-profile.dto';
+import { UpdateDispatcherProfileDto } from './dto/update-dispatcher-profile.dto';
 
 @Injectable()
-export class DriverService {
+export class DispatcherService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getById(id: string) {
-    const driver = await this.prisma.driver.findUnique({
+    const dispatcher = await this.prisma.dispatcher.findUnique({
       where: { id },
       select: {
         id: true,
@@ -21,13 +21,13 @@ export class DriverService {
         createdAt: true,
       },
     });
-    if (!driver) throw new NotFoundException('Driver not found');
-    return driver;
+    if (!dispatcher) throw new NotFoundException('Dispatcher not found');
+    return dispatcher;
   }
 
-  async updateProfile(id: string, dto: UpdateDriverProfileDto) {
-    const existing = await this.prisma.driver.findUnique({ where: { id }, select: { id: true } });
-    if (!existing) throw new NotFoundException('Driver not found');
+  async updateProfile(id: string, dto: UpdateDispatcherProfileDto) {
+    const existing = await this.prisma.dispatcher.findUnique({ where: { id }, select: { id: true } });
+    if (!existing) throw new NotFoundException('Dispatcher not found');
 
     const profileImageUrl =
       dto.profileImageUrl === undefined
@@ -36,7 +36,7 @@ export class DriverService {
           ? null
           : String(dto.profileImageUrl).trim();
 
-    return this.prisma.driver.update({
+    return this.prisma.dispatcher.update({
       where: { id },
       data: profileImageUrl === undefined ? {} : { profileImageUrl },
       select: {
@@ -52,43 +52,45 @@ export class DriverService {
     });
   }
 
-  async listMyRequests(driverId: string) {
+  async listMyRequests(dispatcherId: string) {
     return this.prisma.booking.findMany({
-      where: { driverId, status: 'PENDING_DRIVER' },
+      where: { dispatcherId, status: 'PENDING_DISPATCHER' },
       orderBy: { createdAt: 'desc' },
-      include: { user: true, vehicle: true, driver: true },
+      include: { user: true, vehicle: true, dispatcher: true },
     });
   }
 
-  async listMyActive(driverId: string) {
+  async listMyActive(dispatcherId: string) {
     return this.prisma.booking.findMany({
-      where: { driverId, status: { in: ['CONFIRMED', 'IN_PROGRESS'] } },
+      where: { dispatcherId, status: { in: ['CONFIRMED', 'IN_PROGRESS'] } },
       orderBy: { createdAt: 'desc' },
-      include: { user: true, vehicle: true, driver: true },
+      include: { user: true, vehicle: true, dispatcher: true },
     });
   }
 
-  async listMyCompleted(driverId: string) {
+  async listMyCompleted(dispatcherId: string) {
     return this.prisma.booking.findMany({
-      where: { driverId, status: 'COMPLETED' },
+      where: { dispatcherId, status: 'COMPLETED' },
       orderBy: { createdAt: 'desc' },
-      include: { user: true, vehicle: true, driver: true },
+      include: { user: true, vehicle: true, dispatcher: true },
     });
   }
 
-  async respondToBooking(driverId: string, bookingId: string, accept: boolean) {
+  async respondToBooking(dispatcherId: string, bookingId: string, accept: boolean) {
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundException('Booking not found');
-    if (booking.driverId !== driverId) throw new BadRequestException('Not your request');
-    if (booking.status !== 'PENDING_DRIVER') throw new BadRequestException('Booking is not pending driver');
+    if (booking.dispatcherId !== dispatcherId) throw new BadRequestException('Not your request');
+    if (booking.status !== 'PENDING_DISPATCHER') {
+      throw new BadRequestException('Booking is not pending dispatcher');
+    }
 
     if (!accept) {
       const vid = booking.vehicleId;
       return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         const updated = await tx.booking.update({
           where: { id: bookingId },
-          data: { status: 'REJECTED', vehicleId: null, driverId: null },
-          include: { user: true, vehicle: true, driver: true },
+          data: { status: 'REJECTED', vehicleId: null, dispatcherId: null },
+          include: { user: true, vehicle: true, dispatcher: true },
         });
         if (vid) {
           await tx.vehicle.updateMany({
@@ -103,30 +105,30 @@ export class DriverService {
     return this.prisma.booking.update({
       where: { id: bookingId },
       data: { status: 'CONFIRMED' },
-      include: { user: true, vehicle: true, driver: true },
+      include: { user: true, vehicle: true, dispatcher: true },
     });
   }
 
-  async startBooking(driverId: string, bookingId: string) {
+  async startBooking(dispatcherId: string, bookingId: string) {
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundException('Booking not found');
-    if (booking.driverId !== driverId) throw new BadRequestException('Not your booking');
+    if (booking.dispatcherId !== dispatcherId) throw new BadRequestException('Not your booking');
     if (booking.status !== 'CONFIRMED') throw new BadRequestException('Booking must be CONFIRMED to start');
 
     return this.prisma.booking.update({
       where: { id: bookingId },
       data: { status: 'IN_PROGRESS', actualStartTime: new Date() },
-      include: { user: true, vehicle: true, driver: true },
+      include: { user: true, vehicle: true, dispatcher: true },
     });
   }
 
-  async completeBooking(driverId: string, bookingId: string) {
+  async completeBooking(dispatcherId: string, bookingId: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
       include: { vehicle: true },
     });
     if (!booking) throw new NotFoundException('Booking not found');
-    if (booking.driverId !== driverId) throw new BadRequestException('Not your booking');
+    if (booking.dispatcherId !== dispatcherId) throw new BadRequestException('Not your booking');
     if (booking.status !== 'IN_PROGRESS') throw new BadRequestException('Booking must be IN_PROGRESS to complete');
     if (!booking.vehicle) throw new BadRequestException('Vehicle missing');
 
@@ -148,7 +150,7 @@ export class DriverService {
           overtimeMinutes,
           totalPrice,
         },
-        include: { user: true, vehicle: true, driver: true },
+        include: { user: true, vehicle: true, dispatcher: true },
       });
       if (vid) {
         await tx.vehicle.updateMany({
@@ -160,11 +162,13 @@ export class DriverService {
     });
   }
 
-  async cancelBooking(driverId: string, bookingId: string) {
+  async cancelBooking(dispatcherId: string, bookingId: string) {
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundException('Booking not found');
-    if (booking.driverId !== driverId) throw new BadRequestException('Not your booking');
-    if (!['CONFIRMED', 'IN_PROGRESS'].includes(booking.status)) throw new BadRequestException('Booking is not cancellable');
+    if (booking.dispatcherId !== dispatcherId) throw new BadRequestException('Not your booking');
+    if (!['CONFIRMED', 'IN_PROGRESS'].includes(booking.status)) {
+      throw new BadRequestException('Booking is not cancellable');
+    }
 
     const vid = booking.vehicleId;
     return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -174,9 +178,9 @@ export class DriverService {
           status: 'REJECTED',
           actualEndTime: booking.actualEndTime ?? (booking.status === 'IN_PROGRESS' ? new Date() : booking.actualEndTime),
           vehicleId: null,
-          driverId: null,
+          dispatcherId: null,
         },
-        include: { user: true, vehicle: true, driver: true },
+        include: { user: true, vehicle: true, dispatcher: true },
       });
       if (vid) {
         await tx.vehicle.updateMany({
@@ -194,4 +198,3 @@ export class DriverService {
     return Math.ceil(diffMs / 60000);
   }
 }
-

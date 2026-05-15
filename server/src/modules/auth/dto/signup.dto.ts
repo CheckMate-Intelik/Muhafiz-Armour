@@ -19,6 +19,6 @@ export class SignupDto {
 
   @IsOptional()
   @IsString()
-  role?: 'USER' | 'DRIVER';
+  role?: 'USER' | 'DISPATCHER';
 }
 

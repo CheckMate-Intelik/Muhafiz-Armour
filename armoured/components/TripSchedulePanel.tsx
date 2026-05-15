@@ -2,12 +2,32 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import DateTimePicker, { DateTimePickerAndroid, DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { apiPost, ensureUserSession } from '@/lib/api';
 import { useTripDraftStore } from '@/store/tripDraft';
 
 const MAX_HOURS = 5 * 24;
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, h) => h);
+
+function snapToHour(d: Date) {
+  const out = new Date(d);
+  out.setMinutes(0, 0, 0);
+  return out;
+}
+
+function defaultPickupTime() {
+  const d = new Date(Date.now() + 60 * 60 * 1000);
+  const snapped = snapToHour(d);
+  if (d.getTime() > snapped.getTime()) snapped.setHours(snapped.getHours() + 1);
+  return snapped;
+}
+
+function formatHourLabel(hour: number) {
+  const d = new Date();
+  d.setHours(hour, 0, 0, 0);
+  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
 
 type PlanMeta = {
   distanceKm: number;
@@ -20,7 +40,7 @@ type PlanMeta = {
 export function TripSchedulePanel() {
   const draft = useTripDraftStore();
   const [meta, setMeta] = useState<PlanMeta | null>(null);
-  const [startAt, setStartAt] = useState<Date>(() => new Date(Date.now() + 60 * 60 * 1000));
+  const [startAt, setStartAt] = useState<Date>(defaultPickupTime);
   const [durationHours, setDurationHours] = useState(12);
   const [picker, setPicker] = useState<null | 'date' | 'time'>(null);
   const [loadingMeta, setLoadingMeta] = useState(false);
@@ -95,19 +115,16 @@ export function TripSchedulePanel() {
   }
 
   function openTimePicker() {
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({
-        mode: 'time',
-        value: startAt,
-        is24Hour: false,
-        onChange: (e: DateTimePickerEvent, d?: Date) => {
-          if (e.type !== 'set' || !d) return;
-          setStartAt((prev) => new Date(prev.getFullYear(), prev.getMonth(), prev.getDate(), d.getHours(), d.getMinutes(), 0, 0));
-        },
-      });
-      return;
-    }
     setPicker('time');
+  }
+
+  function selectHour(hour: number) {
+    setStartAt((prev) => {
+      const next = new Date(prev);
+      next.setHours(hour, 0, 0, 0);
+      return next;
+    });
+    setPicker(null);
   }
 
   function onDateChange(_: DateTimePickerEvent, d?: Date) {
@@ -115,20 +132,16 @@ export function TripSchedulePanel() {
     setStartAt((prev) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), prev.getHours(), prev.getMinutes(), 0, 0));
   }
 
-  function onTimeChange(_: DateTimePickerEvent, d?: Date) {
-    if (!d) return;
-    setStartAt((prev) => new Date(prev.getFullYear(), prev.getMonth(), prev.getDate(), d.getHours(), d.getMinutes(), 0, 0));
-  }
-
   function continueNext() {
     if (!meta) return;
+    const pickup = snapToHour(startAt);
     const dh = Math.max(minHours, durationHours);
-    const end = new Date(startAt.getTime() + dh * 60 * 60 * 1000);
-    if (end.getTime() <= startAt.getTime()) {
+    const end = new Date(pickup.getTime() + dh * 60 * 60 * 1000);
+    if (end.getTime() <= pickup.getTime()) {
       Alert.alert('Invalid range', 'End must be after start.');
       return;
     }
-    draft.setSchedule(startAt.toISOString(), dh);
+    draft.setSchedule(pickup.toISOString(), dh);
     router.push('/vehicle-select' as any);
   }
 
@@ -219,7 +232,7 @@ export function TripSchedulePanel() {
               PICKUP TIME
             </Text>
             <Text className="mt-1 text-base font-extrabold text-gray-100">
-              {startAt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+              {formatHourLabel(startAt.getHours())}
             </Text>
           </View>
           <FontAwesome name="chevron-down" size={14} color="#9CA3AF" />
@@ -270,7 +283,11 @@ export function TripSchedulePanel() {
         </Text>
       </Pressable>
 
-      <Modal transparent visible={picker != null && Platform.OS !== 'android'} animationType="fade" onRequestClose={() => setPicker(null)}>
+      <Modal
+        transparent
+        visible={picker != null && (picker === 'time' || Platform.OS !== 'android')}
+        animationType="fade"
+        onRequestClose={() => setPicker(null)}>
         <Pressable
           className="flex-1 px-5"
           style={{ backgroundColor: 'rgba(2,6,23,0.7)' }}
@@ -294,13 +311,37 @@ export function TripSchedulePanel() {
               </Pressable>
             </View>
             <View className="mt-3">
-              <DateTimePicker
-                mode={picker === 'date' ? 'date' : 'time'}
-                value={startAt}
-                onChange={picker === 'date' ? onDateChange : onTimeChange}
-                textColor="#F3F4F6"
-                themeVariant="dark"
-              />
+              {picker === 'date' ? (
+                <DateTimePicker
+                  mode="date"
+                  value={startAt}
+                  onChange={onDateChange}
+                  textColor="#F3F4F6"
+                  themeVariant="dark"
+                />
+              ) : (
+                <ScrollView className="max-h-72" keyboardShouldPersistTaps="handled">
+                  {HOUR_OPTIONS.map((hour) => {
+                    const selected = startAt.getHours() === hour;
+                    return (
+                      <Pressable
+                        key={hour}
+                        onPress={() => selectHour(hour)}
+                        className="flex-row items-center justify-between rounded-xl px-3 py-3"
+                        style={{
+                          backgroundColor: selected ? 'rgba(201,179,122,0.18)' : 'transparent',
+                        }}>
+                        <Text
+                          className="text-base font-extrabold"
+                          style={{ color: selected ? '#C9B37A' : '#F3F4F6' }}>
+                          {formatHourLabel(hour)}
+                        </Text>
+                        {selected ? <FontAwesome name="check" size={14} color="#C9B37A" /> : null}
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              )}
             </View>
           </View>
         </Pressable>

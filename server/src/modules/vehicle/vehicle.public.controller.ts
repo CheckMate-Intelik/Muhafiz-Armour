@@ -100,11 +100,11 @@ export class VehiclePublicController {
           : {}),
       },
       include: {
-        driver: {
+        dispatcher: {
           select: { id: true, name: true },
         },
         bookings: {
-          where: { status: { in: ['PENDING_DRIVER', 'CONFIRMED', 'IN_PROGRESS'] } },
+          where: { status: { in: ['PENDING_DISPATCHER', 'CONFIRMED', 'IN_PROGRESS'] } },
           select: { startTime: true, endTime: true, bufferMinutes: true },
         },
       },
@@ -141,8 +141,8 @@ export class VehiclePublicController {
         seatingCapacity: v.seatingCapacity,
         rating: 4.8,
         owner: {
-          id: v.driver?.id ?? '',
-          name: v.driver?.name ?? 'Owner',
+          id: v.dispatcher?.id ?? '',
+          name: v.dispatcher?.name ?? 'Owner',
           rating: 4.9,
         },
       })),
@@ -154,7 +154,7 @@ export class VehiclePublicController {
     const v = await this.prisma.vehicle.findFirst({
       where: { id, isApproved: true },
       include: {
-        driver: {
+        dispatcher: {
           select: { id: true, name: true },
         },
       },
@@ -189,8 +189,8 @@ export class VehiclePublicController {
         condition: v.year && v.year >= new Date().getFullYear() - 2 ? 'Excellent condition' : 'Operational condition',
         features: featuresByLevel[v.armourLevel] ?? ['Bullet-resistant body', 'Secured transport'],
         owner: {
-          id: v.driver?.id ?? '',
-          name: v.driver?.name ?? 'Owner',
+          id: v.dispatcher?.id ?? '',
+          name: v.dispatcher?.name ?? 'Owner',
           rating: 4.9,
         },
       },

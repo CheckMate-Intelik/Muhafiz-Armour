@@ -25,7 +25,7 @@ export class MediaController {
   constructor(private readonly cloudinary: CloudinaryService) {}
 
   @Post('upload/vehicle')
-  @Roles('DRIVER')
+  @Roles('DISPATCHER')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
@@ -43,7 +43,7 @@ export class MediaController {
   }
 
   @Post('upload/profile')
-  @Roles('USER', 'DRIVER')
+  @Roles('USER', 'DISPATCHER')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),

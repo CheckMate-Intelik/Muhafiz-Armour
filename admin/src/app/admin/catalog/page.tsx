@@ -94,7 +94,7 @@ function OptionTable({
                       setLocal((prev) => prev.map((x) => (x.id === r.id ? { ...x, isActive: e.target.checked } : x)))
                     }
                   />
-                  <span>Shown to drivers</span>
+                  <span>Shown to dispatchers</span>
                 </label>
               </td>
               <td className="right">
@@ -358,7 +358,7 @@ export default function AdminCatalogPage() {
       <div className="page-header">
         <div>
           <h1 className="h1">Catalog</h1>
-          <div className="muted">Armour levels and vehicle types (driver-facing options)</div>
+          <div className="muted">Armour levels and vehicle types (dispatcher-facing options)</div>
         </div>
       </div>
       {error ? <div className="error">{error}</div> : null}

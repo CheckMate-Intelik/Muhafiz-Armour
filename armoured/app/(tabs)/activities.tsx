@@ -1,6 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useEffect, useMemo, useState } from 'react';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,7 +9,15 @@ import { isNotAuthenticatedError } from '@/lib/api';
 import { useBookingsStore } from '@/store/bookingsStore';
 import { useStore, userAvatarUrl } from '@/store/store';
 
-type RideStatus = 'Schedule' | 'Completed' | 'Canceled';
+type RideStatus = 'Upcoming' | 'Completed' | 'Canceled';
+
+function parseActivitiesTab(tab?: string): RideStatus {
+  const t = (tab ?? '').trim().toLowerCase();
+  if (t === 'completed') return 'Completed';
+  if (t === 'canceled' || t === 'cancelled') return 'Canceled';
+  if (t === 'upcoming' || t === 'schedule' || t === 'scheduled') return 'Upcoming';
+  return 'Upcoming';
+}
 
 type Booking = {
   id: string;
@@ -19,7 +27,7 @@ type Booking = {
   endTime: string;
   status: string;
   totalPrice: number | null;
-  driver?: { name: string } | null;
+  dispatcher?: { name: string } | null;
   vehicle?: { armourLevel: string; vehicleType: string; manufacturer?: string | null; carModel?: string | null } | null;
 };
 
@@ -28,10 +36,15 @@ function normalizeStatus(status: string | null | undefined) {
 }
 
 export default function ActivitiesScreen() {
+  const params = useLocalSearchParams<{ tab?: string }>();
   const hydrate = useStore((s) => s.hydrate);
   const profile = useStore((s) => s.profile);
   const headerAvatarUri = userAvatarUrl(profile, 'sm');
-  const [status, setStatus] = useState<RideStatus>('Schedule');
+  const [status, setStatus] = useState<RideStatus>(() => parseActivitiesTab(params.tab));
+
+  useEffect(() => {
+    setStatus(parseActivitiesTab(params.tab));
+  }, [params.tab]);
   const userBookings = useBookingsStore((s) => s.userBookings);
   const userLoading = useBookingsStore((s) => s.userLoading);
   const userLoaded = useBookingsStore((s) => s.userLoaded);
@@ -58,13 +71,13 @@ export default function ActivitiesScreen() {
           const s = normalizeStatus(b.status);
           return s === 'REJECTED' || s === 'EXPIRED';
         });
-      case 'Schedule':
+      case 'Upcoming':
       default:
         return bookings.filter((b) => {
           const s = normalizeStatus(b.status);
           return (
             s === 'REQUESTED' ||
-            s === 'PENDING_DRIVER' ||
+            s === 'PENDING_DISPATCHER' ||
             s === 'CONFIRMED' ||
             s === 'IN_PROGRESS'
           );
@@ -99,7 +112,7 @@ export default function ActivitiesScreen() {
             style={{ backgroundColor: '#2F3135' }}>
             {(
               [
-                { key: 'Schedule', label: 'SCHEDULED', icon: 'calendar' },
+                { key: 'Upcoming', label: 'UPCOMING', icon: 'calendar' },
                 { key: 'Completed', label: 'COMPLETED', icon: 'check' },
                 { key: 'Canceled', label: 'CANCELED', icon: 'times' },
               ] as const
@@ -166,8 +179,8 @@ export default function ActivitiesScreen() {
                   ? 'CANCELED MISSION'
                   : bookingStatus === 'IN_PROGRESS'
                     ? 'ACTIVE MISSION'
-                    : 'SCHEDULED MISSION';
-            const driverAndArmour = `${r.driver?.name ?? '—'} • ${r.vehicle?.armourLevel ?? '—'}`.trim();
+                    : 'UPCOMING MISSION';
+            const dispatcherAndArmour = `${r.dispatcher?.name ?? '—'} • ${r.vehicle?.armourLevel ?? '—'}`.trim();
             const costLabel = typeof r.totalPrice === 'number' ? `Rs ${r.totalPrice.toFixed(2)}` : '—';
             return (
               <Pressable
@@ -183,7 +196,7 @@ export default function ActivitiesScreen() {
                       startTime: r.startTime,
                       endTime: r.endTime,
                       totalPrice: r.totalPrice == null ? '' : String(r.totalPrice),
-                      driverName: r.driver?.name ?? '',
+                      dispatcherName: r.dispatcher?.name ?? '',
                       customerName: '',
                       vehicleArmour: r.vehicle?.armourLevel ?? '',
                       vehicleType: r.vehicle?.vehicleType ?? '',
@@ -210,7 +223,7 @@ export default function ActivitiesScreen() {
                       numberOfLines={1}
                       className="flex-1 pr-2 text-[14px] font-extrabold"
                       style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
-                      {headerStatusLabel} - {driverAndArmour}
+                      {headerStatusLabel} - {dispatcherAndArmour}
                     </Text>
                     <FontAwesome name="car" size={22} color="#C9B37A" />
                   </View>

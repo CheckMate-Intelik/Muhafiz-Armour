@@ -281,6 +281,19 @@ a {
   outline: none;
 }
 
+select.input,
+select {
+  background-color: #000000;
+  color: #ffffff;
+  color-scheme: dark;
+}
+
+select.input option,
+select option {
+  background-color: #000000;
+  color: #ffffff;
+}
+
 .button {
   border: 1px solid rgba(127, 127, 127, 0.28);
   border-radius: 10px;

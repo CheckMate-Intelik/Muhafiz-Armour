@@ -115,13 +115,13 @@ export default function AdminBookingDetailPage() {
                 )}
               </div>
               <div className="stack">
-                <div className="h3">Driver</div>
-                {row.driver ? (
+                <div className="h3">Dispatcher</div>
+                {row.dispatcher ? (
                   <>
-                    <Link className="link" href={`/admin/drivers/${row.driver.id}`}>
-                      {row.driver.name}
+                    <Link className="link" href={`/admin/dispatchers/${row.dispatcher.id}`}>
+                      {row.dispatcher.name}
                     </Link>
-                    <div className="mono muted">{row.driver.phone}</div>
+                    <div className="mono muted">{row.dispatcher.phone}</div>
                   </>
                 ) : (
                   '—'

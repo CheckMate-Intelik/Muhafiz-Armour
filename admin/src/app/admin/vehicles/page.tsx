@@ -72,7 +72,7 @@ export default function AdminVehiclesPage() {
                 <th>Plate / Reg</th>
                 <th>Rate</th>
                 <th>Location</th>
-                <th>Driver</th>
+                <th>Dispatcher</th>
                 <th>Approved</th>
                 <th className="right">Action</th>
               </tr>
@@ -103,7 +103,7 @@ export default function AdminVehiclesPage() {
                   <td>{[v.numberPlate, v.registrationNumber].filter(Boolean).join(' / ') || '—'}</td>
                   <td className="mono">Rs {v.baseRatePerHour}/hr</td>
                   <td>{v.location}</td>
-                  <td>{v.driver?.name ?? '—'}</td>
+                  <td>{v.dispatcher?.name ?? '—'}</td>
                   <td>{v.isApproved ? 'Yes' : 'No'}</td>
                   <td className="right row-actions" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                     <button className="button button-secondary" disabled={busyId === v.id} onClick={() => toggleApprove(v.id, !v.isApproved)}>

@@ -4,7 +4,7 @@ import { Image, Pressable, Text, View } from 'react-native';
 export type VehicleCardData = {
   id: string;
   imageUrls?: string[];
-  driverName?: string | null;
+  dispatcherName?: string | null;
   manufacturer?: string | null;
   generation?: string | null;
   carModel?: string | null;

@@ -6,24 +6,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { BookingSummaryCard } from '@/components/BookingSummaryCard';
-import { driverGet, ensureDriverSession, isNotAuthenticatedError } from '@/lib/api';
+import { dispatcherGet, ensureDispatcherSession, isNotAuthenticatedError } from '@/lib/api';
 import { useBookingsStore } from '@/store/bookingsStore';
-import { driverAvatarUrl, useStore } from '@/store/store';
+import { dispatcherAvatarUrl, useStore } from '@/store/store';
 
-function driverMissionBanner(status: string) {
+function dispatcherMissionBanner(status: string) {
   const s = (status ?? '').trim().toUpperCase();
   if (s === 'IN_PROGRESS') return 'ACTIVE MISSION';
   if (s === 'CONFIRMED') return 'CONFIRMED MISSION';
   if (s === 'COMPLETED') return 'COMPLETED MISSION';
   if (s === 'REJECTED' || s === 'EXPIRED') return 'CANCELED MISSION';
-  if (s === 'PENDING_DRIVER') return 'PENDING MISSION';
+  if (s === 'PENDING_DISPATCHER') return 'PENDING MISSION';
   if (s === 'REQUESTED') return 'REQUEST MISSION';
   return 'BOOKING';
 }
 
 type BookingTab = 'Booking Requests' | 'Booking History';
 
-type DriverVehicle = {
+type DispatcherVehicle = {
   id: string;
   armourLevel: string;
   vehicleType: string;
@@ -40,25 +40,25 @@ type DriverVehicle = {
   isApproved: boolean;
 };
 
-export default function DriverBookingsScreen() {
+export default function DispatcherBookingsScreen() {
   const hydrate = useStore((s) => s.hydrate);
-  const driverProfile = useStore((s) => s.driverProfile);
-  const headerAvatarUri = driverAvatarUrl(driverProfile, 'sm');
+  const dispatcherProfile = useStore((s) => s.dispatcherProfile);
+  const headerAvatarUri = dispatcherAvatarUrl(dispatcherProfile, 'sm');
   const params = useLocalSearchParams<{ tab?: string }>();
   const initialTab: BookingTab =
     (params.tab ?? '').toLowerCase() === 'history' ? 'Booking History' : 'Booking Requests';
   const [tab, setTab] = useState<BookingTab>(initialTab);
-  const [vehicles, setVehicles] = useState<DriverVehicle[]>([]);
+  const [vehicles, setVehicles] = useState<DispatcherVehicle[]>([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('ALL');
   const [vehiclesLoading, setVehiclesLoading] = useState(true);
 
-  const requests = useBookingsStore((s) => s.driverRequests);
-  const history = useBookingsStore((s) => s.driverCompleted);
-  const active = useBookingsStore((s) => s.driverActive);
-  const driverLoading = useBookingsStore((s) => s.driverLoading);
-  const driverLoaded = useBookingsStore((s) => s.driverLoaded);
-  const refreshDriverBookings = useBookingsStore((s) => s.refreshDriverBookings);
-  const loading = vehiclesLoading || (driverLoading && !driverLoaded);
+  const requests = useBookingsStore((s) => s.dispatcherRequests);
+  const history = useBookingsStore((s) => s.dispatcherCompleted);
+  const active = useBookingsStore((s) => s.dispatcherActive);
+  const dispatcherLoading = useBookingsStore((s) => s.dispatcherLoading);
+  const dispatcherLoaded = useBookingsStore((s) => s.dispatcherLoaded);
+  const refreshDispatcherBookings = useBookingsStore((s) => s.refreshDispatcherBookings);
+  const loading = vehiclesLoading || (dispatcherLoading && !dispatcherLoaded);
 
   useEffect(() => {
     void hydrate();
@@ -71,17 +71,17 @@ export default function DriverBookingsScreen() {
   }, [params.tab]);
 
   useEffect(() => {
-    refreshDriverBookings().catch((e) => {
+    refreshDispatcherBookings().catch((e) => {
       if (isNotAuthenticatedError(e)) router.replace('/login' as any);
     });
-  }, [refreshDriverBookings]);
+  }, [refreshDispatcherBookings]);
 
   useEffect(() => {
     let cancelled = false;
     async function loadVehicles() {
       try {
-        const s = await ensureDriverSession();
-        const vs = await driverGet<DriverVehicle[]>(`/driver/vehicles`, s.driverId);
+        const s = await ensureDispatcherSession();
+        const vs = await dispatcherGet<DispatcherVehicle[]>(`/dispatcher/vehicles`, s.dispatcherId);
         if (cancelled) return;
         setVehicles(Array.isArray(vs) ? vs : []);
       } catch (e) {
@@ -269,7 +269,7 @@ export default function DriverBookingsScreen() {
             const payout = b.totalPrice ?? 0;
             const vehicleName = `${b.vehicle?.manufacturer ?? ''} ${b.vehicle?.carModel ?? ''}`.trim();
             const vehicleBit = b.vehicle?.vehicleType ?? b.vehicle?.armourLevel ?? '—';
-            const missionHeaderLine = `${driverMissionBanner(b.status)} - ${customerName} • ${vehicleBit}`;
+            const missionHeaderLine = `${dispatcherMissionBanner(b.status)} - ${customerName} • ${vehicleBit}`;
 
             return (
               <View key={b.id}>
@@ -291,7 +291,7 @@ export default function DriverBookingsScreen() {
                         startTime: b.startTime,
                         endTime: b.endTime,
                         totalPrice: String(payout),
-                        driverName: '',
+                        dispatcherName: '',
                         customerName,
                         vehicleArmour: b.vehicle?.armourLevel ?? '',
                         vehicleType: b.vehicle?.vehicleType ?? '',

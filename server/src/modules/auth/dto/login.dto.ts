@@ -15,7 +15,7 @@ export class LoginDto {
 
   @IsOptional()
   @IsString()
-  role?: 'USER' | 'DRIVER';
+  role?: 'USER' | 'DISPATCHER';
 
   @IsOptional()
   @IsString()

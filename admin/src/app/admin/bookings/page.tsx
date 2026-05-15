@@ -60,7 +60,7 @@ export default function AdminBookingsPage() {
               <tr>
                 <th className="right">Open</th>
                 <th>User</th>
-                <th>Driver</th>
+                <th>Dispatcher</th>
                 <th>Armour / type</th>
                 <th>Time</th>
                 <th>Status</th>
@@ -87,7 +87,7 @@ export default function AdminBookingsPage() {
                     </Link>
                   </td>
                   <td>{b.user?.name ?? '—'}</td>
-                  <td>{b.driver?.name ?? '—'}</td>
+                  <td>{b.dispatcher?.name ?? '—'}</td>
                   <td className="mono">
                     {b.vehicle ? `${b.vehicle.armourLevel} / ${b.vehicle.vehicleType}` : '—'}
                   </td>

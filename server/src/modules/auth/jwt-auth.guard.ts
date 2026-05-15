@@ -14,9 +14,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       return true;
     }
 
-    const driverId = headerString(headers, 'x-driver-id');
-    if (driverId) {
-      request.user = { sub: driverId, role: 'DRIVER' };
+    const dispatcherId = headerString(headers, 'x-dispatcher-id');
+    if (dispatcherId) {
+      request.user = { sub: dispatcherId, role: 'DISPATCHER' };
       return true;
     }
 

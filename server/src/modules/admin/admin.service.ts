@@ -6,8 +6,10 @@ import {
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../prisma/prisma.service';
+import { VehicleStatus } from '@prisma/client';
 import { CreateCatalogOptionDto } from './dto/create-catalog-option.dto';
 import { UpdateCatalogOptionDto } from './dto/update-catalog-option.dto';
+import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 
 @Injectable()
 export class AdminService {
@@ -17,40 +19,40 @@ export class AdminService {
     const [
       users,
       blockedUsers,
-      drivers,
-      approvedDrivers,
-      blockedDrivers,
+      dispatchers,
+      approvedDispatchers,
+      blockedDispatchers,
       vehicles,
       approvedVehicles,
       pendingVehicles,
       bookings,
       completedBookings,
       activeBookings,
-      pendingDriverBookings,
+      pendingDispatcherBookings,
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { isBlocked: true } }),
-      this.prisma.driver.count(),
-      this.prisma.driver.count({ where: { isApproved: true } }),
-      this.prisma.driver.count({ where: { isBlocked: true } }),
+      this.prisma.dispatcher.count(),
+      this.prisma.dispatcher.count({ where: { isApproved: true } }),
+      this.prisma.dispatcher.count({ where: { isBlocked: true } }),
       this.prisma.vehicle.count(),
       this.prisma.vehicle.count({ where: { isApproved: true } }),
       this.prisma.vehicle.count({ where: { isApproved: false } }),
       this.prisma.booking.count(),
       this.prisma.booking.count({ where: { status: 'COMPLETED' } }),
       this.prisma.booking.count({ where: { status: { in: ['CONFIRMED', 'IN_PROGRESS'] } } }),
-      this.prisma.booking.count({ where: { status: 'PENDING_DRIVER' } }),
+      this.prisma.booking.count({ where: { status: 'PENDING_DISPATCHER' } }),
     ]);
 
     return {
       users: { total: users, blocked: blockedUsers },
-      drivers: { total: drivers, approved: approvedDrivers, blocked: blockedDrivers },
+      dispatchers: { total: dispatchers, approved: approvedDispatchers, blocked: blockedDispatchers },
       vehicles: { total: vehicles, approved: approvedVehicles, pending: pendingVehicles },
       bookings: {
         total: bookings,
         completed: completedBookings,
         active: activeBookings,
-        pendingDriver: pendingDriverBookings,
+        pendingDispatcher: pendingDispatcherBookings,
       },
     };
   }
@@ -58,7 +60,7 @@ export class AdminService {
   async listBookings() {
     return this.prisma.booking.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { user: true, driver: true, vehicle: true },
+      include: { user: true, dispatcher: true, vehicle: true },
     });
   }
 
@@ -67,7 +69,7 @@ export class AdminService {
       where: { id },
       include: {
         user: { select: { id: true, name: true, phone: true, email: true, isBlocked: true, createdAt: true } },
-        driver: { select: { id: true, name: true, phone: true, email: true, isApproved: true, isBlocked: true, createdAt: true } },
+        dispatcher: { select: { id: true, name: true, phone: true, email: true, isApproved: true, isBlocked: true, createdAt: true } },
         vehicle: true,
       },
     });
@@ -75,12 +77,12 @@ export class AdminService {
     return booking;
   }
 
-  async listDrivers() {
-    return this.prisma.driver.findMany({ orderBy: { createdAt: 'desc' } });
+  async listDispatchers() {
+    return this.prisma.dispatcher.findMany({ orderBy: { createdAt: 'desc' } });
   }
 
-  async getDriver(id: string) {
-    const driver = await this.prisma.driver.findUnique({
+  async getDispatcher(id: string) {
+    const dispatcher = await this.prisma.dispatcher.findUnique({
       where: { id },
       select: {
         id: true,
@@ -110,29 +112,29 @@ export class AdminService {
         },
       },
     });
-    if (!driver) throw new NotFoundException('Driver not found');
-    return driver;
+    if (!dispatcher) throw new NotFoundException('Dispatcher not found');
+    return dispatcher;
   }
 
-  async setDriverApproval(driverId: string, isApproved: boolean) {
-    await this.requireDriver(driverId);
-    return this.prisma.driver.update({ where: { id: driverId }, data: { isApproved } });
+  async setDispatcherApproval(dispatcherId: string, isApproved: boolean) {
+    await this.requireDispatcher(dispatcherId);
+    return this.prisma.dispatcher.update({ where: { id: dispatcherId }, data: { isApproved } });
   }
 
-  async setDriverBlock(driverId: string, isBlocked: boolean) {
-    await this.requireDriver(driverId);
-    return this.prisma.driver.update({ where: { id: driverId }, data: { isBlocked } });
+  async setDispatcherBlock(dispatcherId: string, isBlocked: boolean) {
+    await this.requireDispatcher(dispatcherId);
+    return this.prisma.dispatcher.update({ where: { id: dispatcherId }, data: { isBlocked } });
   }
 
   async listVehicles() {
-    return this.prisma.vehicle.findMany({ orderBy: { createdAt: 'desc' }, include: { driver: true } });
+    return this.prisma.vehicle.findMany({ orderBy: { createdAt: 'desc' }, include: { dispatcher: true } });
   }
 
   async getVehicle(id: string) {
     const vehicle = await this.prisma.vehicle.findUnique({
       where: { id },
       include: {
-        driver: { select: { id: true, name: true, phone: true, email: true, isApproved: true, isBlocked: true, createdAt: true } },
+        dispatcher: { select: { id: true, name: true, phone: true, email: true, isApproved: true, isBlocked: true, createdAt: true } },
         bookings: {
           orderBy: { createdAt: 'desc' },
           take: 30,
@@ -156,6 +158,67 @@ export class AdminService {
   async setVehicleApproval(vehicleId: string, isApproved: boolean) {
     await this.requireVehicle(vehicleId);
     return this.prisma.vehicle.update({ where: { id: vehicleId }, data: { isApproved } });
+  }
+
+  async updateVehicle(vehicleId: string, dto: UpdateVehicleDto) {
+    await this.requireVehicle(vehicleId);
+    const data = await this.buildVehicleUpdateData(dto);
+    if (Object.keys(data).length > 0) {
+      await this.prisma.vehicle.update({ where: { id: vehicleId }, data });
+    }
+    return this.getVehicle(vehicleId);
+  }
+
+  private async buildVehicleUpdateData(dto: UpdateVehicleDto) {
+    const data: Record<string, unknown> = {};
+
+    if (dto.armourLevel !== undefined) {
+      const code = dto.armourLevel.trim();
+      await this.assertActiveArmourLevel(code);
+      data.armourLevel = code;
+    }
+    if (dto.vehicleType !== undefined) {
+      const code = dto.vehicleType.trim();
+      await this.assertActiveVehicleType(code);
+      data.vehicleType = code;
+    }
+    if (dto.carModel !== undefined) data.carModel = dto.carModel.trim() || null;
+    if (dto.manufacturer !== undefined) data.manufacturer = dto.manufacturer.trim() || null;
+    if (dto.generation !== undefined) data.generation = dto.generation.trim() || null;
+    if (dto.year !== undefined) data.year = dto.year;
+    if (dto.color !== undefined) data.color = dto.color.trim() || null;
+    if (dto.numberPlate !== undefined) data.numberPlate = dto.numberPlate.trim() || null;
+    if (dto.registrationNumber !== undefined) data.registrationNumber = dto.registrationNumber.trim() || null;
+    if (dto.imageUrls !== undefined) {
+      data.imageUrls = dto.imageUrls
+        .map((u) => (typeof u === 'string' ? u.trim() : ''))
+        .filter((u) => /^https:\/\//i.test(u));
+    }
+    if (dto.baseRatePerHour !== undefined) data.baseRatePerHour = dto.baseRatePerHour;
+    if (dto.seatingCapacity !== undefined) data.seatingCapacity = Math.round(Number(dto.seatingCapacity));
+    if (dto.location !== undefined) {
+      const loc = dto.location.trim();
+      if (!loc) throw new BadRequestException('Location is required');
+      data.location = loc;
+    }
+    if (dto.status !== undefined) data.status = dto.status as VehicleStatus;
+    if (dto.isApproved !== undefined) data.isApproved = dto.isApproved;
+
+    return data;
+  }
+
+  private async assertActiveArmourLevel(code: string) {
+    const row = await this.prisma.armourLevelOption.findFirst({
+      where: { code, isActive: true },
+    });
+    if (!row) throw new BadRequestException('Invalid armour level');
+  }
+
+  private async assertActiveVehicleType(code: string) {
+    const row = await this.prisma.vehicleTypeOption.findFirst({
+      where: { code, isActive: true },
+    });
+    if (!row) throw new BadRequestException('Invalid vehicle type');
   }
 
   async listUsers() {
@@ -299,10 +362,10 @@ export class AdminService {
     return this.prisma.user.update({ where: { id: userId }, data: { isBlocked } });
   }
 
-  private async requireDriver(id: string) {
-    const driver = await this.prisma.driver.findUnique({ where: { id } });
-    if (!driver) throw new NotFoundException('Driver not found');
-    return driver;
+  private async requireDispatcher(id: string) {
+    const dispatcher = await this.prisma.dispatcher.findUnique({ where: { id } });
+    if (!dispatcher) throw new NotFoundException('Dispatcher not found');
+    return dispatcher;
   }
 
   private async requireVehicle(id: string) {

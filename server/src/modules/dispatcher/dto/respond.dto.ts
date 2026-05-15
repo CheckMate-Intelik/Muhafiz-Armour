@@ -4,4 +4,3 @@ export class RespondDto {
   @IsBoolean()
   accept!: boolean;
 }
-

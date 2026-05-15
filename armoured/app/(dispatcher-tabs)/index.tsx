@@ -6,8 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { isNotAuthenticatedError } from '@/lib/api';
-import { useStore, driverAvatarUrl } from '@/store/store';
-import { useBookingsStore, type DriverBooking } from '@/store/bookingsStore';
+import { useStore, dispatcherAvatarUrl } from '@/store/store';
+import { useBookingsStore, type DispatcherBooking } from '@/store/bookingsStore';
 import {
   ActiveBookingHeroCard,
   type ActiveBookingHeroData,
@@ -44,7 +44,7 @@ function normalizeStatus(status: string | null | undefined) {
   return (status ?? '').trim().toUpperCase();
 }
 
-function pickSoonestUpcoming(rows: DriverBooking[]) {
+function pickSoonestUpcoming(rows: DispatcherBooking[]) {
   const upcoming = rows.filter((b) => normalizeStatus(b.status) === 'CONFIRMED');
   if (upcoming.length === 0) return null;
   const sorted = [...upcoming].sort((a, b) => {
@@ -60,40 +60,40 @@ function pickSoonestUpcoming(rows: DriverBooking[]) {
   return sorted[0] ?? null;
 }
 
-export default function DriverDashboardScreen() {
+export default function DispatcherDashboardScreen() {
   const hydrate = useStore((s) => s.hydrate);
-  const profile = useStore((s) => s.driverProfile);
-  const driverSession = useStore((s) => s.driverSession);
+  const profile = useStore((s) => s.dispatcherProfile);
+  const dispatcherSession = useStore((s) => s.dispatcherSession);
   const profileLoading = useStore((s) => s.loading);
-  const headerAvatarUri = driverAvatarUrl(profile, 'sm');
+  const headerAvatarUri = dispatcherAvatarUrl(profile, 'sm');
 
-  const driverActive = useBookingsStore((s) => s.driverActive);
-  const driverCompleted = useBookingsStore((s) => s.driverCompleted);
-  const driverLoading = useBookingsStore((s) => s.driverLoading);
-  const driverLoaded = useBookingsStore((s) => s.driverLoaded);
-  const refreshDriverBookings = useBookingsStore((s) => s.refreshDriverBookings);
+  const dispatcherActive = useBookingsStore((s) => s.dispatcherActive);
+  const dispatcherCompleted = useBookingsStore((s) => s.dispatcherCompleted);
+  const dispatcherLoading = useBookingsStore((s) => s.dispatcherLoading);
+  const dispatcherLoaded = useBookingsStore((s) => s.dispatcherLoaded);
+  const refreshDispatcherBookings = useBookingsStore((s) => s.refreshDispatcherBookings);
 
   useEffect(() => {
     void hydrate();
   }, [hydrate]);
 
   useEffect(() => {
-    refreshDriverBookings().catch((e) => {
+    refreshDispatcherBookings().catch((e) => {
       if (isNotAuthenticatedError(e)) router.replace('/login' as any);
     });
-  }, [refreshDriverBookings]);
+  }, [refreshDispatcherBookings]);
 
-  const completedTrips = driverCompleted.length;
-  const totalEarnings = driverCompleted.reduce((sum, t) => sum + (t.totalPrice ?? 0), 0);
-  const driverName =
-    (profile?.name ?? driverSession?.name ?? '').trim() || 'Driver';
+  const completedTrips = dispatcherCompleted.length;
+  const totalEarnings = dispatcherCompleted.reduce((sum, t) => sum + (t.totalPrice ?? 0), 0);
+  const dispatcherName =
+    (profile?.name ?? dispatcherSession?.name ?? '').trim() || 'Dispatcher';
 
   const activeBookings = useMemo(
-    () => driverActive.filter((b) => normalizeStatus(b.status) === 'IN_PROGRESS'),
-    [driverActive],
+    () => dispatcherActive.filter((b) => normalizeStatus(b.status) === 'IN_PROGRESS'),
+    [dispatcherActive],
   );
-  const upcomingBooking = useMemo(() => pickSoonestUpcoming(driverActive), [driverActive]);
-  const loading = driverLoading && !driverLoaded;
+  const upcomingBooking = useMemo(() => pickSoonestUpcoming(dispatcherActive), [dispatcherActive]);
+  const loading = dispatcherLoading && !dispatcherLoaded;
 
   return (
     <LinearGradient
@@ -108,7 +108,7 @@ export default function DriverDashboardScreen() {
             <View>
               <Text className="text-[22px] font-bold text-[#C9B37A]">Welcome!</Text>
               <Text className="text-2xl font-bold text-[#C9B37A]">
-                {profileLoading && !profile?.name && !driverSession?.name ? '…' : driverName}
+                {profileLoading && !profile?.name && !dispatcherSession?.name ? '…' : dispatcherName}
               </Text>
             </View>
             <View className="flex-row items-center gap-2">
@@ -225,7 +225,7 @@ export default function DriverDashboardScreen() {
               rightActionLabel="See all"
               onRightActionPress={() =>
                 router.push({
-                  pathname: '/(driver-tabs)/bookings' as any,
+                  pathname: '/(dispatcher-tabs)/bookings' as any,
                   params: { tab: 'requests' },
                 })
               }

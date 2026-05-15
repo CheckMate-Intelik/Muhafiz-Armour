@@ -6,12 +6,12 @@ import { CreateVehicleDto } from './dto/create-vehicle.dto';
 export class VehicleService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createForDriver(driverId: string, dto: CreateVehicleDto) {
-    const driver = await this.prisma.driver.findUnique({ where: { id: driverId } });
-    if (!driver) throw new BadRequestException('Driver not found');
-    if (driver.isBlocked) throw new BadRequestException('Driver is blocked');
-    if (!driver.isApproved && process.env.NODE_ENV === 'production') {
-      throw new BadRequestException('Driver not approved');
+  async createForDispatcher(dispatcherId: string, dto: CreateVehicleDto) {
+    const dispatcher = await this.prisma.dispatcher.findUnique({ where: { id: dispatcherId } });
+    if (!dispatcher) throw new BadRequestException('Dispatcher not found');
+    if (dispatcher.isBlocked) throw new BadRequestException('Dispatcher is blocked');
+    if (!dispatcher.isApproved && process.env.NODE_ENV === 'production') {
+      throw new BadRequestException('Dispatcher not approved');
     }
     const [armourLevels, vehicleTypes] = await Promise.all([
       this.prisma.armourLevelOption.findMany({ where: { isActive: true }, select: { code: true } }),
@@ -28,7 +28,7 @@ export class VehicleService {
 
     return this.prisma.vehicle.create({
       data: {
-        driverId,
+        dispatcherId,
         armourLevel: dto.armourLevel,
         vehicleType: dto.vehicleType,
         carModel: dto.carModel.trim(),
@@ -47,22 +47,21 @@ export class VehicleService {
     });
   }
 
-  async listForDriver(driverId: string) {
+  async listForDispatcher(dispatcherId: string) {
     return this.prisma.vehicle.findMany({
-      where: { driverId },
+      where: { dispatcherId },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async getForDriverById(driverId: string, vehicleId: string) {
+  async getForDispatcherById(dispatcherId: string, vehicleId: string) {
     return this.prisma.vehicle.findFirst({
-      where: { id: vehicleId, driverId },
+      where: { id: vehicleId, dispatcherId },
       include: {
-        driver: {
+        dispatcher: {
           select: { id: true, name: true },
         },
       },
     });
   }
 }
-
