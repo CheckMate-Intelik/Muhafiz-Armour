@@ -58,4 +58,9 @@ export class DispatcherController {
   async cancel(@AuthUser() user: JwtPayload, @Param('id') id: string) {
     return this.dispatchers.cancelBooking(user.sub, id);
   }
+
+  @Patch('bookings/:id/extend/approve')
+  async approveExtension(@AuthUser() user: JwtPayload, @Param('id') id: string) {
+    return this.dispatchers.approveExtension(user.sub, id);
+  }
 }

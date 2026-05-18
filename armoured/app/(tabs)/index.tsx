@@ -1,16 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
 import { useEffect, useMemo } from 'react';
-import {
-  Alert,
-  AppState,
-  Image,
-  Linking,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, AppState, Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -100,13 +91,14 @@ export default function Home() {
 
   const activeBooking = useMemo<UserBookingListItem | null>(
     () =>
-      (userBookings.find((x) => normalizeStatus(x?.status) === 'IN_PROGRESS') as UserBookingListItem | undefined) ??
-      null,
-    [userBookings],
+      (userBookings.find((x) => normalizeStatus(x?.status) === 'IN_PROGRESS') as
+        | UserBookingListItem
+        | undefined) ?? null,
+    [userBookings]
   );
   const upcomingBooking = useMemo<UserBookingListItem | null>(
     () => pickSoonestUpcoming(userBookings as UserBookingListItem[]),
-    [userBookings],
+    [userBookings]
   );
 
   return (
@@ -127,7 +119,10 @@ export default function Home() {
               <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
                 <FontAwesome name="bell-o" size={16} color="#111827" />
               </Pressable>
-              <Image source={{ uri: headerAvatarUri }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+              <Image
+                source={{ uri: headerAvatarUri }}
+                style={{ width: 36, height: 36, borderRadius: 18 }}
+              />
             </View>
           </View>
 
@@ -185,40 +180,54 @@ export default function Home() {
                 QUICK ACTIONS
               </Text>
               <View className="mt-3 flex-row gap-3">
-                <Pressable
-                  onPress={() => router.push('/new-booking' as any)}
-                  className="mb-2 flex-1 items-center justify-center"
-                  style={{
-                    height: QUICK_ACTION_CARD.height,
-                    borderRadius: QUICK_ACTION_CARD.radius,
-                    backgroundColor: QUICK_ACTION_CARD.bg,
-                    borderWidth: 1,
-                    borderColor: QUICK_ACTION_CARD.border,
-                  }}>
-                  <FontAwesome name="shield" size={32} color={NEW_BOOKING_GOLD} />
-                  <Text
-                    className="mt-2 text-center text-sm font-semibold"
-                    style={{ color: NEW_BOOKING_GOLD }}>
-                    New Booking
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => void openSupport()}
-                  className="mb-2 flex-1 items-center justify-center"
-                  style={{
-                    height: QUICK_ACTION_CARD.height,
-                    borderRadius: QUICK_ACTION_CARD.radius,
-                    backgroundColor: QUICK_ACTION_CARD.bg,
-                    borderWidth: 1,
-                    borderColor: QUICK_ACTION_CARD.border,
-                  }}>
-                  <FontAwesome name="headphones" size={30} color={SUPPORT_MUTED} />
-                  <Text
-                    className="mt-2 text-center text-sm font-semibold"
-                    style={{ color: SUPPORT_MUTED }}>
-                    Support
-                  </Text>
-                </Pressable>
+                <LinearGradient
+                  colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
+                  start={{ x: 1, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  className="flex-1"
+                  style={{ borderRadius: 10 }}>
+                  <Pressable
+                    onPress={() => router.push('/new-booking' as any)}
+                    className="flex-1 items-center justify-center"
+                    style={{
+                      height: QUICK_ACTION_CARD.height,
+                      borderRadius: QUICK_ACTION_CARD.radius,
+                      // backgroundColor: QUICK_ACTION_CARD.bg,
+                      borderWidth: 1,
+                      borderColor: QUICK_ACTION_CARD.border,
+                    }}>
+                    <FontAwesome name="shield" size={32} color={NEW_BOOKING_GOLD} />
+                    <Text
+                      className="mt-2 text-center text-sm font-semibold"
+                      style={{ color: NEW_BOOKING_GOLD }}>
+                      New Booking
+                    </Text>
+                  </Pressable>
+                </LinearGradient>
+                <LinearGradient
+                  colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
+                  start={{ x: 1, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  className="flex-1"
+                  style={{ borderRadius: 10 }}>
+                  <Pressable
+                    onPress={() => void openSupport()}
+                    className="flex-1 items-center justify-center"
+                    style={{
+                      height: QUICK_ACTION_CARD.height,
+                      borderRadius: QUICK_ACTION_CARD.radius,
+                      // backgroundColor: QUICK_ACTION_CARD.bg,
+                      borderWidth: 1,
+                      borderColor: QUICK_ACTION_CARD.border,
+                    }}>
+                    <FontAwesome name="headphones" size={30} color={SUPPORT_MUTED} />
+                    <Text
+                      className="mt-2 text-center text-sm font-semibold"
+                      style={{ color: SUPPORT_MUTED }}>
+                      Support
+                    </Text>
+                  </Pressable>
+                </LinearGradient>
               </View>
             </View>
           </View>

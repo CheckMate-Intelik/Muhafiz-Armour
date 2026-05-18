@@ -1,11 +1,16 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { BookingService } from '../booking/booking.service';
+import { extensionRequestsInclude, serializeBookingWithExtension } from '../booking/booking-extension.util';
 import { UpdateDispatcherProfileDto } from './dto/update-dispatcher-profile.dto';
 
 @Injectable()
 export class DispatcherService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly bookings: BookingService,
+  ) {}
 
   async getById(id: string) {
     const dispatcher = await this.prisma.dispatcher.findUnique({
@@ -61,11 +66,16 @@ export class DispatcherService {
   }
 
   async listMyActive(dispatcherId: string) {
-    return this.prisma.booking.findMany({
+    const rows = await this.prisma.booking.findMany({
       where: { dispatcherId, status: { in: ['CONFIRMED', 'IN_PROGRESS'] } },
       orderBy: { createdAt: 'desc' },
-      include: { user: true, vehicle: true, dispatcher: true },
+      include: { user: true, vehicle: true, dispatcher: true, ...extensionRequestsInclude },
     });
+    return rows.map(serializeBookingWithExtension);
+  }
+
+  async approveExtension(dispatcherId: string, bookingId: string) {
+    return this.bookings.approveExtensionRequest(dispatcherId, bookingId);
   }
 
   async listMyCompleted(dispatcherId: string) {

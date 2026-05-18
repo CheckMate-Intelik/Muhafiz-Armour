@@ -11,6 +11,7 @@ import { MatchingService } from '../matching/matching.service';
 import { RequestBookingDto } from './dto/request-booking.dto';
 import { UpdateBookingScheduleDto } from './dto/update-booking-schedule.dto';
 import { ExtendBookingDto } from './dto/extend-booking.dto';
+import { extensionRequestsInclude, serializeBookingWithExtension } from './booking-extension.util';
 
 const MAX_BOOKING_HOURS = 5 * 24;
 
@@ -262,7 +263,7 @@ export class BookingService {
   async extendActiveBooking(userId: string, bookingId: string, dto: ExtendBookingDto) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
-      include: { vehicle: true },
+      include: { vehicle: true, extensionRequests: { where: { status: 'PENDING' } } },
     });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.userId !== userId) throw new BadRequestException('Not your booking');
@@ -270,8 +271,11 @@ export class BookingService {
       throw new BadRequestException('Booking cannot be extended');
     }
     if (!booking.vehicleId || !booking.vehicle) throw new BadRequestException('Vehicle missing on booking');
+    if (booking.extensionRequests.length > 0) {
+      throw new BadRequestException('Extension already pending dispatcher approval');
+    }
 
-    const addMs = dto.mode === 'ADD_2_HOURS' ? 2 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+    const addMs = 3 * 60 * 60 * 1000;
     const newEnd = new Date(booking.endTime.getTime() + addMs);
 
     const durationHours = (newEnd.getTime() - booking.startTime.getTime()) / (1000 * 60 * 60);
@@ -293,25 +297,95 @@ export class BookingService {
 
     const plannedPrice = Math.round(booking.vehicle.baseRatePerHour * durationHours);
 
-    return this.prisma.booking.update({
-      where: { id: bookingId },
+    await this.prisma.bookingExtensionRequest.create({
       data: {
-        endTime: newEnd,
-        totalPrice: plannedPrice,
+        bookingId,
+        mode: dto.mode,
+        previousEndTime: booking.endTime,
+        requestedEndTime: newEnd,
+        proposedTotalPrice: plannedPrice,
+        status: 'PENDING',
       },
-      include: { user: true, dispatcher: true, vehicle: true },
     });
+
+    const updated = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { user: true, dispatcher: true, vehicle: true, ...extensionRequestsInclude },
+    });
+    if (!updated) throw new NotFoundException('Booking not found');
+    return serializeBookingWithExtension(updated);
+  }
+
+  async approveExtensionRequest(dispatcherId: string, bookingId: string) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { vehicle: true },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.dispatcherId !== dispatcherId) throw new BadRequestException('Not your booking');
+    if (!['CONFIRMED', 'IN_PROGRESS'].includes(booking.status)) {
+      throw new BadRequestException('Booking cannot be extended');
+    }
+    if (!booking.vehicleId || !booking.vehicle) throw new BadRequestException('Vehicle missing on booking');
+
+    const pending = await this.prisma.bookingExtensionRequest.findFirst({
+      where: { bookingId, status: 'PENDING' },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!pending) throw new BadRequestException('No pending extension request');
+
+    const newEnd = pending.requestedEndTime;
+    const durationHours = (newEnd.getTime() - booking.startTime.getTime()) / (1000 * 60 * 60);
+    if (durationHours > MAX_BOOKING_HOURS) {
+      throw new BadRequestException(`Total booking length may not exceed ${MAX_BOOKING_HOURS} hours`);
+    }
+
+    await this.assertUserHasNoOverlappingBooking(booking.userId, booking.startTime, newEnd, booking.id);
+
+    const buf = booking.bufferMinutes ?? bufferMinutesForTrip(booking.pickupCity, booking.dropCity);
+    const ok = await this.matching.assertVehicleAvailableForWindow(
+      booking.vehicleId,
+      booking.startTime,
+      newEnd,
+      buf,
+      booking.id,
+    );
+    if (!ok) throw new BadRequestException('Extension conflicts with another booking');
+
+    const now = new Date();
+    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      await tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          endTime: newEnd,
+          totalPrice: pending.proposedTotalPrice,
+        },
+      });
+      await tx.bookingExtensionRequest.update({
+        where: { id: pending.id },
+        data: { status: 'APPROVED', resolvedAt: now },
+      });
+    });
+
+    const updated = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { user: true, dispatcher: true, vehicle: true, ...extensionRequestsInclude },
+    });
+    if (!updated) throw new NotFoundException('Booking not found');
+    return serializeBookingWithExtension(updated);
   }
 
   async listForUser(userId: string) {
-    return this.prisma.booking.findMany({
+    const rows = await this.prisma.booking.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       include: {
         dispatcher: true,
         vehicle: true,
+        ...extensionRequestsInclude,
       },
     });
+    return rows.map(serializeBookingWithExtension);
   }
 
   async cancelForUser(userId: string, bookingId: string) {

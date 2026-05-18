@@ -266,7 +266,10 @@ export async function apiPost<T>(path: string, userId: string, body: unknown): P
     headers: { 'content-type': 'application/json', 'x-user-id': userId },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`POST ${path} failed`);
+  if (!res.ok) {
+    const details = await safeReadError(res);
+    throw new Error(details ?? `POST ${path} failed`);
+  }
   return (await res.json()) as T;
 }
 
