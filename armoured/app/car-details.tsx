@@ -61,7 +61,10 @@ export default function CarDetailsScreen() {
         let data: { vehicle?: VehicleDetails | null } | null = null;
         if (isReadonly) {
           const s = await ensureDispatcherSession();
-          data = await dispatcherGet<{ vehicle?: VehicleDetails | null }>(`/dispatcher/vehicles/${vehicleId}`, s.dispatcherId);
+          data = await dispatcherGet<{ vehicle?: VehicleDetails | null }>(
+            `/dispatcher/vehicles/${vehicleId}`,
+            s.dispatcherId
+          );
         } else {
           const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/${vehicleId}`);
           if (!res.ok) return;
@@ -91,10 +94,25 @@ export default function CarDetailsScreen() {
   const specificationCards = useMemo(() => {
     if (!vehicle) return [];
     return [
-      { key: 'capacity', label: 'Capacity', value: `${vehicle.seatingCapacity ?? 4} seats`, icon: 'users' as const },
-      { key: 'certification', label: 'Certification', value: vehicle.certification, icon: 'shield' as const },
+      {
+        key: 'capacity',
+        label: 'Capacity',
+        value: `${vehicle.seatingCapacity ?? 4} seats`,
+        icon: 'users' as const,
+      },
+      {
+        key: 'certification',
+        label: 'Certification',
+        value: vehicle.certification,
+        icon: 'shield' as const,
+      },
       { key: 'location', label: 'City', value: vehicle.location, icon: 'map-marker' as const },
-      { key: 'condition', label: 'Condition', value: vehicle.condition, icon: 'check-circle' as const },
+      {
+        key: 'condition',
+        label: 'Condition',
+        value: vehicle.condition,
+        icon: 'check-circle' as const,
+      },
     ];
   }, [vehicle]);
 
@@ -129,7 +147,10 @@ export default function CarDetailsScreen() {
                 accessibilityLabel="Go back">
                 <FontAwesome name="angle-left" size={18} color="#111827" />
               </Pressable>
-              <Text className="flex-1 px-3 text-center text-sm font-extrabold" style={{ color: GOLD }} numberOfLines={1}>
+              <Text
+                className="flex-1 px-3 text-center text-lg font-extrabold"
+                style={{ color: GOLD }}
+                numberOfLines={1}>
                 {loading ? '…' : title}
               </Text>
               <View className="h-10 w-10" />
@@ -137,12 +158,16 @@ export default function CarDetailsScreen() {
           </View>
 
           {loading ? (
-            <Text className="mt-10 px-5 text-center text-sm font-semibold text-gray-300">Loading…</Text>
+            <Text className="mt-10 px-5 text-center text-sm font-semibold text-gray-300">
+              Loading…
+            </Text>
           ) : null}
 
           {!loading && !vehicle ? (
             <View className="mt-8 items-center px-5">
-              <Text className="text-center text-sm font-semibold text-gray-300">Vehicle details are unavailable.</Text>
+              <Text className="text-center text-sm font-semibold text-gray-300">
+                Vehicle details are unavailable.
+              </Text>
             </View>
           ) : null}
 
@@ -187,18 +212,26 @@ export default function CarDetailsScreen() {
                     borderColor: 'rgba(255,255,255,0.06)',
                     ...cardShadow,
                   }}>
+                  <LinearGradient
+                    colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
+                    start={{ x: 1, y: 0 }}
+                    end={{ x: 1, y: 1 }}></LinearGradient>
                   <View
                     className="border-b px-4 pb-3 pt-3.5"
-                    style={{ backgroundColor: '#000000', borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                    style={{
+                      backgroundColor: '#000000',
+                      borderBottomColor: 'rgba(255,255,255,0.06)',
+                    }}>
                     <Text
-                      className="text-center text-[11px] font-extrabold"
+                      className="mt-1 text-center text-xl font-extrabold text-gray-100"
+                      numberOfLines={2}
                       style={{ color: GOLD, letterSpacing: 0.5 }}>
-                      VEHICLE
-                    </Text>
-                    <Text className="mt-1 text-center text-xl font-extrabold text-gray-100" numberOfLines={2}>
                       {vehicle.carModel ?? 'Vehicle'}
                     </Text>
-                    <Text className="mt-0.5 text-center text-sm font-semibold" style={{ color: '#9CA3AF' }} numberOfLines={1}>
+                    <Text
+                      className="text-md mt-0.5 text-center font-semibold"
+                      style={{ color: '#9CA3AF' }}
+                      numberOfLines={1}>
                       {vehicle.generation?.trim() || vehicle.manufacturer || '—'}
                     </Text>
                   </View>
@@ -209,7 +242,10 @@ export default function CarDetailsScreen() {
                         <DetailRow label="Brand" value={vehicle.manufacturer ?? '—'} />
                       </View>
                       <View className="flex-1 px-1">
-                        <DetailRow label="Year" value={vehicle.year != null ? String(vehicle.year) : '—'} />
+                        <DetailRow
+                          label="Year"
+                          value={vehicle.year != null ? String(vehicle.year) : '—'}
+                        />
                       </View>
                       <View className="flex-1 pl-1">
                         <DetailRow label="Color" value={vehicle.color ?? '—'} />
@@ -229,37 +265,49 @@ export default function CarDetailsScreen() {
                   </View>
                 </View>
 
-                <Text className="mt-5 text-[11px] font-extrabold" style={{ color: GOLD, letterSpacing: 0.5 }}>
+                <Text
+                  className="text-md mt-5 font-extrabold"
+                  style={{ color: GOLD, letterSpacing: 0.5 }}>
                   SPECIFICATION
                 </Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2 pb-1">
                   {specificationCards.map((item) => (
-                    <View
-                      key={item.key}
-                      className="mr-3 w-[118px] rounded-2xl border px-3 py-3"
+                    <LinearGradient
+                      colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
+                      start={{ x: 1, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      className="mr-3 w-[118px] rounded-2xl px-3 py-3"
                       style={{
                         backgroundColor: CARD_BG,
+                        borderRadius: 15,
+                        borderWidth: 1,
                         borderColor: 'rgba(255,255,255,0.06)',
                         ...cardShadow,
                       }}>
-                      <View
-                        className="h-8 w-8 items-center justify-center rounded-full"
-                        style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-                        <FontAwesome name={item.icon} size={14} color={GOLD} />
+                      <View key={item.key}>
+                        <View
+                          className="h-8 w-8 items-center justify-center rounded-full"
+                          style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+                          <FontAwesome name={item.icon} size={16} color={GOLD} />
+                        </View>
+                        <Text className="text-md mt-3 font-bold" style={{ color: '#9CA3AF' }}>
+                          {item.label}
+                        </Text>
+                        <Text
+                          className="text-md mt-1 font-extrabold text-gray-100"
+                          numberOfLines={3}>
+                          {item.value}
+                        </Text>
                       </View>
-                      <Text className="mt-3 text-[10px] font-bold" style={{ color: '#9CA3AF' }}>
-                        {item.label}
-                      </Text>
-                      <Text className="mt-1 text-xs font-extrabold text-gray-100" numberOfLines={3}>
-                        {item.value}
-                      </Text>
-                    </View>
+                    </LinearGradient>
                   ))}
                 </ScrollView>
 
                 {Array.isArray(vehicle.features) && vehicle.features.length > 0 ? (
                   <>
-                    <Text className="mt-4 text-[11px] font-extrabold" style={{ color: GOLD, letterSpacing: 0.5 }}>
+                    <Text
+                      className="text-md mt-4 font-extrabold"
+                      style={{ color: GOLD, letterSpacing: 0.5 }}>
                       FEATURES
                     </Text>
                     <View className="mt-2 flex-row flex-wrap gap-2">
@@ -267,8 +315,11 @@ export default function CarDetailsScreen() {
                         <View
                           key={f}
                           className="rounded-full border px-3 py-1.5"
-                          style={{ borderColor: 'rgba(255,255,255,0.12)', backgroundColor: 'rgba(255,255,255,0.04)' }}>
-                          <Text className="text-[11px] font-semibold text-gray-200">{f}</Text>
+                          style={{
+                            borderColor: 'rgba(255,255,255,0.12)',
+                            backgroundColor: 'rgba(255,255,255,0.04)',
+                          }}>
+                          <Text className="text-md font-semibold text-gray-200">{f}</Text>
                         </View>
                       ))}
                     </View>
@@ -283,16 +334,18 @@ export default function CarDetailsScreen() {
                     ...cardShadow,
                   }}>
                   <View className="flex-1 pr-2">
-                    <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+                    <Text className="text-md font-bold" style={{ color: '#9CA3AF' }}>
                       Owner
                     </Text>
-                    <Text className="mt-1 text-base font-extrabold text-gray-100" numberOfLines={1}>
+                    <Text className="mt-1 text-lg font-bold text-gray-100" numberOfLines={1}>
                       {ownerName}
                     </Text>
                   </View>
-                  <View className="flex-row items-center rounded-full px-3 py-1.5" style={{ backgroundColor: 'rgba(201,179,122,0.15)' }}>
+                  <View
+                    className="flex-row items-center rounded-full px-3 py-1.5"
+                    style={{ backgroundColor: 'rgba(201,179,122,0.15)' }}>
                     <FontAwesome name="star" size={12} color={GOLD} />
-                    <Text className="ml-1 text-sm font-extrabold" style={{ color: GOLD }}>
+                    <Text className="text-md ml-1 font-bold" style={{ color: GOLD }}>
                       {ownerRating.toFixed(1)}
                     </Text>
                   </View>
@@ -324,7 +377,12 @@ export default function CarDetailsScreen() {
                 </Text>
               </View>
               <Pressable
-                onPress={() => router.push({ pathname: '/book-confirm' as any, params: { vehicleId: vehicle.id } })}
+                onPress={() =>
+                  router.push({
+                    pathname: '/book-confirm' as any,
+                    params: { vehicleId: vehicle.id },
+                  })
+                }
                 className="rounded-2xl px-6 py-3.5"
                 style={{ backgroundColor: GOLD }}>
                 <Text className="text-sm font-extrabold" style={{ color: '#0B0F14' }}>
@@ -342,10 +400,10 @@ export default function CarDetailsScreen() {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <View>
-      <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+      <Text className="text-lg font-bold" style={{ color: '#9CA3AF' }}>
         {label}
       </Text>
-      <Text className="mt-1 text-[13px] font-extrabold text-gray-100" numberOfLines={2}>
+      <Text className="text-md mt-1 font-bold text-gray-100" numberOfLines={2}>
         {value}
       </Text>
     </View>

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { PUBLIC_API_BASE_URL, apiPatch, apiPost, ensureUserSession } from '@/lib/api';
+import { PUBLIC_API_BASE_URL, apiPost, ensureUserSession } from '@/lib/api';
 import { useTripDraftStore } from '@/store/tripDraft';
 
 const MAX_HOURS = 5 * 24;
@@ -13,9 +13,7 @@ export default function BookConfirmScreen() {
   const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId?: string }>();
   const vehicleId = vehicleIdParam ?? '';
   const draft = useTripDraftStore();
-  const [bookingId, setBookingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [creating, setCreating] = useState(true);
   const [rate, setRate] = useState<number | null>(null);
   const [durationHours, setDurationHours] = useState(() => draft.baseDurationHours ?? 12);
 
@@ -55,87 +53,50 @@ export default function BookConfirmScreen() {
     };
   }, [vehicleId]);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function createDraft() {
-      if (!vehicleId || !draft.pickupAddress || !draft.startTimeIso || draft.baseDurationHours == null) {
-        setCreating(false);
-        return;
-      }
-      try {
-        const s = await ensureUserSession();
-        const dh = draft.baseDurationHours;
-        const end = new Date(new Date(draft.startTimeIso).getTime() + dh * 60 * 60 * 1000);
-        const res = await apiPost<{ booking?: { id: string } }>(`/bookings/request`, s.userId, {
-          pickupLocation: draft.pickupAddress,
-          dropLocation: draft.dropAddress,
-          pickupCity: draft.pickupCity,
-          dropCity: draft.dropCity,
-          pickupLat: draft.pickupLat ?? undefined,
-          pickupLng: draft.pickupLng ?? undefined,
-          dropLat: draft.dropLat ?? undefined,
-          dropLng: draft.dropLng ?? undefined,
-          startTime: draft.startTimeIso,
-          endTime: end.toISOString(),
-        });
-        if (cancelled) return;
-        const id = res.booking?.id;
-        if (id) setBookingId(id);
-      } catch (e) {
-        Alert.alert('Booking', e instanceof Error ? e.message : 'Failed to create draft');
-        router.back();
-      } finally {
-        if (!cancelled) setCreating(false);
-      }
-    }
-    void createDraft();
-    return () => {
-      cancelled = true;
-    };
-  }, [vehicleId, draft.pickupAddress, draft.dropAddress, draft.startTimeIso, draft.baseDurationHours, draft.pickupCity, draft.dropCity, draft.pickupLat, draft.pickupLng, draft.dropLat, draft.dropLng]);
-
   async function applyDuration(nextHours: number) {
     const clamped = Math.min(MAX_HOURS, Math.max(1, Math.round(nextHours)));
     setDurationHours(clamped);
-    if (!bookingId || !vehicleId) return;
+    if (!vehicleId || !draft.startTimeIso) return;
     try {
       setBusy(true);
       const s = await ensureUserSession();
       const end = new Date(startAt.getTime() + clamped * 60 * 60 * 1000);
-      await apiPatch(`/bookings/${bookingId}/schedule`, s.userId, {
-        endTime: end.toISOString(),
+      const res = await apiPost<{ available?: boolean }>(`/bookings/check-availability`, s.userId, {
         vehicleId,
+        startTime: startAt.toISOString(),
+        endTime: end.toISOString(),
       });
+      if (!res.available) {
+        Alert.alert('Unavailable', 'Vehicle is not free for this duration');
+        setDurationHours(draft.baseDurationHours ?? 12);
+      }
     } catch (e) {
       Alert.alert('Unavailable', e instanceof Error ? e.message : 'Vehicle not free for this duration');
+      setDurationHours(draft.baseDurationHours ?? 12);
     } finally {
       setBusy(false);
     }
   }
 
-  async function pay() {
-    if (!vehicleId || !bookingId || estimated == null) return;
-    try {
-      setBusy(true);
-      const s = await ensureUserSession();
-      const selected = await apiPost<{ totalPrice?: number; pickupLocation?: string; dropLocation?: string }>(
-        `/bookings/${bookingId}/select`,
-        s.userId,
-        { vehicleId },
-      );
-      router.replace({
-        pathname: '/payment' as any,
-        params: {
-          amount: String(selected.totalPrice ?? estimated),
-          from: selected.pickupLocation ?? draft.pickupAddress,
-          to: selected.dropLocation ?? draft.dropAddress,
-        },
-      });
-    } catch (e) {
-      Alert.alert('Booking failed', e instanceof Error ? e.message : 'Unable to continue');
-    } finally {
-      setBusy(false);
-    }
+  function pay() {
+    if (!vehicleId || estimated == null || !draft.startTimeIso) return;
+    router.push({
+      pathname: '/payment' as any,
+      params: {
+        vehicleId,
+        amount: String(estimated),
+        from: draft.pickupAddress,
+        to: draft.dropAddress,
+        startTime: startAt.toISOString(),
+        endTime: endAt.toISOString(),
+        pickupCity: draft.pickupCity || undefined,
+        dropCity: draft.dropCity || undefined,
+        pickupLat: draft.pickupLat != null ? String(draft.pickupLat) : undefined,
+        pickupLng: draft.pickupLng != null ? String(draft.pickupLng) : undefined,
+        dropLat: draft.dropLat != null ? String(draft.dropLat) : undefined,
+        dropLng: draft.dropLng != null ? String(draft.dropLng) : undefined,
+      },
+    });
   }
 
   return (
@@ -161,7 +122,10 @@ export default function BookConfirmScreen() {
         <Text className="mt-4 text-[10px] font-bold text-gray-400">Duration (hours)</Text>
         <Text className="mt-1 text-[10px] font-semibold text-gray-500">Change duration — availability is checked for this vehicle.</Text>
         <View className="mt-2 flex-row items-center gap-2">
-          <Pressable onPress={() => void applyDuration(durationHours - 1)} className="rounded-xl bg-gray-100 px-3 py-2">
+          <Pressable
+            disabled={busy}
+            onPress={() => void applyDuration(durationHours - 1)}
+            className="rounded-xl bg-gray-100 px-3 py-2">
             <Text className="text-xs font-extrabold text-gray-900">−</Text>
           </Pressable>
           <TextInput
@@ -172,12 +136,16 @@ export default function BookConfirmScreen() {
               setDurationHours(n);
             }}
             onBlur={() => {
-              if (bookingId) void applyDuration(durationHours);
+              void applyDuration(durationHours);
             }}
             keyboardType="number-pad"
+            editable={!busy}
             className="min-w-[72px] rounded-xl border border-gray-200 px-3 py-2 text-center text-sm font-extrabold text-gray-900"
           />
-          <Pressable onPress={() => void applyDuration(durationHours + 1)} className="rounded-xl bg-gray-100 px-3 py-2">
+          <Pressable
+            disabled={busy}
+            onPress={() => void applyDuration(durationHours + 1)}
+            className="rounded-xl bg-gray-100 px-3 py-2">
             <Text className="text-xs font-extrabold text-gray-900">+</Text>
           </Pressable>
         </View>
@@ -192,11 +160,11 @@ export default function BookConfirmScreen() {
         </View>
 
         <Pressable
-          disabled={busy || creating || estimated == null || !bookingId}
-          onPress={() => void pay()}
-          className={`mt-8 items-center rounded-2xl py-3 ${busy || creating || estimated == null || !bookingId ? 'bg-gray-300' : 'bg-[#111827]'}`}>
-          <Text className={`text-xs font-extrabold ${busy || creating || estimated == null || !bookingId ? 'text-gray-600' : 'text-white'}`}>
-            {creating ? 'Preparing…' : busy ? 'Please wait…' : 'Continue to payment'}
+          disabled={busy || estimated == null}
+          onPress={pay}
+          className={`mt-8 items-center rounded-2xl py-3 ${busy || estimated == null ? 'bg-gray-300' : 'bg-[#111827]'}`}>
+          <Text className={`text-xs font-extrabold ${busy || estimated == null ? 'text-gray-600' : 'text-white'}`}>
+            {busy ? 'Please wait…' : 'Continue to payment'}
           </Text>
         </Pressable>
       </ScrollView>

@@ -1,6 +1,9 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Text, View } from 'react-native';
 
+import { PendingExpiryCountdown } from '@/components/PendingExpiryCountdown';
+import { isPendingAwaitingDispatcher } from '@/lib/bookingPendingExpiry';
+
 export type BookingDetailsBodyProps = {
   personLabel: string;
   personName: string;
@@ -14,6 +17,8 @@ export type BookingDetailsBodyProps = {
   dropLocation: string;
   startTime: string;
   endTime: string;
+  pendingExpiresAt?: string | null;
+  createdAt?: string | null;
 };
 
 export function BookingDetailsBody({
@@ -29,6 +34,8 @@ export function BookingDetailsBody({
   dropLocation,
   startTime,
   endTime,
+  pendingExpiresAt,
+  createdAt,
 }: BookingDetailsBodyProps) {
   const tripDurationText = tripDurationLabel(startTime, endTime);
   const tripStartDateText = formatTripDateShort(startTime);
@@ -38,6 +45,30 @@ export function BookingDetailsBody({
 
   return (
     <>
+      {isPendingAwaitingDispatcher(statusLabel) ? (
+        <View
+          className="mb-4 rounded-2xl px-4 py-3"
+          style={{
+            backgroundColor: 'rgba(245, 158, 11, 0.12)',
+            borderWidth: 1,
+            borderColor: 'rgba(245, 158, 11, 0.35)',
+          }}>
+          <Text className="text-xs font-extrabold text-amber-300">
+            Awaiting dispatcher acceptance
+          </Text>
+          <PendingExpiryCountdown
+            status={statusLabel}
+            pendingExpiresAt={pendingExpiresAt}
+            createdAt={createdAt}
+            variant="dark"
+            className="mt-1"
+          />
+          <Text className="mt-2 text-[11px] font-semibold" style={{ color: '#B8BBC0' }}>
+            If not accepted within 1 hour, this request will expire automatically.
+          </Text>
+        </View>
+      ) : null}
+
       <View className="flex-row items-stretch gap-2">
         <View
           className="flex-1 rounded-2xl p-3"
@@ -47,21 +78,25 @@ export function BookingDetailsBody({
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.06)',
           }}>
-          <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+          <Text className="text-md font-bold" style={{ color: '#9CA3AF' }}>
             {personLabel}
           </Text>
           <View className="mt-2 flex-row items-center">
             <View
               className="h-10 w-10 items-center justify-center rounded-full"
-              style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
-              <FontAwesome name="user" size={14} color="#9CA3AF" />
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.06)',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.06)',
+              }}>
+              <FontAwesome name="user" size={16} color="#9CA3AF" />
             </View>
-            <Text className="ml-2 flex-1 text-md font-semibold text-gray-200" numberOfLines={1}>
+            <Text className="text-md ml-2 flex-1 font-bold text-gray-200" numberOfLines={1}>
               {personName}
             </Text>
           </View>
         </View>
-        <View className="flex-col gap-2 w-[40%]">
+        <View className="w-[40%] flex-col gap-2">
           <View
             className="rounded-2xl p-3"
             style={{
@@ -132,7 +167,11 @@ export function BookingDetailsBody({
           <FontAwesome name="calendar-o" size={20} color="#9CA3AF" />
           <View
             className="absolute bottom-0.5 right-0.5 rounded-sm"
-            style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.06)',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.06)',
+            }}>
             <FontAwesome name="clock-o" size={9} color="#9CA3AF" />
           </View>
         </View>
@@ -158,7 +197,11 @@ export function BookingDetailsBody({
         <View className="items-center" style={{ width: 36 }}>
           <View
             className="h-9 w-9 items-center justify-center rounded-full"
-            style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.06)',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.06)',
+            }}>
             <FontAwesome name="map-marker" size={18} color="#C9B37A" />
           </View>
           <View
@@ -173,7 +216,11 @@ export function BookingDetailsBody({
           />
           <View
             className="h-9 w-9 items-center justify-center rounded-full"
-            style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.06)',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.06)',
+            }}>
             <FontAwesome name="map-marker" size={18} color="#E5E7EB" />
           </View>
         </View>
@@ -184,7 +231,7 @@ export function BookingDetailsBody({
           <Text className="mt-0.5 text-lg font-bold text-gray-100" numberOfLines={4}>
             {pickupLocation || '—'}
           </Text>
-          <Text className="mt-1 text-md font-medium" style={{ color: '#9CA3AF' }}>
+          <Text className="text-md mt-1 font-medium" style={{ color: '#9CA3AF' }}>
             {pickupAtText}
           </Text>
 
@@ -196,7 +243,7 @@ export function BookingDetailsBody({
           <Text className="mt-0.5 text-lg font-bold text-gray-100" numberOfLines={4}>
             {dropLocation || '—'}
           </Text>
-          <Text className="mt-1 text-md font-medium" style={{ color: '#9CA3AF' }}>
+          <Text className="text-md mt-1 font-medium" style={{ color: '#9CA3AF' }}>
             {returnAtText}
           </Text>
         </View>
@@ -233,16 +280,16 @@ function tripDurationLabel(start?: string, end?: string) {
   const ms = e - s;
   const days = Math.floor(ms / 86400000);
   const hours = Math.floor((ms % 86400000) / 3600000);
-  const minutes = Math.floor((ms % 3600000) / 60000);
+  const parts: string[] = [];
   if (days >= 1) {
-    return `${days} day${days === 1 ? '' : 's'}`;
+    parts.push(`${days} day${days === 1 ? '' : 's'}`);
   }
   if (hours >= 1) {
-    return minutes > 0 ? `${hours} hr ${minutes} min` : `${hours} hr${hours === 1 ? '' : 's'}`;
+    parts.push(`${hours} hour${hours === 1 ? '' : 's'}`);
   }
-  if (minutes >= 1) {
-    return `${minutes} min`;
-  }
+  if (parts.length > 0) return parts.join(' ');
+  const minutes = Math.floor((ms % 3600000) / 60000);
+  if (minutes >= 1) return `${minutes} min`;
   return '< 1 min';
 }
 
@@ -257,7 +304,9 @@ export const bookingDetailsCardShadow = {
 const cardShadow = bookingDetailsCardShadow;
 
 function statusTextColorClass(status: string) {
-  const s = String(status || '').trim().toUpperCase();
+  const s = String(status || '')
+    .trim()
+    .toUpperCase();
   if (s === 'IN_PROGRESS' || s === 'INPROGRESS' || s === 'ONGOING') return 'text-green-300';
   if (s === 'CONFIRMED' || s === 'REQUESTED' || s === 'PENDING') return 'text-amber-400';
   if (s === 'COMPLETED' || s === 'DONE' || s === 'FINISHED') return 'text-blue-600';

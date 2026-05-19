@@ -17,7 +17,7 @@ function normalizeStatus(status: string | null | undefined) {
 
 function isUpcomingStatus(status: string | null | undefined) {
   const s = normalizeStatus(status);
-  return s === 'REQUESTED' || s === 'PENDING_DISPATCHER' || s === 'CONFIRMED';
+  return s === 'PENDING_DISPATCHER' || s === 'CONFIRMED';
 }
 
 function pickSoonestUpcoming(rows: UserBookingListItem[]) {
@@ -112,8 +112,8 @@ export default function Home() {
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-[22px] font-semibold text-gray-200">Welcome!</Text>
-              <Text className="text-2xl font-semibold text-gray-200">{userName}</Text>
+              <Text className="text-[22px] font-semibold text-[#C9B37A]">Welcome!</Text>
+              <Text className="text-2xl font-semibold text-[#C9B37A]">{userName}</Text>
             </View>
             <View className="flex-row items-center gap-2">
               <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">

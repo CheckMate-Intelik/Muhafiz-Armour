@@ -43,6 +43,11 @@ export class BookingController {
     return this.bookings.extendActiveBooking(user.sub, id, dto);
   }
 
+  @Patch(':id/extend/cancel')
+  async cancelExtension(@AuthUser() user: JwtPayload, @Param('id') id: string) {
+    return this.bookings.cancelExtensionRequest(user.sub, id);
+  }
+
   @Post(':id/select')
   async select(@AuthUser() user: JwtPayload, @Param('id') id: string, @Body() dto: SelectVehicleDto) {
     return this.bookings.selectVehicle(user.sub, id, dto.vehicleId);

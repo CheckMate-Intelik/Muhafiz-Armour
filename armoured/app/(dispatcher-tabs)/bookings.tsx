@@ -100,7 +100,7 @@ export default function DispatcherBookingsScreen() {
 
   const confirmedActive = useMemo(
     () => active.filter((b) => (b.status ?? '').trim().toUpperCase() === 'CONFIRMED'),
-    [active],
+    [active]
   );
 
   const list = useMemo(() => {
@@ -132,7 +132,10 @@ export default function DispatcherBookingsScreen() {
               <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
                 <FontAwesome name="bell-o" size={16} color="#111827" />
               </Pressable>
-              <Image source={{ uri: headerAvatarUri }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+              <Image
+                source={{ uri: headerAvatarUri }}
+                style={{ width: 36, height: 36, borderRadius: 18 }}
+              />
             </View>
           </View>
 
@@ -150,35 +153,52 @@ export default function DispatcherBookingsScreen() {
                     borderLeftWidth: idx === 0 ? 0 : 1,
                     borderLeftColor: 'rgba(255,255,255,0.08)',
                   }}>
-                  <View
-                    className="items-center justify-center px-1 py-3"
-                    style={{
-                      backgroundColor: active ? '#C9B37A' : 'transparent',
-                      height: 70,
-                    }}>
-                    <FontAwesome
-                      name={t === 'Booking Requests' ? 'inbox' : 'history'}
-                      size={22}
-                      color={active ? '#0B0F14' : '#B8BBC0'}
-                    />
-                    <Text
-                      className="mt-1 text-sm font-extrabold"
-                      style={{ color: active ? '#0B0F14' : '#B8BBC0' }}>
-                      {t === 'Booking Requests' ? 'REQUESTS' : 'HISTORY'}
-                    </Text>
-                  </View>
+                  <LinearGradient
+                    colors={
+                      active
+                        ? ['rgb(204, 155, 31)', 'rgb(201, 179, 122)']
+                        : ['rgb(37, 37, 37)', 'rgb(0, 0, 0)']
+                    }
+                    start={{ x: 1, y: 0 }}
+                    end={{ x: 1, y: 1 }}>
+                    <View
+                      className="items-center justify-center px-1 py-3"
+                      style={{
+                        height: 70,
+                      }}>
+                      <FontAwesome
+                        name={t === 'Booking Requests' ? 'inbox' : 'history'}
+                        size={22}
+                        color={active ? '#0B0F14' : '#B8BBC0'}
+                      />
+                      <Text
+                        className="mt-1 text-sm font-extrabold"
+                        style={{ color: active ? '#0B0F14' : '#B8BBC0' }}>
+                        {t === 'Booking Requests' ? 'REQUESTS' : 'HISTORY'}
+                      </Text>
+                    </View>
+                  </LinearGradient>
                 </Pressable>
               );
             })}
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
+        <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-4 pt-4">
           {approvedVehicles.length > 0 ? (
             <View
-              className="mb-4 overflow-hidden rounded-xl py-2 pl-2"
-              style={{ backgroundColor: 'rgba(0, 0, 0, 0.32)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 10 }}>
+              className="mb-4 overflow-hidden rounded-xl"
+              style={
+                {
+                  // backgroundColor: 'rgba(0, 0, 0, 0.32)',
+                  // borderWidth: 1,
+                  // borderColor: 'rgba(255,255,255,0.06)',
+                }
+              }>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingRight: 10 }}>
                 <Pressable
                   onPress={() => setSelectedVehicleId('ALL')}
                   className="mr-1"
@@ -201,9 +221,13 @@ export default function DispatcherBookingsScreen() {
                 {approvedVehicles.map((v) => {
                   const id = String(v.id);
                   const activeCar = selectedVehicleId === id;
-                  const firstImg = Array.isArray(v.imageUrls) && v.imageUrls.length > 0 ? v.imageUrls[0] : '';
+                  const firstImg =
+                    Array.isArray(v.imageUrls) && v.imageUrls.length > 0 ? v.imageUrls[0] : '';
                   const label =
-                    `${v.manufacturer ?? ''} ${v.carModel ?? ''}`.trim() || v.vehicleType || v.armourLevel || 'Vehicle';
+                    `${v.manufacturer ?? ''} ${v.carModel ?? ''}`.trim() ||
+                    v.vehicleType ||
+                    v.armourLevel ||
+                    'Vehicle';
 
                   return (
                     <Pressable
@@ -221,9 +245,17 @@ export default function DispatcherBookingsScreen() {
                         style={{ backgroundColor: '#0B0F14' }}>
                         <View className="h-[74px] w-[74px] items-center justify-center bg-black/20">
                           {firstImg ? (
-                            <Image source={{ uri: firstImg }} style={{ width: 74, height: 74 }} resizeMode="cover" />
+                            <Image
+                              source={{ uri: firstImg }}
+                              style={{ width: 74, height: 74 }}
+                              resizeMode="cover"
+                            />
                           ) : (
-                            <FontAwesome name="car" size={18} color={activeCar ? '#C9B37A' : '#B8BBC0'} />
+                            <FontAwesome
+                              name="car"
+                              size={18}
+                              color={activeCar ? '#C9B37A' : '#B8BBC0'}
+                            />
                           )}
                         </View>
                         <View className="flex-1 px-2">
@@ -232,7 +264,10 @@ export default function DispatcherBookingsScreen() {
                             className={`text-[11px] font-extrabold ${activeCar ? 'text-[#C9B37A]' : 'text-gray-100'}`}>
                             {label}
                           </Text>
-                          <Text numberOfLines={1} className="mt-0.5 text-[10px] font-bold" style={{ color: '#9CA3AF' }}>
+                          <Text
+                            numberOfLines={1}
+                            className="mt-0.5 text-[12px] font-bold"
+                            style={{ color: '#9CA3AF' }}>
                             {v.numberPlate ?? v.registrationNumber ?? v.armourLevel}
                           </Text>
                         </View>
@@ -267,7 +302,8 @@ export default function DispatcherBookingsScreen() {
           {list.map((b) => {
             const customerName = b.user?.name ?? '—';
             const payout = b.totalPrice ?? 0;
-            const vehicleName = `${b.vehicle?.manufacturer ?? ''} ${b.vehicle?.carModel ?? ''}`.trim();
+            const vehicleName =
+              `${b.vehicle?.manufacturer ?? ''} ${b.vehicle?.carModel ?? ''}`.trim();
             const vehicleBit = b.vehicle?.vehicleType ?? b.vehicle?.armourLevel ?? '—';
             const missionHeaderLine = `${dispatcherMissionBanner(b.status)} - ${customerName} • ${vehicleBit}`;
 
@@ -280,6 +316,8 @@ export default function DispatcherBookingsScreen() {
                   dropLocation={b.dropLocation}
                   payout={payout}
                   status={b.status}
+                  pendingExpiresAt={b.pendingExpiresAt}
+                  createdAt={b.createdAt}
                   onPress={() =>
                     router.push({
                       pathname: '/booking-details' as any,

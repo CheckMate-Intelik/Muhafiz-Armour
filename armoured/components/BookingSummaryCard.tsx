@@ -5,6 +5,8 @@ type Props = {
   dropLocation: string;
   payout: number | null;
   status?: string | null;
+  pendingExpiresAt?: string | null;
+  createdAt?: string | null;
   onPress: () => void;
   variant?: 'default' | 'mission';
   missionHeaderLine?: string | null;
@@ -15,6 +17,8 @@ export function BookingSummaryCard({
   dropLocation,
   payout,
   status,
+  pendingExpiresAt,
+  createdAt,
   onPress,
   variant = 'default',
   missionHeaderLine,
@@ -25,6 +29,8 @@ export function BookingSummaryCard({
       from={pickupLocation}
       to={dropLocation}
       status={status}
+      pendingExpiresAt={pendingExpiresAt}
+      createdAt={createdAt}
       onPress={onPress}
       variant={variant}
       missionHeaderLine={missionHeaderLine ?? undefined}

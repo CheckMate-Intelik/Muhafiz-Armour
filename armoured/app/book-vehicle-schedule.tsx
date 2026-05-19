@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Alert, Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { apiPost, ensureUserSession } from '@/lib/api';
+import { PUBLIC_API_BASE_URL } from '@/lib/api';
 
 type PickerMode = 'startDate' | 'startTime' | 'endDate' | 'endTime';
 
@@ -91,30 +91,33 @@ export default function BookVehicleScheduleScreen() {
     }
     try {
       setSubmitting(true);
-      const s = await ensureUserSession();
-      const req = await apiPost<{ booking?: { id: string } }>(`/bookings/request`, s.userId, {
-        pickupLocation: from,
-        dropLocation: to,
-        startTime: startAt.toISOString(),
-        endTime: endAt.toISOString(),
-      });
-      const bookingId = req.booking?.id;
-      if (!bookingId) throw new Error('Booking request failed');
-      const selected = await apiPost<{ totalPrice?: number; pickupLocation?: string; dropLocation?: string }>(
-        `/bookings/${bookingId}/select`,
-        s.userId,
-        { vehicleId },
-      );
-      router.replace({
+      let amount = 0;
+      try {
+        const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/${vehicleId}`);
+        if (res.ok) {
+          const data = (await res.json()) as { vehicle?: { baseRatePerHour?: number } | null };
+          const rate = data.vehicle?.baseRatePerHour;
+          if (typeof rate === 'number') {
+            const hours = (endAt.getTime() - startAt.getTime()) / (1000 * 60 * 60);
+            amount = Math.round(rate * hours);
+          }
+        }
+      } catch {
+        // use 0; payment screen still shows trip details
+      }
+      router.push({
         pathname: '/payment',
         params: {
-          amount: String(selected.totalPrice ?? 0),
-          from: selected.pickupLocation ?? from,
-          to: selected.dropLocation ?? to,
+          vehicleId,
+          amount: String(amount),
+          from,
+          to,
+          startTime: startAt.toISOString(),
+          endTime: endAt.toISOString(),
         },
       });
     } catch (e) {
-      Alert.alert('Booking failed', e instanceof Error ? e.message : 'Unable to place booking');
+      Alert.alert('Booking failed', e instanceof Error ? e.message : 'Unable to continue');
     } finally {
       setSubmitting(false);
     }

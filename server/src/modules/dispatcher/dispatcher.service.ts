@@ -3,6 +3,11 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BookingService } from '../booking/booking.service';
 import { extensionRequestsInclude, serializeBookingWithExtension } from '../booking/booking-extension.util';
+import {
+  expirePendingBookingIfNeeded,
+  expireStalePendingDispatcherBookings,
+  withPendingExpiryFields,
+} from '../booking/booking-pending-expiry.util';
 import { UpdateDispatcherProfileDto } from './dto/update-dispatcher-profile.dto';
 
 @Injectable()
@@ -58,24 +63,31 @@ export class DispatcherService {
   }
 
   async listMyRequests(dispatcherId: string) {
-    return this.prisma.booking.findMany({
+    await expireStalePendingDispatcherBookings(this.prisma);
+    const rows = await this.prisma.booking.findMany({
       where: { dispatcherId, status: 'PENDING_DISPATCHER' },
       orderBy: { createdAt: 'desc' },
       include: { user: true, vehicle: true, dispatcher: true },
     });
+    return rows.map((row) => withPendingExpiryFields(row));
   }
 
   async listMyActive(dispatcherId: string) {
+    await expireStalePendingDispatcherBookings(this.prisma);
     const rows = await this.prisma.booking.findMany({
       where: { dispatcherId, status: { in: ['CONFIRMED', 'IN_PROGRESS'] } },
       orderBy: { createdAt: 'desc' },
       include: { user: true, vehicle: true, dispatcher: true, ...extensionRequestsInclude },
     });
-    return rows.map(serializeBookingWithExtension);
+    return rows.map((row) => withPendingExpiryFields(serializeBookingWithExtension(row)));
   }
 
   async approveExtension(dispatcherId: string, bookingId: string) {
     return this.bookings.approveExtensionRequest(dispatcherId, bookingId);
+  }
+
+  async declineExtension(dispatcherId: string, bookingId: string) {
+    return this.bookings.declineExtensionRequest(dispatcherId, bookingId);
   }
 
   async listMyCompleted(dispatcherId: string) {
@@ -87,9 +99,13 @@ export class DispatcherService {
   }
 
   async respondToBooking(dispatcherId: string, bookingId: string, accept: boolean) {
+    await expirePendingBookingIfNeeded(this.prisma, bookingId);
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.dispatcherId !== dispatcherId) throw new BadRequestException('Not your request');
+    if (booking.status === 'EXPIRED') {
+      throw new BadRequestException('Booking request has expired');
+    }
     if (booking.status !== 'PENDING_DISPATCHER') {
       throw new BadRequestException('Booking is not pending dispatcher');
     }

@@ -189,7 +189,7 @@ export function ActiveBookingHeroCard({
                   <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                     Pickup
                   </Text>
-                  <Text numberOfLines={1} className="mt-1 text-[18px] font-extrabold text-gray-100">
+                  <Text numberOfLines={1} className="text-md mt-1 font-extrabold text-gray-100">
                     {(booking.pickupLocation ?? '').trim() || '—'}
                   </Text>
                   <Text className="mt-0.5 text-[12px] font-semibold" style={{ color: '#9CA3AF' }}>
@@ -200,9 +200,7 @@ export function ActiveBookingHeroCard({
                     <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                       Drop-off
                     </Text>
-                    <Text
-                      numberOfLines={1}
-                      className="mt-1 text-[18px] font-extrabold text-gray-100">
+                    <Text numberOfLines={1} className="text-md mt-1 font-extrabold text-gray-100">
                       {(booking.dropLocation ?? '').trim() || '—'}
                     </Text>
                     <Text className="mt-0.5 text-[12px] font-semibold" style={{ color: '#9CA3AF' }}>
@@ -243,21 +241,28 @@ export function ActiveBookingHeroCard({
             margin: 10,
             borderRadius: 10,
           }}>
-          <LinearGradient
+          {/* <LinearGradient
             colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
             start={{ x: 1, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{ borderRadius: 10 }}>
-            <View className="flex-row" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
-              <InfoBox icon="car" label="Vehicle Type" value={vehicleType} />
-              <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
-              <InfoBox icon="shield" label="Armour Level" value={armourLevel} />
-              <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
-              <InfoBox icon="users" label="Seating" value={seating} />
-              <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
-              <InfoBox icon="clock-o" label="Time Remaining" value={remaining} />
-            </View>
-          </LinearGradient>
+            style={{ borderRadius: 10 }}> */}
+          <View
+            className="flex-row"
+            style={{
+              backgroundColor: 'rgb(21, 21, 21)',
+              // borderWidth: 1,
+              // borderColor: 'rgba(255,255,255,0.06)',
+              borderRadius: 10,
+            }}>
+            <InfoBox icon="car" label="Vehicle Type" value={vehicleType} />
+            <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+            <InfoBox icon="shield" label="Armour Level" value={armourLevel} />
+            <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+            <InfoBox icon="users" label="Seating" value={seating} />
+            <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+            <InfoBox icon="clock-o" label="Time Remaining" value={remaining} />
+          </View>
+          {/* </LinearGradient> */}
         </View>
       </Pressable>
     </LinearGradient>

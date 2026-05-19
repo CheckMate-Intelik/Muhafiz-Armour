@@ -2,6 +2,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, Text, View } from 'react-native';
 
+import { PendingExpiryCountdown } from '@/components/PendingExpiryCountdown';
+
 export type UserBookingListItem = {
   id: string;
   pickupLocation?: string | null;
@@ -9,6 +11,8 @@ export type UserBookingListItem = {
   startTime?: string | null;
   endTime?: string | null;
   status?: string | null;
+  pendingExpiresAt?: string | null;
+  createdAt?: string | null;
   totalPrice?: number | null;
   vehicle?: {
     vehicleType?: string | null;
@@ -110,9 +114,7 @@ export function UserBookingCard({
       }}>
       <View className="flex-row items-center justify-between py-3">
         {/* style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }} */}
-        <Text
-          className="text-[12px] font-extrabold"
-          style={{ color: '#D8DADF', letterSpacing: 0.5 }}>
+        <Text className="text-[12px] font-bold" style={{ color: '#D8DADF', letterSpacing: 0.5 }}>
           {title}
         </Text>
         {rightActionLabel ? (
@@ -125,6 +127,16 @@ export function UserBookingCard({
           <View />
         )}
       </View>
+
+      {booking && (booking.status ?? '').trim().toUpperCase() === 'PENDING_DISPATCHER' ? (
+        <PendingExpiryCountdown
+          status={booking.status}
+          pendingExpiresAt={booking.pendingExpiresAt}
+          createdAt={booking.createdAt}
+          variant="mission"
+          className="mb-2 px-1"
+        />
+      ) : null}
 
       {!booking ? (
         <View className="px-4 py-5">

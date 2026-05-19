@@ -68,22 +68,38 @@ export default function SelectVehicleScreen() {
   const visibleEmptyState = useMemo(() => !loading && visibleOptions.length === 0, [loading, visibleOptions.length]);
 
   async function select(vehicleId: string, estimatedPrice: number) {
+    if (!bookingId) return;
     try {
       const s = userId ? { userId } : await ensureUserSession();
       setUserId(s.userId);
-      if (!bookingId) return;
-      const booking = await apiPost<{ totalPrice?: number; pickupLocation?: string; dropLocation?: string }>(
-        `/bookings/${bookingId}/select`,
-        s.userId,
-        { vehicleId },
-      );
-      const amount = (booking.totalPrice ?? estimatedPrice).toFixed(2);
-      router.replace({
+      const rows = await apiGet<
+        Array<{
+          id: string;
+          startTime?: string;
+          endTime?: string;
+          pickupLocation?: string;
+          dropLocation?: string;
+        }>
+      >(`/bookings`, s.userId);
+      const booking = Array.isArray(rows) ? rows.find((b) => b.id === bookingId) : undefined;
+      if (!booking?.startTime || !booking.endTime) {
+        Alert.alert('Missing trip', 'Booking details are incomplete.');
+        return;
+      }
+      router.push({
         pathname: '/payment',
-        params: { amount, from: booking.pickupLocation ?? '', to: booking.dropLocation ?? '' },
+        params: {
+          vehicleId,
+          bookingId,
+          amount: estimatedPrice.toFixed(2),
+          from: booking.pickupLocation ?? '',
+          to: booking.dropLocation ?? '',
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+        },
       });
     } catch {
-      // Ignore for now.
+      Alert.alert('Unable to continue', 'Please try again.');
     }
   }
 

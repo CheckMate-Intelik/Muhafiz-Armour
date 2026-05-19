@@ -1,6 +1,7 @@
-import { IsIn } from 'class-validator';
+import { IsInt, Min } from 'class-validator';
 
 export class ExtendBookingDto {
-  @IsIn(['ADD_3_HOURS'])
-  mode!: 'ADD_3_HOURS';
+  @IsInt()
+  @Min(1)
+  hours!: number;
 }

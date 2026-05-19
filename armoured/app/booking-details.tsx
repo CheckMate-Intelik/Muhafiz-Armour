@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -42,13 +42,28 @@ type BookingParams = {
 
 type ExtensionRequest = {
   id: string;
-  mode: 'ADD_3_HOURS';
+  additionalHours: number;
   previousEndTime: string;
   requestedEndTime: string;
   proposedTotalPrice: number;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
 };
+
+const MAX_BOOKING_HOURS = 5 * 24;
+
+function maxExtensionHoursForBooking(startTime: string, endTime: string) {
+  const startMs = new Date(startTime).getTime();
+  const endMs = new Date(endTime).getTime();
+  if (Number.isNaN(startMs) || Number.isNaN(endMs) || endMs <= startMs) return MAX_BOOKING_HOURS;
+  const currentHours = (endMs - startMs) / (1000 * 60 * 60);
+  return Math.max(1, Math.floor(MAX_BOOKING_HOURS - currentHours));
+}
+
+function clampExtensionHours(value: number, max: number) {
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(max, Math.max(1, Math.floor(value)));
+}
 
 type UserLiveBooking = {
   id: string;
@@ -58,6 +73,8 @@ type UserLiveBooking = {
   endTime: string;
   status: string;
   totalPrice: number | null;
+  pendingExpiresAt?: string | null;
+  createdAt?: string | null;
   extensionRequest?: ExtensionRequest | null;
   dispatcher?: { name: string } | null;
   vehicle?: {
@@ -76,6 +93,8 @@ type DispatcherLiveBooking = {
   startTime: string;
   endTime: string;
   totalPrice: number | null;
+  pendingExpiresAt?: string | null;
+  createdAt?: string | null;
   extensionRequest?: ExtensionRequest | null;
   user?: { name: string } | null;
   vehicle?: {
@@ -86,8 +105,9 @@ type DispatcherLiveBooking = {
   } | null;
 };
 
-function extensionModeLabel(_mode: ExtensionRequest['mode']) {
-  return '+3 hours';
+function formatAdditionalHours(hours: number) {
+  if (hours === 1) return '+1 hour';
+  return `+${hours} hours`;
 }
 
 function formatExtensionDateTime(iso: string) {
@@ -120,12 +140,15 @@ type DisplayBooking = {
   dropLocation: string;
   startTime: string;
   endTime: string;
+  pendingExpiresAt: string | null;
+  createdAt: string | null;
 };
 
 export default function BookingDetailsScreen() {
   const params = useLocalSearchParams<BookingParams>();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [extendHours, setExtendHours] = useState(1);
   const [fetchedUser, setFetchedUser] = useState<UserLiveBooking | null>(null);
   const [fetchedDispatcher, setFetchedDispatcher] = useState<DispatcherLiveBooking | null>(null);
   const [pollReady, setPollReady] = useState(false);
@@ -136,7 +159,9 @@ export default function BookingDetailsScreen() {
   const bookingId = (params.id ?? '').trim();
   const isLiveRoute = params.live === '1';
   const initialStatus = (params.status ?? '').trim().toUpperCase();
-  const hasParamDetails = Boolean((params.pickupLocation ?? '').trim() && (params.dropLocation ?? '').trim());
+  const hasParamDetails = Boolean(
+    (params.pickupLocation ?? '').trim() && (params.dropLocation ?? '').trim()
+  );
 
   const shouldFetch = Boolean(bookingId);
   const shouldPollInterval =
@@ -148,7 +173,10 @@ export default function BookingDetailsScreen() {
     try {
       if (isDispatcherMode) {
         const s = await ensureDispatcherSession();
-        const active = await dispatcherGet<DispatcherLiveBooking[]>(`/dispatcher/bookings/active`, s.dispatcherId);
+        const active = await dispatcherGet<DispatcherLiveBooking[]>(
+          `/dispatcher/bookings/active`,
+          s.dispatcherId
+        );
         const match = Array.isArray(active) ? active.find((b) => b.id === bookingId) : undefined;
         setFetchedDispatcher(match ?? null);
       } else {
@@ -188,25 +216,27 @@ export default function BookingDetailsScreen() {
   const display = useMemo((): DisplayBooking => {
     const personLabel = isDispatcherMode ? 'Customer' : 'Dispatcher';
     if (isDispatcherMode && fetchedDispatcher) {
-        const b = fetchedDispatcher;
-        const v = b.vehicle;
-        const vehicleName =
-          [v?.manufacturer, v?.carModel].filter(Boolean).join(' ').trim() || v?.vehicleType || '—';
-        const payout = b.totalPrice ?? NaN;
-        return {
-          personLabel,
-          personName: b.user?.name ?? '—',
-          status: b.status,
-          payoutLabel: Number.isFinite(payout) ? `Rs ${payout.toFixed(2)}` : '—',
-          vehicleName,
-          vehicleType: v?.vehicleType ?? '—',
-          vehicleArmour: v?.armourLevel ?? '—',
-          id: b.id,
-          pickupLocation: b.pickupLocation,
-          dropLocation: b.dropLocation,
-          startTime: b.startTime,
-          endTime: b.endTime,
-        };
+      const b = fetchedDispatcher;
+      const v = b.vehicle;
+      const vehicleName =
+        [v?.manufacturer, v?.carModel].filter(Boolean).join(' ').trim() || v?.vehicleType || '—';
+      const payout = b.totalPrice ?? NaN;
+      return {
+        personLabel,
+        personName: b.user?.name ?? '—',
+        status: b.status,
+        payoutLabel: Number.isFinite(payout) ? `Rs ${payout.toFixed(2)}` : '—',
+        vehicleName,
+        vehicleType: v?.vehicleType ?? '—',
+        vehicleArmour: v?.armourLevel ?? '—',
+        id: b.id,
+        pickupLocation: b.pickupLocation,
+        dropLocation: b.dropLocation,
+        startTime: b.startTime,
+        endTime: b.endTime,
+        pendingExpiresAt: b.pendingExpiresAt ?? null,
+        createdAt: b.createdAt ?? null,
+      };
     }
     if (!isDispatcherMode && fetchedUser) {
       const b = fetchedUser;
@@ -230,12 +260,14 @@ export default function BookingDetailsScreen() {
         dropLocation: b.dropLocation,
         startTime: b.startTime,
         endTime: b.endTime,
+        pendingExpiresAt: b.pendingExpiresAt ?? null,
+        createdAt: b.createdAt ?? null,
       };
     }
     const payout = Number(params.totalPrice ?? '');
     return {
       personLabel,
-      personName: isDispatcherMode ? params.customerName ?? '—' : params.dispatcherName ?? '—',
+      personName: isDispatcherMode ? (params.customerName ?? '—') : (params.dispatcherName ?? '—'),
       status: params.status ?? '—',
       payoutLabel: Number.isFinite(payout) ? `Rs ${payout.toFixed(2)}` : '—',
       vehicleName: params.vehicleName ?? '—',
@@ -246,8 +278,19 @@ export default function BookingDetailsScreen() {
       dropLocation: params.dropLocation ?? '—',
       startTime: params.startTime ?? '',
       endTime: params.endTime ?? '',
+      pendingExpiresAt: null,
+      createdAt: null,
     };
   }, [isDispatcherMode, fetchedUser, fetchedDispatcher, params, bookingId]);
+
+  const maxExtendHours = useMemo(
+    () => maxExtensionHoursForBooking(display.startTime, display.endTime),
+    [display.startTime, display.endTime]
+  );
+
+  useEffect(() => {
+    setExtendHours((hours) => clampExtensionHours(hours, maxExtendHours));
+  }, [maxExtendHours]);
 
   const hasLiveRow = isDispatcherMode ? fetchedDispatcher != null : fetchedUser != null;
 
@@ -303,7 +346,10 @@ export default function BookingDetailsScreen() {
             setBusyId(bookingIdParam);
             const s = await ensureDispatcherSession();
             await dispatcherPatch(`/dispatcher/bookings/${bookingIdParam}/cancel`, s.dispatcherId);
-            await useBookingsStore.getState().refreshDispatcherBookings().catch(() => null);
+            await useBookingsStore
+              .getState()
+              .refreshDispatcherBookings()
+              .catch(() => null);
             router.back();
           } catch (e) {
             Alert.alert('Failed', e instanceof Error ? e.message : 'Cancel trip failed');
@@ -327,7 +373,10 @@ export default function BookingDetailsScreen() {
             const s = await ensureUserSession();
             await apiPatch(`/bookings/${bookingIdParam}/cancel`, s.userId);
             await load();
-            await useBookingsStore.getState().refreshUserBookings().catch(() => null);
+            await useBookingsStore
+              .getState()
+              .refreshUserBookings()
+              .catch(() => null);
             router.replace('/(tabs)' as any);
           } catch (e) {
             Alert.alert('Failed', e instanceof Error ? e.message : 'Cancel failed');
@@ -345,15 +394,80 @@ export default function BookingDetailsScreen() {
       setBusy(true);
       const s = await ensureUserSession();
       const updated = await apiPost<UserLiveBooking>(`/bookings/${display.id}/extend`, s.userId, {
-        mode: 'ADD_3_HOURS',
+        hours: extendHours,
       });
       setFetchedUser(updated);
-      await useBookingsStore.getState().refreshUserBookings().catch(() => null);
+      await useBookingsStore
+        .getState()
+        .refreshUserBookings()
+        .catch(() => null);
     } catch (e) {
       Alert.alert('Extension denied', e instanceof Error ? e.message : 'Conflict or error');
     } finally {
       setBusy(false);
     }
+  }
+
+  async function cancelExtensionUser(bookingIdParam: string) {
+    Alert.alert('Cancel extension?', 'Your extension request will be withdrawn.', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Cancel request',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            setBusy(true);
+            const s = await ensureUserSession();
+            const updated = await apiPatch<UserLiveBooking>(
+              `/bookings/${bookingIdParam}/extend/cancel`,
+              s.userId
+            );
+            setFetchedUser(updated);
+            await useBookingsStore
+              .getState()
+              .refreshUserBookings()
+              .catch(() => null);
+          } catch (e) {
+            Alert.alert('Failed', e instanceof Error ? e.message : 'Could not cancel extension');
+          } finally {
+            setBusy(false);
+          }
+        },
+      },
+    ]);
+  }
+
+  async function declineExtensionDispatcher(bookingIdParam: string) {
+    Alert.alert(
+      'Decline extension?',
+      'The customer will be notified that the extension was declined.',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Decline',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setBusy(true);
+              const s = await ensureDispatcherSession();
+              const updated = await dispatcherPatch<DispatcherLiveBooking>(
+                `/dispatcher/bookings/${bookingIdParam}/extend/decline`,
+                s.dispatcherId
+              );
+              setFetchedDispatcher(updated);
+              await useBookingsStore
+                .getState()
+                .refreshDispatcherBookings()
+                .catch(() => null);
+            } catch (e) {
+              Alert.alert('Failed', e instanceof Error ? e.message : 'Could not decline extension');
+            } finally {
+              setBusy(false);
+            }
+          },
+        },
+      ]
+    );
   }
 
   async function approveExtensionDispatcher(bookingIdParam: string) {
@@ -367,10 +481,13 @@ export default function BookingDetailsScreen() {
             const s = await ensureDispatcherSession();
             const updated = await dispatcherPatch<DispatcherLiveBooking>(
               `/dispatcher/bookings/${bookingIdParam}/extend/approve`,
-              s.dispatcherId,
+              s.dispatcherId
             );
             setFetchedDispatcher(updated);
-            await useBookingsStore.getState().refreshDispatcherBookings().catch(() => null);
+            await useBookingsStore
+              .getState()
+              .refreshDispatcherBookings()
+              .catch(() => null);
           } catch (e) {
             Alert.alert('Failed', e instanceof Error ? e.message : 'Could not approve extension');
           } finally {
@@ -388,7 +505,10 @@ export default function BookingDetailsScreen() {
       setBusy(true);
       const s = await ensureDispatcherSession();
       await dispatcherPatch(`/dispatcher/bookings/${id}/respond`, s.dispatcherId, { accept });
-      await useBookingsStore.getState().refreshDispatcherBookings().catch(() => null);
+      await useBookingsStore
+        .getState()
+        .refreshDispatcherBookings()
+        .catch(() => null);
       router.replace('/(dispatcher-tabs)/bookings' as any);
     } catch (e) {
       Alert.alert('Failed', e instanceof Error ? e.message : 'Request failed');
@@ -407,7 +527,10 @@ export default function BookingDetailsScreen() {
             setBusy(true);
             const s = await ensureDispatcherSession();
             await dispatcherPatch(`/dispatcher/bookings/${bookingIdParam}/start`, s.dispatcherId);
-            await useBookingsStore.getState().refreshDispatcherBookings().catch(() => null);
+            await useBookingsStore
+              .getState()
+              .refreshDispatcherBookings()
+              .catch(() => null);
             await load();
           } catch (e) {
             Alert.alert('Failed', e instanceof Error ? e.message : 'Start trip failed');
@@ -428,8 +551,14 @@ export default function BookingDetailsScreen() {
           try {
             setBusy(true);
             const s = await ensureDispatcherSession();
-            await dispatcherPatch(`/dispatcher/bookings/${bookingIdParam}/complete`, s.dispatcherId);
-            await useBookingsStore.getState().refreshDispatcherBookings().catch(() => null);
+            await dispatcherPatch(
+              `/dispatcher/bookings/${bookingIdParam}/complete`,
+              s.dispatcherId
+            );
+            await useBookingsStore
+              .getState()
+              .refreshDispatcherBookings()
+              .catch(() => null);
             router.replace('/(dispatcher-tabs)' as any);
           } catch (e) {
             Alert.alert('Failed', e instanceof Error ? e.message : 'Complete failed');
@@ -520,8 +649,7 @@ export default function BookingDetailsScreen() {
   }
 
   const st = (display.status ?? '').trim().toUpperCase();
-  const userMayCancel =
-    st === 'REQUESTED' || st === 'PENDING_DISPATCHER' || st === 'CONFIRMED';
+  const userMayCancel = st === 'REQUESTED' || st === 'PENDING_DISPATCHER' || st === 'CONFIRMED';
   const showUserExtend = !isDispatcherMode && (st === 'IN_PROGRESS' || st === 'CONFIRMED');
   const showUserCancel = !isDispatcherMode && userMayCancel;
   const showDispatcherStart = isDispatcherMode && st === 'CONFIRMED';
@@ -537,10 +665,11 @@ export default function BookingDetailsScreen() {
 
   const hasPendingExtension = extensionRequest?.status === 'PENDING';
   const showExtensionSection = Boolean(extensionRequest);
-  const showUserExtendActions =
-    showUserExtend && !hasPendingExtension;
-  const showDispatcherApproveExtension =
+  const showUserExtendActions = showUserExtend && !hasPendingExtension;
+  const showDispatcherExtensionActions =
     isDispatcherMode && hasPendingExtension && (st === 'IN_PROGRESS' || st === 'CONFIRMED');
+  const showUserCancelExtension =
+    !isDispatcherMode && hasPendingExtension && (st === 'IN_PROGRESS' || st === 'CONFIRMED');
 
   return (
     <LinearGradient
@@ -586,12 +715,18 @@ export default function BookingDetailsScreen() {
             dropLocation={display.dropLocation}
             startTime={display.startTime}
             endTime={display.endTime}
+            pendingExpiresAt={display.pendingExpiresAt}
+            createdAt={display.createdAt}
           />
 
           {showUserInfoDuringTrip ? (
             <View
               className="mt-4 rounded-2xl px-4 py-3"
-              style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.04)',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.06)',
+              }}>
               <Text className="text-xs font-semibold" style={{ color: '#B8BBC0' }}>
                 You’ll be notified here once the dispatcher completes the trip.
               </Text>
@@ -600,27 +735,27 @@ export default function BookingDetailsScreen() {
 
           {showExtensionSection && extensionRequest ? (
             <View
-              className="mt-4 rounded-2xl px-4 py-4 gap-2"
+              className="mt-4 gap-2 rounded-2xl px-4 py-4"
               style={{
                 backgroundColor: 'rgba(255,255,255,0.04)',
                 borderWidth: 1,
                 borderColor: 'rgba(255,255,255,0.08)',
               }}>
-              <Text className="text-xs font-extrabold text-gray-100">Trip extension</Text>
-              <Text className="text-xs font-semibold" style={{ color: '#B8BBC0' }}>
-                Requested: {extensionModeLabel(extensionRequest.mode)}
+              <Text className="text-lg font-bold text-gray-100">Trip extension</Text>
+              <Text className="text-md font-bold" style={{ color: '#B8BBC0' }}>
+                Requested: {formatAdditionalHours(extensionRequest.additionalHours)}
               </Text>
-              <Text className="text-xs font-semibold" style={{ color: '#B8BBC0' }}>
+              <Text className="text-md font-bold" style={{ color: '#B8BBC0' }}>
                 Current end: {formatExtensionDateTime(extensionRequest.previousEndTime)}
               </Text>
-              <Text className="text-xs font-semibold" style={{ color: '#B8BBC0' }}>
+              <Text className="text-md font-bold" style={{ color: '#B8BBC0' }}>
                 Proposed end: {formatExtensionDateTime(extensionRequest.requestedEndTime)}
               </Text>
-              <Text className="text-xs font-semibold" style={{ color: '#B8BBC0' }}>
+              <Text className="text-md font-bold" style={{ color: '#B8BBC0' }}>
                 Proposed total: Rs {extensionRequest.proposedTotalPrice.toFixed(2)}
               </Text>
               <Text
-                className="text-xs font-extrabold mt-1"
+                className="text-md mt-1 font-bold"
                 style={{
                   color:
                     extensionRequest.status === 'APPROVED'
@@ -631,22 +766,60 @@ export default function BookingDetailsScreen() {
                 }}>
                 {extensionStatusLabel(extensionRequest.status)}
               </Text>
+              {showUserCancelExtension ? (
+                <Pressable
+                  disabled={busy}
+                  onPress={() => {
+                    const id = display.id;
+                    if (id && id !== '—') void cancelExtensionUser(id);
+                  }}
+                  className="mt-3 items-center justify-center rounded-2xl py-3"
+                  style={{
+                    backgroundColor: 'rgba(239,68,68,0.15)',
+                    borderWidth: 1,
+                    borderColor: 'rgba(239,68,68,0.35)',
+                    opacity: busy ? 0.6 : 1,
+                  }}>
+                  <Text className="text-md font-extrabold text-red-300">
+                    {busy ? 'Please wait…' : 'Cancel extension'}
+                  </Text>
+                </Pressable>
+              ) : null}
             </View>
           ) : null}
 
-          {showDispatcherApproveExtension ? (
-            <Pressable
-              disabled={busy}
-              onPress={() => {
-                const id = display.id;
-                if (id && id !== '—') void approveExtensionDispatcher(id);
-              }}
-              className="mt-4 items-center justify-center rounded-2xl py-4"
-              style={{ backgroundColor: busy ? 'rgba(255,255,255,0.12)' : '#C9B37A', opacity: busy ? 0.6 : 1 }}>
-              <Text className="text-sm font-extrabold" style={{ color: busy ? '#9CA3AF' : '#0B0F14' }}>
-                {busy ? 'Please wait…' : 'Approve extension'}
-              </Text>
-            </Pressable>
+          {showDispatcherExtensionActions ? (
+            <View className="mt-4 flex-row gap-3">
+              <Pressable
+                disabled={busy}
+                onPress={() => {
+                  const id = display.id;
+                  if (id && id !== '—') void declineExtensionDispatcher(id);
+                }}
+                className="flex-1 items-center justify-center rounded-2xl py-4"
+                style={{
+                  backgroundColor: '#0B0F14',
+                  borderWidth: 1,
+                  borderColor: 'rgba(239,68,68,0.45)',
+                  opacity: busy ? 0.6 : 1,
+                }}>
+                <Text className="text-sm font-extrabold text-red-300">
+                  {busy ? 'Please wait…' : 'Decline'}
+                </Text>
+              </Pressable>
+              <Pressable
+                disabled={busy}
+                onPress={() => {
+                  const id = display.id;
+                  if (id && id !== '—') void approveExtensionDispatcher(id);
+                }}
+                className="flex-1 items-center justify-center rounded-2xl py-4"
+                style={{ backgroundColor: '#C9B37A', opacity: busy ? 0.6 : 1 }}>
+                <Text className="text-sm font-extrabold" style={{ color: '#0B0F14' }}>
+                  {busy ? 'Please wait…' : 'Approve'}
+                </Text>
+              </Pressable>
+            </View>
           ) : null}
 
           {showUserExtendActions ? (
@@ -655,6 +828,68 @@ export default function BookingDetailsScreen() {
               <Text className="text-[11px] font-semibold" style={{ color: '#B8BBC0' }}>
                 Extension requires dispatcher approval after availability is checked.
               </Text>
+              <Text className="text-[11px] font-semibold" style={{ color: '#9CA3AF' }}>
+                Add up to {maxExtendHours} hour{maxExtendHours === 1 ? '' : 's'} (booking max{' '}
+                {MAX_BOOKING_HOURS} h total).
+              </Text>
+              <View className="flex-row items-center gap-2">
+                <Pressable
+                  disabled={busy || extendHours <= 1}
+                  onPress={() => setExtendHours((h) => clampExtensionHours(h - 1, maxExtendHours))}
+                  accessibilityLabel="Decrease extension hours"
+                  className="h-12 w-12 items-center justify-center rounded-2xl"
+                  style={{
+                    backgroundColor: '#0B0F14',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.12)',
+                    opacity: busy || extendHours <= 1 ? 0.45 : 1,
+                  }}>
+                  <Text className="text-xl font-extrabold text-gray-100">−</Text>
+                </Pressable>
+                <View
+                  className="min-h-12 flex-1 flex-row items-center justify-center rounded-2xl px-3"
+                  style={{
+                    backgroundColor: '#0B0F14',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.12)',
+                  }}>
+                  <TextInput
+                    value={String(extendHours)}
+                    onChangeText={(text) => {
+                      const digits = text.replace(/[^\d]/g, '');
+                      if (!digits) {
+                        setExtendHours(1);
+                        return;
+                      }
+                      setExtendHours(
+                        clampExtensionHours(Number.parseInt(digits, 10), maxExtendHours)
+                      );
+                    }}
+                    keyboardType="number-pad"
+                    editable={!busy}
+                    selectTextOnFocus
+                    maxLength={3}
+                    className="min-w-[3rem] text-center text-lg font-extrabold text-gray-100"
+                    style={{ paddingVertical: 8 }}
+                  />
+                  <Text className="ml-1 text-sm font-bold" style={{ color: '#9CA3AF' }}>
+                    hr{extendHours === 1 ? '' : 's'}
+                  </Text>
+                </View>
+                <Pressable
+                  disabled={busy || extendHours >= maxExtendHours}
+                  onPress={() => setExtendHours((h) => clampExtensionHours(h + 1, maxExtendHours))}
+                  accessibilityLabel="Increase extension hours"
+                  className="h-12 w-12 items-center justify-center rounded-2xl"
+                  style={{
+                    backgroundColor: '#0B0F14',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.12)',
+                    opacity: busy || extendHours >= maxExtendHours ? 0.45 : 1,
+                  }}>
+                  <Text className="text-xl font-extrabold text-gray-100">+</Text>
+                </Pressable>
+              </View>
               <Pressable
                 disabled={busy}
                 onPress={() => void extendUser()}
@@ -664,8 +899,10 @@ export default function BookingDetailsScreen() {
                   borderWidth: 1,
                   borderColor: 'rgba(255,255,255,0.06)',
                 }}>
-                <Text className="text-xs font-extrabold" style={{ color: busy ? '#9CA3AF' : '#0B0F14' }}>
-                  +3 hours
+                <Text
+                  className="text-xs font-extrabold"
+                  style={{ color: busy ? '#9CA3AF' : '#0B0F14' }}>
+                  {busy ? 'Please wait…' : `Request ${formatAdditionalHours(extendHours)}`}
                 </Text>
               </Pressable>
             </View>
@@ -707,8 +944,13 @@ export default function BookingDetailsScreen() {
                 if (id && id !== '—') void startTripDispatcher(id);
               }}
               className="mt-4 items-center justify-center rounded-2xl py-4"
-              style={{ backgroundColor: busy ? 'rgba(255,255,255,0.12)' : '#C9B37A', opacity: busy ? 0.6 : 1 }}>
-              <Text className="text-sm font-extrabold" style={{ color: busy ? '#9CA3AF' : '#0B0F14' }}>
+              style={{
+                backgroundColor: busy ? 'rgba(255,255,255,0.12)' : '#C9B37A',
+                opacity: busy ? 0.6 : 1,
+              }}>
+              <Text
+                className="text-sm font-extrabold"
+                style={{ color: busy ? '#9CA3AF' : '#0B0F14' }}>
                 {busy ? 'Please wait…' : 'Start trip'}
               </Text>
             </Pressable>
@@ -738,7 +980,8 @@ export default function BookingDetailsScreen() {
               className={`mt-4 items-center justify-center rounded-full py-4 ${
                 busyId === display.id ? 'bg-gray-200' : 'bg-red-600'
               }`}>
-              <Text className={`text-sm font-bold ${busyId === display.id ? 'text-gray-500' : 'text-white'}`}>
+              <Text
+                className={`text-sm font-bold ${busyId === display.id ? 'text-gray-500' : 'text-white'}`}>
                 {busyId === display.id ? 'Please wait…' : 'Cancel trip'}
               </Text>
             </Pressable>
@@ -754,7 +997,8 @@ export default function BookingDetailsScreen() {
               className={`mt-4 items-center justify-center rounded-full py-4 ${
                 busyId === display.id ? 'bg-gray-200' : 'bg-red-600'
               }`}>
-              <Text className={`text-sm font-bold ${busyId === display.id ? 'text-gray-500' : 'text-white'}`}>
+              <Text
+                className={`text-sm font-bold ${busyId === display.id ? 'text-gray-500' : 'text-white'}`}>
                 {busyId === display.id ? 'Please wait…' : 'Cancel trip'}
               </Text>
             </Pressable>

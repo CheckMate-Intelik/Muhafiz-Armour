@@ -64,8 +64,12 @@ export default function VehicleSelectScreen() {
           vehicleTypes?: { code: string; label: string }[];
         };
         if (cancelled) return;
-        const nextArmours = Array.isArray(data.armourLevels) ? data.armourLevels.map((x) => x.code) : [];
-        const nextVehicleTypes = Array.isArray(data.vehicleTypes) ? data.vehicleTypes.map((x) => x.code) : [];
+        const nextArmours = Array.isArray(data.armourLevels)
+          ? data.armourLevels.map((x) => x.code)
+          : [];
+        const nextVehicleTypes = Array.isArray(data.vehicleTypes)
+          ? data.vehicleTypes.map((x) => x.code)
+          : [];
         if (nextArmours.length > 0) {
           setArmourTypes(nextArmours);
           setSelectedArmours((prev) => prev.filter((x) => nextArmours.includes(x)));
@@ -123,7 +127,7 @@ export default function VehicleSelectScreen() {
                 ...v,
                 dispatcherName: v.dispatcherName ?? v.owner?.name ?? 'Dispatcher',
               }))
-            : [],
+            : []
         );
       } catch {
         if (!cancelled) setVehicles([]);
@@ -135,18 +139,31 @@ export default function VehicleSelectScreen() {
     return () => {
       cancelled = true;
     };
-  }, [window, selectedArmours, city, selectedCarTypes, minPrice, maxPrice, draft.pickupCity, draft.dropCity]);
+  }, [
+    window,
+    selectedArmours,
+    city,
+    selectedCarTypes,
+    minPrice,
+    maxPrice,
+    draft.pickupCity,
+    draft.dropCity,
+  ]);
 
   const filteredVehicles = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return vehicles;
     return vehicles.filter((v) =>
-      `${v.manufacturer ?? ''} ${v.generation ?? ''} ${v.carModel ?? ''} ${v.location}`.toLowerCase().includes(q),
+      `${v.manufacturer ?? ''} ${v.generation ?? ''} ${v.carModel ?? ''} ${v.location}`
+        .toLowerCase()
+        .includes(q)
     );
   }, [vehicles, search]);
 
   function toggleArmour(type: string) {
-    setSelectedArmours((prev) => (prev.includes(type) ? prev.filter((x) => x !== type) : [...prev, type]));
+    setSelectedArmours((prev) =>
+      prev.includes(type) ? prev.filter((x) => x !== type) : [...prev, type]
+    );
   }
 
   function applyFilters() {
@@ -157,7 +174,9 @@ export default function VehicleSelectScreen() {
     setSelectedCarTypes((prev) => {
       if (type === 'ALL') return ['ALL'];
       const withoutAll = prev.filter((x) => x !== 'ALL');
-      const next = withoutAll.includes(type) ? withoutAll.filter((x) => x !== type) : [...withoutAll, type];
+      const next = withoutAll.includes(type)
+        ? withoutAll.filter((x) => x !== type)
+        : [...withoutAll, type];
       return next.length === 0 ? ['ALL'] : next;
     });
   }
@@ -182,7 +201,10 @@ export default function VehicleSelectScreen() {
       locations={[0, 0.5, 1]}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
-        <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4" keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 120 }}
+          className="px-5 pt-4"
+          keyboardShouldPersistTaps="handled">
           <View className="flex-row items-center justify-between">
             <Pressable
               onPress={() => router.replace('/(tabs)' as any)}
@@ -197,15 +219,17 @@ export default function VehicleSelectScreen() {
 
           <View className="mt-4 overflow-hidden rounded-2xl border" style={CARD_SHADOW}>
             <View className="border-b border-gray-900 bg-black px-4 py-2.5">
-              <Text className="text-center text-xs font-extrabold" style={{ color: AUTH_GOLD, letterSpacing: 0.5 }}>
+              <Text
+                className="text-md text-center font-extrabold"
+                style={{ color: AUTH_GOLD, letterSpacing: 0.5 }}>
                 YOUR TRIP
               </Text>
             </View>
             <View className="px-4 py-3">
-              <Text className="text-xs font-semibold text-gray-100" numberOfLines={2}>
+              <Text className="text-sm font-semibold text-gray-100" numberOfLines={2}>
                 {draft.pickupAddress} → {draft.dropAddress}
               </Text>
-              <Text className="mt-1 text-[11px] font-semibold" style={{ color: '#9CA3AF' }}>
+              <Text className="mt-1 text-sm font-semibold" style={{ color: '#9CA3AF' }}>
                 {window.start.toLocaleString()} • {baseHours}h
               </Text>
             </View>
@@ -214,14 +238,17 @@ export default function VehicleSelectScreen() {
           <View className="mt-4 flex-row items-center">
             <View
               className="flex-1 flex-row items-center rounded-2xl border px-4 py-3"
-              style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
+              style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                borderColor: 'rgba(255,255,255,0.08)',
+              }}>
               <FontAwesome name="search" size={14} color={AUTH_GOLD} />
               <TextInput
                 value={search}
                 onChangeText={setSearch}
                 placeholder="Search your dream car..."
                 placeholderTextColor="#6B7280"
-                className="ml-2 flex-1 text-sm font-semibold text-gray-100"
+                className="text-md ml-2 flex-1 font-semibold text-gray-100"
               />
             </View>
             <Pressable
@@ -232,7 +259,9 @@ export default function VehicleSelectScreen() {
             </Pressable>
           </View>
 
-          <Text className="mt-5 text-sm font-extrabold" style={{ color: AUTH_GOLD, letterSpacing: 0.4 }}>
+          <Text
+            className="mt-5 text-sm font-extrabold"
+            style={{ color: AUTH_GOLD, letterSpacing: 0.4 }}>
             ARMOUR LEVELS
           </Text>
           <View className="mt-2 flex-row flex-wrap gap-2">
@@ -244,11 +273,11 @@ export default function VehicleSelectScreen() {
                   onPress={() => toggleArmour(type)}
                   className="h-[70px] min-w-[64px] flex-1 justify-center rounded-2xl border px-3 py-2"
                   style={{
-                    backgroundColor: active ? AUTH_GOLD : 'rgba(0, 0, 0, 0.04)',
+                    backgroundColor: active ? AUTH_GOLD : 'rgba(0, 0, 0, 0.3)',
                     borderColor: active ? AUTH_GOLD : 'rgba(255,255,255,0.08)',
                   }}>
                   <Text
-                    className="text-center text-md font-extrabold"
+                    className="text-md text-center font-extrabold"
                     style={{ color: active ? AUTH_CARD : '#E5E7EB' }}>
                     {type}
                   </Text>
@@ -258,8 +287,8 @@ export default function VehicleSelectScreen() {
           </View>
 
           <View className="mt-6 flex-row items-center justify-between">
-            <Text className="text-sm font-extrabold text-gray-100">Available vehicles</Text>
-            <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
+            <Text className="text-md font-bold text-gray-100">Available vehicles</Text>
+            <Text className="text-md font-bold" style={{ color: '#9CA3AF' }}>
               {filteredVehicles.length} cars
             </Text>
           </View>
@@ -288,7 +317,9 @@ export default function VehicleSelectScreen() {
                 key={v.id}
                 vehicle={v}
                 appearance="dark"
-                onPress={() => router.push({ pathname: '/car-details' as any, params: { vehicleId: v.id } })}
+                onPress={() =>
+                  router.push({ pathname: '/car-details' as any, params: { vehicleId: v.id } })
+                }
               />
             ))}
           </View>
@@ -318,21 +349,33 @@ export default function VehicleSelectScreen() {
             <FilterField label="City" value={city} onChangeText={setCity} placeholder="Karachi" />
             <View
               className="mt-3 rounded-2xl border px-4 py-3"
-              style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.04)',
+                borderColor: 'rgba(255,255,255,0.08)',
+              }}>
               <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
                 Car type
               </Text>
               <Pressable
                 onPress={() => setCarTypePickerOpen((prev) => !prev)}
                 className="mt-2 flex-row items-center justify-between rounded-xl border px-3 py-2.5"
-                style={{ backgroundColor: 'rgba(0,0,0,0.25)', borderColor: 'rgba(255,255,255,0.06)' }}>
+                style={{
+                  backgroundColor: 'rgba(0,0,0,0.25)',
+                  borderColor: 'rgba(255,255,255,0.06)',
+                }}>
                 <Text className="text-sm font-extrabold text-gray-100">
                   {selectedCarTypes.includes('ALL') ? 'ALL' : selectedCarTypes.join(', ')}
                 </Text>
-                <FontAwesome name={carTypePickerOpen ? 'angle-up' : 'angle-down'} size={16} color={AUTH_GOLD} />
+                <FontAwesome
+                  name={carTypePickerOpen ? 'angle-up' : 'angle-down'}
+                  size={16}
+                  color={AUTH_GOLD}
+                />
               </Pressable>
               {carTypePickerOpen ? (
-                <View className="mt-2 rounded-xl border p-1" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                <View
+                  className="mt-2 rounded-xl border p-1"
+                  style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
                   {vehicleTypeOptions.map((type) => {
                     const selected = selectedCarTypes.includes(type);
                     return (

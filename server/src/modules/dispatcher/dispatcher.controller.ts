@@ -63,4 +63,9 @@ export class DispatcherController {
   async approveExtension(@AuthUser() user: JwtPayload, @Param('id') id: string) {
     return this.dispatchers.approveExtension(user.sub, id);
   }
+
+  @Patch('bookings/:id/extend/decline')
+  async declineExtension(@AuthUser() user: JwtPayload, @Param('id') id: string) {
+    return this.dispatchers.declineExtension(user.sub, id);
+  }
 }

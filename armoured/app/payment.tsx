@@ -1,13 +1,38 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { confirmExistingBookingAfterPayment, createBookingAfterPayment } from '@/lib/confirmBooking';
+import { ensureUserSession } from '@/lib/api';
+import { useBookingsStore } from '@/store/bookingsStore';
+import { useTripDraftStore } from '@/store/tripDraft';
 
 type PaymentMethod = 'Digital' | 'Cash';
 
+function parseCoord(value: string | undefined) {
+  if (value == null || value.trim() === '') return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 export default function PaymentScreen() {
-  const params = useLocalSearchParams<{ amount?: string; from?: string; to?: string }>();
+  const params = useLocalSearchParams<{
+    amount?: string;
+    from?: string;
+    to?: string;
+    vehicleId?: string;
+    bookingId?: string;
+    startTime?: string;
+    endTime?: string;
+    pickupCity?: string;
+    dropCity?: string;
+    pickupLat?: string;
+    pickupLng?: string;
+    dropLat?: string;
+    dropLng?: string;
+  }>();
 
   const amount = useMemo(() => {
     const v = Number(params.amount ?? '60.00');
@@ -15,6 +40,52 @@ export default function PaymentScreen() {
   }, [params.amount]);
 
   const [method, setMethod] = useState<PaymentMethod>('Digital');
+  const [submitting, setSubmitting] = useState(false);
+
+  const canPay = Boolean(
+    params.vehicleId?.trim() &&
+      params.from?.trim() &&
+      params.to?.trim() &&
+      params.startTime?.trim() &&
+      params.endTime?.trim(),
+  );
+
+  async function payNow() {
+    if (submitting || !canPay) {
+      Alert.alert('Missing details', 'Go back and complete your booking before paying.');
+      return;
+    }
+    try {
+      setSubmitting(true);
+      const s = await ensureUserSession();
+      const vehicleId = params.vehicleId!.trim();
+      const existingBookingId = params.bookingId?.trim();
+      if (existingBookingId) {
+        await confirmExistingBookingAfterPayment(s.userId, existingBookingId, vehicleId);
+      } else {
+        await createBookingAfterPayment(s.userId, {
+          vehicleId,
+          pickupLocation: params.from!.trim(),
+          dropLocation: params.to!.trim(),
+          startTime: params.startTime!.trim(),
+          endTime: params.endTime!.trim(),
+          pickupCity: params.pickupCity?.trim() || undefined,
+          dropCity: params.dropCity?.trim() || undefined,
+          pickupLat: parseCoord(params.pickupLat),
+          pickupLng: parseCoord(params.pickupLng),
+          dropLat: parseCoord(params.dropLat),
+          dropLng: parseCoord(params.dropLng),
+        });
+      }
+      useTripDraftStore.getState().reset();
+      await useBookingsStore.getState().refreshUserBookings().catch(() => null);
+      router.replace('/(tabs)' as any);
+    } catch (e) {
+      Alert.alert('Payment failed', e instanceof Error ? e.message : 'Could not complete booking');
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -22,6 +93,7 @@ export default function PaymentScreen() {
         <View className="flex-row items-center justify-between">
           <Pressable
             onPress={() => router.back()}
+            disabled={submitting}
             className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
             <FontAwesome name="arrow-left" size={16} color="#111827" />
           </Pressable>
@@ -40,9 +112,7 @@ export default function PaymentScreen() {
                 </View>
                 <View className="flex-1">
                   <Text className="text-[10px] font-bold text-gray-400">Pick up</Text>
-                  <Text className="text-sm font-extrabold text-gray-900">
-                    {params.from ?? 'San Isidro, QC'}
-                  </Text>
+                  <Text className="text-sm font-extrabold text-gray-900">{params.from ?? '—'}</Text>
                 </View>
               </View>
 
@@ -52,9 +122,7 @@ export default function PaymentScreen() {
                 </View>
                 <View className="flex-1">
                   <Text className="text-[10px] font-bold text-gray-400">Destination</Text>
-                  <Text className="text-sm font-extrabold text-gray-900">
-                    {params.to ?? 'Sunny San Isidro'}
-                  </Text>
+                  <Text className="text-sm font-extrabold text-gray-900">{params.to ?? '—'}</Text>
                 </View>
               </View>
             </View>
@@ -90,9 +158,14 @@ export default function PaymentScreen() {
         </View>
 
         <Pressable
-          className="mt-5 items-center justify-center rounded-2xl bg-[#111827] py-4"
-          onPress={() => router.replace('/(tabs)' as any)}>
-          <Text className="text-base font-extrabold text-white">Pay now</Text>
+          disabled={submitting || !canPay}
+          className={`mt-5 items-center justify-center rounded-2xl py-4 ${submitting || !canPay ? 'bg-gray-300' : 'bg-[#111827]'}`}
+          onPress={() => void payNow()}>
+          {submitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text className="text-base font-extrabold text-white">Pay now</Text>
+          )}
         </Pressable>
       </ScrollView>
     </SafeAreaView>

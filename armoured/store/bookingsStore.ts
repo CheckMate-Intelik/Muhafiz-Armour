@@ -15,6 +15,8 @@ export type DispatcherBooking = {
   status: string;
   startTime: string;
   endTime: string;
+  pendingExpiresAt?: string | null;
+  createdAt?: string | null;
   totalPrice: number | null;
   actualEndTime?: string | null;
   user?: { name: string } | null;
@@ -38,6 +40,8 @@ export type UserBooking = {
   status?: string | null;
   startTime?: string | null;
   endTime?: string | null;
+  pendingExpiresAt?: string | null;
+  createdAt?: string | null;
   totalPrice?: number | null;
   dispatcher?: { name: string } | null;
   vehicle?: {

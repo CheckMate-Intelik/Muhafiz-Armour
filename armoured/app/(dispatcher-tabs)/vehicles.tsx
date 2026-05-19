@@ -94,23 +94,31 @@ export default function DispatcherVehiclesScreen() {
                     borderLeftWidth: idx === 0 ? 0 : 1,
                     borderLeftColor: 'rgba(255,255,255,0.08)',
                   }}>
-                  <View
-                    className="items-center justify-center px-1 py-3"
-                    style={{
-                      backgroundColor: active ? '#C9B37A' : 'transparent',
-                      height: 70,
-                    }}>
-                    <FontAwesome
-                      name={t === 'Approved' ? 'check' : 'clock-o'}
-                      size={22}
-                      color={active ? '#0B0F14' : '#B8BBC0'}
-                    />
-                    <Text
-                      className="mt-1 text-sm font-extrabold"
-                      style={{ color: active ? '#0B0F14' : '#B8BBC0' }}>
-                      {t.toUpperCase()}
-                    </Text>
-                  </View>
+                  <LinearGradient
+                    colors={
+                      active
+                        ? ['rgb(204, 155, 31)', 'rgb(201, 179, 122)']
+                        : ['rgb(37, 37, 37)', 'rgb(0, 0, 0)']
+                    }
+                    start={{ x: 1, y: 0 }}
+                    end={{ x: 1, y: 1 }}>
+                    <View
+                      className="items-center justify-center px-1 py-3"
+                      style={{
+                        height: 70,
+                      }}>
+                      <FontAwesome
+                        name={t === 'Approved' ? 'check' : 'clock-o'}
+                        size={22}
+                        color={active ? '#0B0F14' : '#B8BBC0'}
+                      />
+                      <Text
+                        className="mt-1 text-sm font-extrabold"
+                        style={{ color: active ? '#0B0F14' : '#B8BBC0' }}>
+                        {t.toUpperCase()}
+                      </Text>
+                    </View>
+                  </LinearGradient>
                 </Pressable>
               );
             })}
@@ -119,19 +127,33 @@ export default function DispatcherVehiclesScreen() {
 
         <Pressable
           onPress={() => router.push('/register-vehicle')}
-          className="absolute bottom-[120px] left-1/2 z-10 w-[170px] -translate-x-1/2 flex-row items-center justify-center rounded-full py-4 shadow-lg"
+          className="absolute bottom-[120px] left-1/2 z-10 -translate-x-1/2"
           style={{
-            backgroundColor: '#0B0F14',
-            borderWidth: 1,
-            borderColor: '#C9B37A',
             shadowColor: '#000',
             shadowOpacity: 0.25,
             shadowRadius: 14,
             shadowOffset: { width: 0, height: 8 },
             elevation: 10,
           }}>
-          <FontAwesome name="plus" size={14} color="#C9B37A" />
-          <Text className="ml-2 text-sm font-bold" style={{ color: '#C9B37A' }}>Add vehicle</Text>
+          <LinearGradient
+            colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              minWidth: 170,
+              borderRadius: 9999,
+              borderWidth: 1,
+              borderColor: '#C9B37A',
+              paddingVertical: 16,
+              paddingHorizontal: 20,
+            }}>
+            <View className="flex-row items-center justify-center">
+              <FontAwesome name="plus" size={14} color="#0B0F14" />
+              <Text className="ml-2 text-sm font-bold" style={{ color: '#C9B37A' }}>
+                Add vehicle
+              </Text>
+            </View>
+          </LinearGradient>
         </Pressable>
 
         <ScrollView contentContainerStyle={{ paddingBottom: 180 }} className="px-5 pt-4">
@@ -150,7 +172,9 @@ export default function DispatcherVehiclesScreen() {
               </View>
               <Text className="mt-4 text-lg font-extrabold text-gray-200">No vehicles</Text>
               <Text className="mt-1 text-sm font-semibold text-gray-300">
-                {tab === 'Approved' ? 'Your approved vehicles will appear here.' : 'Your pending vehicles will appear here.'}
+                {tab === 'Approved'
+                  ? 'Your approved vehicles will appear here.'
+                  : 'Your pending vehicles will appear here.'}
               </Text>
             </View>
           ) : null}

@@ -1,5 +1,9 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, Text, View } from 'react-native';
+
+import { PendingExpiryCountdown } from '@/components/PendingExpiryCountdown';
+import { isPendingAwaitingDispatcher } from '@/lib/bookingPendingExpiry';
 
 type StatusMeta = {
   label: string;
@@ -26,7 +30,11 @@ function getStatusMeta(status?: string | null): StatusMeta | null {
     case 'EXPIRED':
       return { label: 'Expired', bgClass: 'bg-gray-100', textClass: 'text-gray-800' };
     default:
-      return { label: status.replaceAll('_', ' '), bgClass: 'bg-gray-100', textClass: 'text-gray-800' };
+      return {
+        label: status.replaceAll('_', ' '),
+        bgClass: 'bg-gray-100',
+        textClass: 'text-gray-800',
+      };
   }
 }
 
@@ -34,6 +42,8 @@ type Props = {
   from: string;
   to: string;
   status?: string | null;
+  pendingExpiresAt?: string | null;
+  createdAt?: string | null;
   onPress?: () => void;
   rightMetaText?: string | null;
   testID?: string;
@@ -49,6 +59,8 @@ export function TripRouteCard({
   from,
   to,
   status,
+  pendingExpiresAt,
+  createdAt,
   onPress,
   rightMetaText,
   testID,
@@ -66,74 +78,112 @@ export function TripRouteCard({
         onPress={onPress}
         className="mb-4 overflow-hidden rounded-2xl"
         style={missionCardOuter}>
-        <View
-          className="border-b px-4 pb-3 pt-3.5"
-          style={{ backgroundColor: '#000000', borderBottomColor: 'rgba(255,255,255,0.06)' }}>
-          <View className="flex-row items-center justify-between">
-            <Text
-              numberOfLines={2}
-              className="flex-1 pr-2 text-[14px] font-extrabold"
-              style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
-              {missionHeaderLine || meta?.label || '—'}
-            </Text>
-            <FontAwesome name="car" size={22} color="#C9B37A" />
-          </View>
-        </View>
-
-        <View className="px-4 py-4" style={{ backgroundColor: '#222222' }}>
-          <View className="flex-row">
-            <View className="mr-3 w-5 items-center">
-              <View
-                className="h-3 w-3 rounded-full"
-                style={{ borderWidth: 2, borderColor: '#F59E0B', backgroundColor: 'transparent' }}
-              />
-              <View className="my-2 w-[2px] flex-1" style={{ backgroundColor: 'rgba(34,197,94,0.7)' }} />
-              <View className="h-3 w-3 rounded-full" style={{ borderWidth: 2, borderColor: '#E5E7EB' }} />
+        <LinearGradient
+          colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 1, y: 1 }}>
+          <View
+            className="border-b px-4 pb-3 pt-3.5"
+            style={{ borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+            <View className="flex-row items-center justify-between">
+              <View className="min-w-0 flex-1 pr-2">
+                <Text
+                  numberOfLines={2}
+                  className="text-[14px] font-extrabold"
+                  style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
+                  {missionHeaderLine || meta?.label || '—'}
+                </Text>
+                {isPendingAwaitingDispatcher(status) ? (
+                  <PendingExpiryCountdown
+                    status={status}
+                    pendingExpiresAt={pendingExpiresAt}
+                    createdAt={createdAt}
+                    variant="mission"
+                    className="mt-1"
+                  />
+                ) : null}
+              </View>
+              <FontAwesome name="car" size={22} color="#C9B37A" />
             </View>
+          </View>
+        </LinearGradient>
 
-            <View className="flex-1">
-              <View className="flex-row">
-                <View className="flex-1 pr-3">
-                  <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
-                    FROM:
-                  </Text>
-                  <Text numberOfLines={2} className="mt-1 text-[18px] font-extrabold text-gray-100">
-                    {from || '—'}
-                  </Text>
-                </View>
+        <LinearGradient
+          colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 1, y: 1 }}>
+          <View className="px-4 py-4" style={{ backgroundColor: 'black' }}>
+            <View className="flex-row">
+              <View className="mr-3 w-5 items-center">
+                <View
+                  className="h-3 w-3 rounded-full"
+                  style={{ borderWidth: 2, borderColor: '#F59E0B', backgroundColor: 'transparent' }}
+                />
+                <View
+                  className="my-2 w-[2px] flex-1"
+                  style={{ backgroundColor: 'rgba(34,197,94,0.7)' }}
+                />
+                <View
+                  className="h-3 w-3 rounded-full"
+                  style={{ borderWidth: 2, borderColor: '#E5E7EB' }}
+                />
+              </View>
 
-                {missionCostLabel ? (
-                  <View className="w-[90px] items-end">
+              <View className="flex-1">
+                <View className="flex-row">
+                  <View className="flex-1 pr-3">
                     <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
-                      COST:
+                      FROM:
                     </Text>
-                    <Text numberOfLines={1} className="mt-1 text-[14px] font-extrabold text-gray-100">
-                      {missionCostLabel}
+                    <Text
+                      numberOfLines={2}
+                      className="mt-1 text-[18px] font-extrabold text-gray-100">
+                      {from || '—'}
                     </Text>
                   </View>
-                ) : null}
-              </View>
 
-              <View className="mt-3 border-t" style={{ borderTopColor: 'rgba(255,255,255,0.06)' }} />
-
-              <View className="mt-3 flex-row items-start justify-between">
-                <View className="min-w-0 flex-1 pr-2">
-                  <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
-                    TO:
-                  </Text>
-                  <Text numberOfLines={2} className="mt-1 text-[18px] font-extrabold text-gray-100">
-                    {to || '—'}
-                  </Text>
+                  {missionCostLabel ? (
+                    <View className="w-[90px] items-end">
+                      <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+                        COST:
+                      </Text>
+                      <Text
+                        numberOfLines={1}
+                        className="mt-1 text-[14px] font-extrabold text-gray-100">
+                        {missionCostLabel}
+                      </Text>
+                    </View>
+                  ) : null}
                 </View>
-                {rightMetaText && !missionCostLabel ? (
-                  <Text numberOfLines={2} className="max-w-[40%] text-[11px] font-semibold text-gray-300">
-                    {rightMetaText}
-                  </Text>
-                ) : null}
+
+                <View
+                  className="mt-3 border-t"
+                  style={{ borderTopColor: 'rgba(255,255,255,0.06)' }}
+                />
+
+                <View className="mt-3 flex-row items-start justify-between">
+                  <View className="min-w-0 flex-1 pr-2">
+                    <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+                      TO:
+                    </Text>
+                    <Text
+                      numberOfLines={2}
+                      className="mt-1 text-[18px] font-extrabold text-gray-100">
+                      {to || '—'}
+                    </Text>
+                  </View>
+                  {rightMetaText && !missionCostLabel ? (
+                    <Text
+                      numberOfLines={2}
+                      className="max-w-[40%] text-[11px] font-semibold text-gray-300">
+                      {rightMetaText}
+                    </Text>
+                  ) : null}
+                </View>
               </View>
             </View>
           </View>
-        </View>
+        </LinearGradient>
       </Root>
     );
   }
@@ -159,22 +209,33 @@ export function TripRouteCard({
           <View className="flex-row items-start justify-between">
             <View className="flex-1 pr-2">
               <Text className="text-sm font-semibold text-gray-500">From</Text>
-              <Text numberOfLines={1} className="mt-0.5 text-md font-bold text-gray-900">
+              <Text numberOfLines={1} className="text-md mt-0.5 font-bold text-gray-900">
                 {from || '—'}
               </Text>
             </View>
 
-            {meta ? (
-              <View className={`rounded-full px-3 py-1 ${meta.bgClass}`}>
-                <Text className={`text-[10px] font-extrabold ${meta.textClass}`}>{meta.label}</Text>
-              </View>
-            ) : null}
+            <View className="items-end">
+              {meta ? (
+                <View className={`rounded-full px-3 py-1 ${meta.bgClass}`}>
+                  <Text className={`text-[10px] font-extrabold ${meta.textClass}`}>{meta.label}</Text>
+                </View>
+              ) : null}
+              {isPendingAwaitingDispatcher(status) ? (
+                <PendingExpiryCountdown
+                  status={status}
+                  pendingExpiresAt={pendingExpiresAt}
+                  createdAt={createdAt}
+                  variant="light"
+                  className="mt-1"
+                />
+              ) : null}
+            </View>
           </View>
           <View className="mt-2 h-[2px] bg-emerald-200" />
           <View className="mt-2 flex-row items-center justify-between">
             <View className="flex-1 pr-2">
               <Text className="text-sm font-semibold text-gray-500">To</Text>
-              <Text numberOfLines={1} className="mt-0.5 text-md font-bold text-gray-900">
+              <Text numberOfLines={1} className="text-md mt-0.5 font-bold text-gray-900">
                 {to || '—'}
               </Text>
             </View>
@@ -209,4 +270,3 @@ const missionCardOuter = {
   shadowOffset: { width: 0, height: 14 },
   elevation: 8,
 };
-
