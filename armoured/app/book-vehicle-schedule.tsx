@@ -105,7 +105,7 @@ export default function BookVehicleScheduleScreen() {
       } catch {
         // use 0; payment screen still shows trip details
       }
-      router.push({
+      router.replace({
         pathname: '/payment',
         params: {
           vehicleId,

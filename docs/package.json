@@ -1,0 +1,13 @@
+{
+  "name": "muhafiz-armour-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "pdf": "node generate-product-pdf.mjs"
+  },
+  "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^11.4.2",
+    "marked": "^15.0.7",
+    "puppeteer": "^24.2.1"
+  }
+}

@@ -139,7 +139,7 @@ export function UserBookingCard({
       ) : null}
 
       {!booking ? (
-        <View className="px-4 py-5">
+        <View className="rounded-2xl bg-[#222222] px-4 py-5">
           <Text className="text-base font-semibold text-gray-100">{emptyLabel}</Text>
         </View>
       ) : (

@@ -84,6 +84,11 @@ export async function setStoredDispatcherSession(next: DispatcherSession | null)
   dispatcherSession = next;
 }
 
+/** Clears user and dispatcher sessions from storage and in-memory caches. */
+export async function clearAllStoredSessions() {
+  await Promise.all([setStoredUserSession(null), setStoredDispatcherSession(null)]);
+}
+
 export async function loginUser(input: { phone?: string; name?: string; email?: string; password?: string }) {
   const email = input.email?.trim();
   const phone = (input.phone?.trim() || email || '').trim();

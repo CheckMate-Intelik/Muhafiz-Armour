@@ -123,8 +123,9 @@ model Vehicle {
   numberPlate     String?
   registrationNumber String?
   imageUrls       String[]    @default([])
-  baseRatePerHour Int
-  location        String
+  baseRatePerHour      Int
+  extensionRatePerHour Int
+  location             String
   status          VehicleStatus @default(AVAILABLE)
   seatingCapacity Int           @default(4)
   isApproved      Boolean     @default(false)

@@ -33,6 +33,7 @@ export default function RegisterVehicleScreen() {
   const [numberPlate, setNumberPlate] = useState('');
   const [registrationNumber, setRegistrationNumber] = useState('');
   const [baseRatePerHour, setBaseRatePerHour] = useState('120');
+  const [extensionRatePerHour, setExtensionRatePerHour] = useState('120');
   const [seatingCapacity, setSeatingCapacity] = useState('4');
   const [location, setLocation] = useState('Quezon City');
   const [imageUris, setImageUris] = useState<string[]>([]);
@@ -107,7 +108,11 @@ export default function RegisterVehicleScreen() {
     Number(seatingCapacity) <= 60 &&
     location.trim().length > 0;
 
-  const canStep2 = Number.isFinite(Number(baseRatePerHour)) && Number(baseRatePerHour) > 0;
+  const canStep2 =
+    Number.isFinite(Number(baseRatePerHour)) &&
+    Number(baseRatePerHour) > 0 &&
+    Number.isFinite(Number(extensionRatePerHour)) &&
+    Number(extensionRatePerHour) > 0;
 
   const canSubmit = canStep0 && canStep1 && canStep2;
 
@@ -121,7 +126,7 @@ export default function RegisterVehicleScreen() {
       return false;
     }
     if (step === 2 && !canStep2) {
-      Alert.alert('Incomplete', 'Enter a valid base rate per hour.');
+      Alert.alert('Incomplete', 'Enter valid base and extension rates per hour.');
       return false;
     }
     return true;
@@ -177,6 +182,7 @@ export default function RegisterVehicleScreen() {
         registrationNumber: registrationNumber.trim().toUpperCase(),
         imageUrls,
         baseRatePerHour: Math.round(Number(baseRatePerHour)),
+        extensionRatePerHour: Math.round(Number(extensionRatePerHour)),
         seatingCapacity: Math.round(Number(seatingCapacity)),
         location: location.trim(),
       });
@@ -365,6 +371,17 @@ export default function RegisterVehicleScreen() {
                   keyboardType="number-pad"
                   autoCapitalize="none"
                 />
+                <Field
+                  label="Extension rate (Rs / hour)"
+                  value={extensionRatePerHour}
+                  onChangeText={setExtensionRatePerHour}
+                  placeholder="120"
+                  keyboardType="number-pad"
+                  autoCapitalize="none"
+                />
+                <Text className="mt-1 text-[11px] font-semibold" style={{ color: '#6B7280' }}>
+                  Charged per hour when a customer extends an active trip.
+                </Text>
               </>
             ) : null}
           </View>

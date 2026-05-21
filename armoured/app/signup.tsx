@@ -9,9 +9,11 @@ import {
   AuthRoleToggle,
   AuthScreenShell,
 } from '@/components/AuthForm';
-import { AppRole, setActiveRole, signupDispatcher, signupUser } from '@/lib/api';
+import { AppRole, signupDispatcher, signupUser } from '@/lib/api';
+import { useStore } from '@/store/store';
 
 export default function SignupScreen() {
+  const completeAuth = useStore((s) => s.completeAuth);
   const [role, setRole] = useState<AppRole>('USER');
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
@@ -32,7 +34,7 @@ export default function SignupScreen() {
           email: email.trim(),
           password,
         });
-        await setActiveRole('DISPATCHER');
+        await completeAuth('DISPATCHER');
       } else {
         await signupUser({
           phone: phone.trim() || undefined,
@@ -40,7 +42,7 @@ export default function SignupScreen() {
           email: email.trim(),
           password,
         });
-        await setActiveRole('USER');
+        await completeAuth('USER');
       }
       Alert.alert('Success', 'Account created successfully.');
       router.replace((role === 'DISPATCHER' ? '/(dispatcher-tabs)' : '/(tabs)') as any);

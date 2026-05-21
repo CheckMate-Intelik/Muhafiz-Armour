@@ -42,6 +42,10 @@ export class CreateVehicleDto {
   @Min(1)
   baseRatePerHour!: number;
 
+  @IsInt()
+  @Min(1)
+  extensionRatePerHour!: number;
+
   @IsOptional()
   @IsInt()
   @Min(1)

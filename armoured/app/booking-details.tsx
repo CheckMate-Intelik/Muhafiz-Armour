@@ -82,6 +82,8 @@ type UserLiveBooking = {
     vehicleType: string;
     manufacturer?: string | null;
     carModel?: string | null;
+    baseRatePerHour?: number | null;
+    extensionRatePerHour?: number | null;
   } | null;
 };
 
@@ -102,6 +104,8 @@ type DispatcherLiveBooking = {
     vehicleType: string;
     manufacturer?: string | null;
     carModel?: string | null;
+    baseRatePerHour?: number | null;
+    extensionRatePerHour?: number | null;
   } | null;
 };
 
@@ -305,6 +309,22 @@ export default function BookingDetailsScreen() {
       router.replace(isDispatcherMode ? ('/(dispatcher-tabs)' as any) : ('/(tabs)' as any));
     }
   }, [shouldPollInterval, display.status, isDispatcherMode]);
+
+  const extendVehicle = isDispatcherMode ? fetchedDispatcher?.vehicle : fetchedUser?.vehicle;
+  const extensionRatePerHour = useMemo(() => {
+    const v = extendVehicle;
+    if (!v) return null;
+    if (typeof v.extensionRatePerHour === 'number' && Number.isFinite(v.extensionRatePerHour)) {
+      return v.extensionRatePerHour;
+    }
+    if (typeof v.baseRatePerHour === 'number' && Number.isFinite(v.baseRatePerHour)) {
+      return v.baseRatePerHour;
+    }
+    return null;
+  }, [extendVehicle]);
+
+  const estimatedExtensionCharge =
+    extensionRatePerHour != null ? Math.round(extensionRatePerHour * extendHours) : null;
 
   async function dismissLive() {
     const untilMs = Date.now() + 6 * 60 * 60 * 1000;
@@ -727,7 +747,7 @@ export default function BookingDetailsScreen() {
                 borderWidth: 1,
                 borderColor: 'rgba(255,255,255,0.06)',
               }}>
-              <Text className="text-xs font-semibold" style={{ color: '#B8BBC0' }}>
+              <Text className="text-md font-semibold" style={{ color: '#B8BBC0' }}>
                 You’ll be notified here once the dispatcher completes the trip.
               </Text>
             </View>
@@ -824,14 +844,36 @@ export default function BookingDetailsScreen() {
 
           {showUserExtendActions ? (
             <View className="mt-4 gap-3">
-              <Text className="text-xs font-extrabold text-gray-100">Extend booking</Text>
-              <Text className="text-[11px] font-semibold" style={{ color: '#B8BBC0' }}>
+              <Text className="text-lg font-extrabold text-gray-100">Extend booking</Text>
+              <Text className="text-md font-semibold" style={{ color: '#B8BBC0' }}>
                 Extension requires dispatcher approval after availability is checked.
               </Text>
-              <Text className="text-[11px] font-semibold" style={{ color: '#9CA3AF' }}>
+              <Text className="text-md font-semibold" style={{ color: '#9CA3AF' }}>
                 Add up to {maxExtendHours} hour{maxExtendHours === 1 ? '' : 's'} (booking max{' '}
                 {MAX_BOOKING_HOURS} h total).
               </Text>
+              {extensionRatePerHour != null ? (
+                <View
+                  className="rounded-2xl px-3 py-2.5"
+                  style={{
+                    backgroundColor: 'rgba(201,179,122,0.1)',
+                    borderWidth: 1,
+                    borderColor: 'rgba(201,179,122,0.25)',
+                  }}>
+                  <Text className="text-md font-semibold" style={{ color: '#B8BBC0' }}>
+                    Extension rate:{' '}
+                    <Text className="font-bold text-gray-100">Rs {extensionRatePerHour}/hr</Text>
+                  </Text>
+                  {estimatedExtensionCharge != null ? (
+                    <Text className="text-md mt-1 font-semibold" style={{ color: '#B8BBC0' }}>
+                      Estimated extension charge:{' '}
+                      <Text className="font-bold text-gray-100">
+                        Rs {estimatedExtensionCharge.toFixed(0)}
+                      </Text>
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null}
               <View className="flex-row items-center gap-2">
                 <Pressable
                   disabled={busy || extendHours <= 1}
@@ -900,9 +942,13 @@ export default function BookingDetailsScreen() {
                   borderColor: 'rgba(255,255,255,0.06)',
                 }}>
                 <Text
-                  className="text-xs font-extrabold"
+                  className="text-md font-extrabold"
                   style={{ color: busy ? '#9CA3AF' : '#0B0F14' }}>
-                  {busy ? 'Please wait…' : `Request ${formatAdditionalHours(extendHours)}`}
+                  {busy
+                    ? 'Please wait…'
+                    : estimatedExtensionCharge != null
+                      ? `Request ${formatAdditionalHours(extendHours)} · Rs ${estimatedExtensionCharge}`
+                      : `Request ${formatAdditionalHours(extendHours)}`}
                 </Text>
               </Pressable>
             </View>

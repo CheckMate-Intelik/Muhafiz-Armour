@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Muhafiz Armour: Product & Feature Overview</title>
+  <style>@page {
+  size: A4;
+  margin: 22mm 18mm 24mm 18mm;
+}
+
+@page :first {
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 10.5pt;
+}
+
+body {
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  color: #1a2332;
+  line-height: 1.55;
+  margin: 0;
+  background: #fff;
+}
+
+/* Cover */
+.cover {
+  page-break-after: always;
+  min-height: 297mm;
+  padding: 0;
+  margin: 0;
+  background: linear-gradient(165deg, #1f4495 0%, #183161 42%, #020617 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cover-inner {
+  padding: 48mm 24mm 32mm;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cover-badge {
+  display: inline-block;
+  font-size: 9pt;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #c9b37a;
+  border: 1px solid rgba(201, 179, 122, 0.5);
+  padding: 6px 14px;
+  border-radius: 4px;
+  margin-bottom: 28px;
+  width: fit-content;
+}
+
+.cover h1 {
+  font-size: 34pt;
+  font-weight: 600;
+  margin: 0 0 12px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.cover .subtitle {
+  font-size: 14pt;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.88);
+  max-width: 85%;
+  margin: 0 0 36px;
+  line-height: 1.45;
+}
+
+.cover-meta {
+  font-size: 10pt;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.cover-meta strong {
+  color: #c9b37a;
+  font-weight: 600;
+}
+
+.cover-footer {
+  padding: 18mm 24mm;
+  border-top: 1px solid rgba(201, 179, 122, 0.25);
+  font-size: 8.5pt;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.04em;
+}
+
+/* Content */
+.content {
+  padding: 0;
+}
+
+.doc-header {
+  border-bottom: 3px solid #1f4495;
+  padding-bottom: 10px;
+  margin-bottom: 28px;
+}
+
+.doc-header .brand {
+  font-size: 8pt;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #c9b37a;
+  font-weight: 600;
+}
+
+.doc-header h2 {
+  margin: 4px 0 0;
+  font-size: 18pt;
+  color: #1f4495;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 20pt;
+  color: #1f4495;
+  margin: 32px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e8e4d8;
+  page-break-after: avoid;
+}
+
+h2 {
+  font-size: 14pt;
+  color: #183161;
+  margin: 26px 0 10px;
+  page-break-after: avoid;
+}
+
+h3 {
+  font-size: 11.5pt;
+  color: #2d3a4f;
+  margin: 18px 0 8px;
+  page-break-after: avoid;
+}
+
+p {
+  margin: 0 0 10px;
+}
+
+blockquote {
+  margin: 16px 0;
+  padding: 14px 18px;
+  background: #f8f6f0;
+  border-left: 4px solid #c9b37a;
+  color: #2d3a4f;
+  font-style: italic;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 24px 0;
+}
+
+ul {
+  margin: 8px 0 12px;
+  padding-left: 22px;
+}
+
+li {
+  margin-bottom: 4px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 18px;
+  font-size: 9.5pt;
+  page-break-inside: avoid;
+}
+
+thead {
+  background: #1f4495;
+  color: #fff;
+}
+
+th {
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 9pt;
+  letter-spacing: 0.02em;
+}
+
+td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #e8edf4;
+  vertical-align: top;
+}
+
+tbody tr:nth-child(even) {
+  background: #f7f9fc;
+}
+
+code {
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 8.5pt;
+  background: #f0f4f8;
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #183161;
+}
+
+strong {
+  color: #183161;
+}
+
+/* Mermaid diagrams (same source as chat / PRODUCT_OVERVIEW.md) */
+.mermaid-diagram {
+  margin: 18px 0 22px;
+  padding: 20px 16px;
+  background: #f7f9fc;
+  border: 1px solid #d4dce8;
+  border-radius: 8px;
+  text-align: center;
+  page-break-inside: avoid;
+  overflow: visible;
+}
+
+.mermaid-diagram svg {
+  display: block;
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  margin: 0 auto;
+}
+
+.page-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-size: 8pt;
+  color: #8896a8;
+  text-align: center;
+  padding: 8px 18mm;
+  border-top: 1px solid #e8edf4;
+}
+
+.section-intro {
+  color: #4a5a6e;
+  font-size: 10pt;
+  margin-bottom: 16px;
+}
+</style>
+</head>
+<body>
+  <section class="cover">
+    <div class="cover-inner">
+      <div class="cover-badge">Business overview</div>
+      <h1>Muhafiz Armour</h1>
+      <p class="subtitle">Product and feature overview for Pakistan&apos;s armoured mobility marketplace</p>
+      <div class="cover-meta">
+        <p><strong>Document type</strong> · Product &amp; operations brief</p>
+        <p><strong>Prepared</strong> · 21 May 2026</p>
+        <p><strong>Platforms</strong> · Mobile app · API · Admin portal</p>
+      </div>
+    </div>
+    <div class="cover-footer">CONFIDENTIAL · INTERNAL &amp; STAKEHOLDER USE</div>
+  </section>
+
+  <section class="content">
+    <div class="doc-header">
+      <div class="brand">Muhafiz Armour</div>
+      <h2>Product &amp; Feature Overview</h2>
+    </div>
+    <h1>Muhafiz Armour: Product &amp; Feature Overview</h1>
+<h2>1. Executive summary</h2>
+<p><strong>Muhafiz Armour</strong> is a three-sided marketplace for booking <strong>armoured vehicles</strong> with professional dispatchers. Customers plan trips in a mobile app, choose from an approved fleet, and pay to confirm. <strong>Dispatchers</strong> (fleet operators) register vehicles, accept jobs, and run trips. <strong>Platform admins</strong> govern approvals, catalog options, and operations through a web dashboard.</p>
+<p>The product is built as:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Mobile app (<code>armoured</code>)</td>
+<td>React Native / Expo</td>
+<td>End users &amp; dispatchers</td>
+</tr>
+<tr>
+<td>API (<code>server</code>)</td>
+<td>NestJS, Prisma, PostgreSQL</td>
+<td>All clients</td>
+</tr>
+<tr>
+<td>Admin portal (<code>admin</code>)</td>
+<td>Next.js</td>
+<td>Internal operations</td>
+</tr>
+</tbody></table>
+<p>Primary geography is <strong>Pakistan</strong> (city picker, intercity vs intracity scheduling rules).</p>
+<hr>
+<h2>2. Business model &amp; value proposition</h2>
+<table>
+<thead>
+<tr>
+<th>Stakeholder</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Customer</strong></td>
+<td>Book vetted armoured transport with clear pricing, schedule, and trip lifecycle visibility</td>
+</tr>
+<tr>
+<td><strong>Dispatcher</strong></td>
+<td>List fleet, receive matched requests, manage active trips and extensions</td>
+</tr>
+<tr>
+<td><strong>Platform</strong></td>
+<td>Quality control (approvals), catalog governance, metrics, and dispute-ready booking records</td>
+</tr>
+</tbody></table>
+<p>Revenue logic is <strong>hourly</strong>: <code>baseRatePerHour</code> for the planned window; <strong>extension</strong> hours may use a separate <code>extensionRatePerHour</code>; <strong>overtime</strong> at trip completion is billed from actual end vs planned end.</p>
+<hr>
+<h2>3. Platform architecture (high level)</h2>
+<div class="mermaid-diagram" role="img" aria-label="Diagram 1"><svg id="my-svg" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="flowchart" style="max-width: 605.453px; background-color: transparent;" viewBox="0 0 605.453125 348" role="graphics-document document" aria-roledescription="flowchart-v2"><style>#my-svg{font-family:Segoe UI,Helvetica Neue,Arial,sans-serif;font-size:16px;fill:#183161;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#my-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#my-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#my-svg .error-icon{fill:#ffffff;}#my-svg .error-text{fill:#183161;stroke:#183161;}#my-svg .edge-thickness-normal{stroke-width:1px;}#my-svg .edge-thickness-thick{stroke-width:3.5px;}#my-svg .edge-pattern-solid{stroke-dasharray:0;}#my-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#my-svg .edge-pattern-dashed{stroke-dasharray:3;}#my-svg .edge-pattern-dotted{stroke-dasharray:2;}#my-svg .marker{fill:#1f4495;stroke:#1f4495;}#my-svg .marker.cross{stroke:#1f4495;}#my-svg svg{font-family:Segoe UI,Helvetica Neue,Arial,sans-serif;font-size:16px;}#my-svg p{margin:0;}#my-svg .label{font-family:Segoe UI,Helvetica Neue,Arial,sans-serif;color:#183161;}#my-svg .cluster-label text{fill:#1f4495;}#my-svg .cluster-label span{color:#1f4495;}#my-svg .cluster-label span p{background-color:transparent;}#my-svg .label text,#my-svg span{fill:#183161;color:#183161;}#my-svg .node rect,#my-svg .node circle,#my-svg .node ellipse,#my-svg .node polygon,#my-svg .node path{fill:#e8edf4;stroke:#1f4495;stroke-width:1px;}#my-svg .rough-node .label text,#my-svg .node .label text,#my-svg .image-shape .label,#my-svg .icon-shape .label{text-anchor:middle;}#my-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#my-svg .rough-node .label,#my-svg .node .label,#my-svg .image-shape .label,#my-svg .icon-shape .label{text-align:center;}#my-svg .node.clickable{cursor:pointer;}#my-svg .root .anchor path{fill:#1f4495!important;stroke-width:0;stroke:#1f4495;}#my-svg .arrowheadPath{fill:#0b0b0b;}#my-svg .edgePath .path{stroke:#1f4495;stroke-width:1px;}#my-svg .flowchart-link{stroke:#1f4495;fill:none;}#my-svg .edgeLabel{background-color:#ffffff;text-align:center;}#my-svg .edgeLabel p{background-color:#ffffff;}#my-svg .edgeLabel rect{opacity:0.5;background-color:#ffffff;fill:#ffffff;}#my-svg .labelBkg{background-color:rgba(255, 255, 255, 0.5);}#my-svg .cluster rect{fill:#f7f9fc;stroke:#c9b37a;stroke-width:1px;}#my-svg .cluster text{fill:#1f4495;}#my-svg .cluster span{color:#1f4495;}#my-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:Segoe UI,Helvetica Neue,Arial,sans-serif;font-size:12px;background:#ffffff;border:1px solid #d4dce8;border-radius:2px;pointer-events:none;z-index:100;}#my-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#183161;}#my-svg rect.text{fill:none;stroke-width:0;}#my-svg .icon-shape,#my-svg .image-shape{background-color:#ffffff;text-align:center;}#my-svg .icon-shape p,#my-svg .image-shape p{background-color:#ffffff;padding:2px;}#my-svg .icon-shape .label rect,#my-svg .image-shape .label rect{opacity:0.5;background-color:#ffffff;fill:#ffffff;}#my-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#my-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#my-svg .node .neo-node{stroke:#1f4495;}#my-svg [data-look="neo"].node rect,#my-svg [data-look="neo"].cluster rect,#my-svg [data-look="neo"].node polygon{stroke:url(#my-svg-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#my-svg [data-look="neo"].node path{stroke:url(#my-svg-gradient);stroke-width:1px;}#my-svg [data-look="neo"].node .outer-path{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#my-svg [data-look="neo"].node .neo-line path{stroke:#1f4495;filter:none;}#my-svg [data-look="neo"].node circle{stroke:url(#my-svg-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#my-svg [data-look="neo"].node circle .state-start{fill:#000000;}#my-svg [data-look="neo"].icon-shape .icon{fill:url(#my-svg-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#my-svg [data-look="neo"].icon-shape .icon-neo path{stroke:url(#my-svg-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#my-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="my-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="my-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="my-svg_flowchart-v2-pointEnd-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="11.5" refY="7" markerUnits="userSpaceOnUse" markerWidth="10.5" markerHeight="14" orient="auto"><path d="M 0 0 L 11.5 7 L 0 14 z" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"/></marker><marker id="my-svg_flowchart-v2-pointStart-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="1" refY="7" markerUnits="userSpaceOnUse" markerWidth="11.5" markerHeight="14" orient="auto"><polygon points="0,7 11.5,14 11.5,0" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"/></marker><marker id="my-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="my-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="my-svg_flowchart-v2-circleEnd-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refY="5" refX="12.25" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"/></marker><marker id="my-svg_flowchart-v2-circleStart-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-2" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"/></marker><marker id="my-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="my-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="my-svg_flowchart-v2-crossEnd-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="17.7" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5;"/></marker><marker id="my-svg_flowchart-v2-crossStart-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="-3.5" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"><g class="cluster" id="my-svg-clients" data-look="classic"><rect style="" x="8" y="8" width="218.75" height="332"/><g class="cluster-label" transform="translate(94.984375, 8)"><foreignObject width="44.78125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5;"><span class="nodeLabel"><p>clients</p></span></div></foreignObject></g></g></g><g class="edgePaths"><path d="M198.266,70L203.013,70C207.76,70,217.255,70,226.169,70C235.083,70,243.417,70,258.536,82.335C273.655,94.67,295.559,119.339,306.512,131.674L317.464,144.009" id="my-svg-L_UserApp_API_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_UserApp_API_0" data-points="W3sieCI6MTk4LjI2NTYyNSwieSI6NzB9LHsieCI6MjI2Ljc1LCJ5Ijo3MH0seyJ4IjoyNTEuNzUsInkiOjcwfSx7IngiOjMyMC4xMTk4OTE4MjY5MjMxLCJ5IjoxNDd9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"/><path d="M201.75,174L205.917,174C210.083,174,218.417,174,226.75,174C235.083,174,243.417,174,251.083,174C258.75,174,265.75,174,269.25,174L272.75,174" id="my-svg-L_DispApp_API_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_DispApp_API_0" data-points="W3sieCI6MjAxLjc1LCJ5IjoxNzR9LHsieCI6MjI2Ljc1LCJ5IjoxNzR9LHsieCI6MjUxLjc1LCJ5IjoxNzR9LHsieCI6Mjc2Ljc1LCJ5IjoxNzR9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"/><path d="M193.164,278L198.762,278C204.359,278,215.555,278,225.319,278C235.083,278,243.417,278,258.536,265.665C273.655,253.33,295.559,228.661,306.512,216.326L317.464,203.991" id="my-svg-L_AdminWeb_API_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_AdminWeb_API_0" data-points="W3sieCI6MTkzLjE2NDA2MjUsInkiOjI3OH0seyJ4IjoyMjYuNzUsInkiOjI3OH0seyJ4IjoyNTEuNzUsInkiOjI3OH0seyJ4IjozMjAuMTE5ODkxODI2OTIzMSwieSI6MjAxfV0=" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"/><path d="M388.29,147L396.314,142.098C404.339,137.195,420.388,127.39,435.214,122.488C450.039,117.586,463.641,117.586,470.441,117.586L477.242,117.586" id="my-svg-L_API_DB_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_API_DB_0" data-points="W3sieCI6Mzg4LjI4OTY5MzgwMzgyNzgsInkiOjE0N30seyJ4Ijo0MzYuNDM3NSwieSI6MTE3LjU4NTc0NDg1Nzc4ODA5fSx7IngiOjQ4MS4yNDIxODc1LCJ5IjoxMTcuNTg1NzQ0ODU3Nzg4MDl9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"/><path d="M388.29,201L396.314,205.902C404.339,210.805,420.388,220.61,431.913,225.512C443.438,230.414,450.438,230.414,453.938,230.414L457.438,230.414" id="my-svg-L_API_CDN_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_API_CDN_0" data-points="W3sieCI6Mzg4LjI4OTY5MzgwMzgyNzgsInkiOjIwMX0seyJ4Ijo0MzYuNDM3NSwieSI6MjMwLjQxNDI1NTE0MjIxMTl9LHsieCI6NDYxLjQzNzUsInkiOjIzMC40MTQyNTUxNDIyMTE5fV0=" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_UserApp_API_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_DispApp_API_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_AdminWeb_API_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_API_DB_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_API_CDN_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default" id="my-svg-flowchart-UserApp-0" data-look="classic" transform="translate(117.375, 70)"><rect class="basic label-container" style="" x="-80.890625" y="-27" width="161.78125" height="54"/><g class="label" style="" transform="translate(-50.890625, -12)"><rect/><foreignObject width="101.78125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Customer App</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-DispApp-1" data-look="classic" transform="translate(117.375, 174)"><rect class="basic label-container" style="" x="-84.375" y="-27" width="168.75" height="54"/><g class="label" style="" transform="translate(-54.375, -12)"><rect/><foreignObject width="108.75" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Dispatcher App</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-AdminWeb-2" data-look="classic" transform="translate(117.375, 278)"><rect class="basic label-container" style="" x="-75.7890625" y="-27" width="151.578125" height="54"/><g class="label" style="" transform="translate(-45.7890625, -12)"><rect/><foreignObject width="91.578125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Admin Portal</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-API-3" data-look="classic" transform="translate(344.09375, 174)"><rect class="basic label-container" style="" x="-67.34375" y="-27" width="134.6875" height="54"/><g class="label" style="" transform="translate(-37.34375, -12)"><rect/><foreignObject width="74.6875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>NestJS API</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-DB-4" data-look="classic" transform="translate(529.4453125, 117.58574485778809)"><path d="M0,10.885673959068455 a48.203125,10.885673959068455 0,0,0 96.40625,0 a48.203125,10.885673959068455 0,0,0 -96.40625,0 l0,49.885673959068455 a48.203125,10.885673959068455 0,0,0 96.40625,0 l0,-49.885673959068455" class="basic label-container outer-path" style="" transform="translate(-48.203125, -35.82851093860268)"/><g class="label" style="" transform="translate(-40.703125, -2)"><rect/><foreignObject width="81.40625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>PostgreSQL</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-CDN-5" data-look="classic" transform="translate(529.4453125, 230.4142551422119)"><rect class="basic label-container" style="" x="-68.0078125" y="-27" width="136.015625" height="54"/><g class="label" style="" transform="translate(-38.0078125, -12)"><rect/><foreignObject width="76.015625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Cloudinary</p></span></div></foreignObject></g></g></g></g></g><defs><filter id="my-svg-drop-shadow" height="130%" width="130%"><feDropShadow dx="4" dy="4" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"/></filter></defs><defs><filter id="my-svg-drop-shadow-small" height="150%" width="150%"><feDropShadow dx="2" dy="2" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"/></filter></defs><linearGradient id="my-svg-gradient" gradientUnits="objectBoundingBox" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#1f4495" stop-opacity="1"/><stop offset="100%" stop-color="#c9b37a" stop-opacity="1"/></linearGradient></svg></div>
+<hr>
+<h2>4. User roles &amp; access</h2>
+<h3>4.1 Customer (User)</h3>
+<ul>
+<li>Sign up / log in (email + password; phone on record)</li>
+<li>Profile and avatar</li>
+<li>Full booking journey and trip management</li>
+<li>Switch to dispatcher mode from profile (if they also operate fleet)</li>
+</ul>
+<h3>4.2 Dispatcher</h3>
+<ul>
+<li>Separate signup/login (dispatcher role)</li>
+<li><strong>Admin approval required</strong> before vehicles appear in production matching (<code>isApproved</code>)</li>
+<li>Fleet registration, incoming requests, trip execution</li>
+<li>Extension approve/decline</li>
+</ul>
+<h3>4.3 Administrator</h3>
+<ul>
+<li>Env-based credentials (<code>ADMIN_USERNAME</code> / <code>ADMIN_PASSWORD</code>)</li>
+<li>JWT role <code>ADMIN</code></li>
+<li>Read-only operations dashboard plus governance actions (no trip driving)</li>
+</ul>
+<hr>
+<h2>5. Feature catalog</h2>
+<h3>A. Authentication &amp; identity</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dual-role login</td>
+<td>Single login screen toggles User vs Dispatcher</td>
+</tr>
+<tr>
+<td>Email/password auth</td>
+<td>Signup and login with hashed passwords (scrypt)</td>
+</tr>
+<tr>
+<td>Phone identity</td>
+<td>Phone stored as unique identifier; legacy phone-only login path for users</td>
+</tr>
+<tr>
+<td>JWT sessions</td>
+<td>Role-scoped tokens for API access</td>
+</tr>
+<tr>
+<td>Profile management</td>
+<td>View/update name; upload profile photo (Cloudinary)</td>
+</tr>
+<tr>
+<td>Account blocking</td>
+<td>Blocked users cannot create bookings</td>
+</tr>
+<tr>
+<td>Role switching</td>
+<td>User profile can switch to dispatcher experience (stored active role)</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>B. Trip planning &amp; scheduling (customer)</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>New booking flow</td>
+<td>Pickup/drop <strong>city</strong> (Pakistan cities list) + map pin per leg</td>
+</tr>
+<tr>
+<td>Route metadata API</td>
+<td>Distance (haversine), minimum duration, buffer minutes, max 120h booking</td>
+</tr>
+<tr>
+<td>Intracity vs intercity rules</td>
+<td><strong>2h</strong> buffer each side (intracity); <strong>5h</strong> buffer (intercity) for scheduling conflicts</td>
+</tr>
+<tr>
+<td>Minimum trip duration</td>
+<td>At least <strong>10 hours</strong> or distance-based minimum (≈45 km/h), whichever is higher</td>
+</tr>
+<tr>
+<td>Trip schedule UI</td>
+<td>Start/end datetime selection within platform limits</td>
+</tr>
+<tr>
+<td>Trip draft state</td>
+<td>Client-side draft (<code>tripDraft</code> store) across setup → vehicle → payment screens</td>
+</tr>
+<tr>
+<td>Availability check</td>
+<td>Per-vehicle window check before confirm</td>
+</tr>
+<tr>
+<td>Reschedule draft</td>
+<td>Extend <code>endTime</code> on <code>REQUESTED</code> bookings only</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>C. Vehicle discovery &amp; catalog</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Public vehicle browse</td>
+<td>Filter by armour level, vehicle type, city, price band, time window</td>
+</tr>
+<tr>
+<td>Vehicle detail</td>
+<td>Specs, images, rates, dispatcher info</td>
+</tr>
+<tr>
+<td>Armour level catalog</td>
+<td>Admin-managed options (e.g. B4, B6); codes used on vehicles</td>
+</tr>
+<tr>
+<td>Vehicle type catalog</td>
+<td>Admin-managed types (sedan, SUV, etc.)</td>
+</tr>
+<tr>
+<td>Matching engine</td>
+<td>Returns approved, available vehicles with no buffer conflict for requested window</td>
+</tr>
+<tr>
+<td>Sorting</td>
+<td>Cheapest <code>baseRatePerHour</code> first among matches</td>
+</tr>
+<tr>
+<td>Estimated price</td>
+<td><code>baseRatePerHour × duration</code> shown in options list</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>D. Booking lifecycle (core marketplace)</h3>
+<p><strong>Statuses:</strong> <code>REQUESTED</code> → <code>PENDING_DISPATCHER</code> → <code>CONFIRMED</code> → <code>IN_PROGRESS</code> → <code>COMPLETED</code> (also <code>REJECTED</code>, <code>EXPIRED</code>)</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Draft</td>
+<td>Request booking</td>
+<td>Creates booking with route, coords, buffer; returns matched vehicle options</td>
+</tr>
+<tr>
+<td>Select vehicle</td>
+<td>Assign vehicle + dispatcher</td>
+<td>Moves to <code>PENDING_DISPATCHER</code>, sets <code>totalPrice</code>, marks vehicle <code>BOOKED</code></td>
+</tr>
+<tr>
+<td>Payment screen</td>
+<td>Digital or Cash (UI)</td>
+<td>Confirms selection via API after “payment” step</td>
+</tr>
+<tr>
+<td>Dispatcher SLA</td>
+<td>1-hour accept window</td>
+<td><code>PENDING_DISPATCHER</code> expires to <code>EXPIRED</code>; countdown in app</td>
+</tr>
+<tr>
+<td>Dispatcher response</td>
+<td>Accept / reject</td>
+<td>Accept → <code>CONFIRMED</code>; reject → frees vehicle</td>
+</tr>
+<tr>
+<td>Trip start</td>
+<td>Dispatcher starts trip</td>
+<td><code>IN_PROGRESS</code>, records <code>actualStartTime</code></td>
+</tr>
+<tr>
+<td>Trip complete</td>
+<td>Dispatcher completes</td>
+<td><code>COMPLETED</code>, <code>actualEndTime</code>, <strong>overtime</strong> minutes &amp; adjusted <code>totalPrice</code></td>
+</tr>
+<tr>
+<td>Cancel (user)</td>
+<td>User cancel API</td>
+<td>For eligible states</td>
+</tr>
+<tr>
+<td>Cancel (dispatcher)</td>
+<td>Dispatcher cancel</td>
+<td>Confirmed/in-progress trips</td>
+</tr>
+<tr>
+<td>Overlap protection</td>
+<td>One active booking per user</td>
+<td>Prevents conflicting windows</td>
+</tr>
+<tr>
+<td>Idempotent request</td>
+<td>Duplicate submit within 2 min</td>
+<td>Returns existing draft instead of duplicate</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>E. Trip extensions</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>User requests extension</td>
+<td>Add hours (up to 120h total trip cap); uses <code>extensionRatePerHour</code> for added cost</td>
+</tr>
+<tr>
+<td>Pending extension</td>
+<td><code>BookingExtensionRequest</code> with proposed end time and price</td>
+</tr>
+<tr>
+<td>Dispatcher approve/decline</td>
+<td>Updates booking end/price or rejects request</td>
+</tr>
+<tr>
+<td>User cancel extension</td>
+<td>Withdraw pending request</td>
+</tr>
+<tr>
+<td>Conflict check</td>
+<td>Extension must not clash with other bookings on same vehicle (buffer-aware)</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>F. Dispatcher / fleet operations</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dispatcher home</td>
+<td>Active/upcoming trip cards, quick navigation</td>
+</tr>
+<tr>
+<td>Incoming requests</td>
+<td>List <code>PENDING_DISPATCHER</code> with expiry</td>
+</tr>
+<tr>
+<td>Active bookings</td>
+<td>Confirmed + in-progress with extension info</td>
+</tr>
+<tr>
+<td>Completed history</td>
+<td>Past trips</td>
+</tr>
+<tr>
+<td>Register vehicle (3-step)</td>
+<td>Armour level, type, model, rates, location, photos</td>
+</tr>
+<tr>
+<td>Vehicle list</td>
+<td>Own fleet with status</td>
+</tr>
+<tr>
+<td>Profile photo</td>
+<td>Dispatcher avatar upload</td>
+</tr>
+<tr>
+<td>Trip actions</td>
+<td>Accept/reject, start, complete, cancel</td>
+</tr>
+<tr>
+<td>Extension governance</td>
+<td>Approve/decline extension requests</td>
+</tr>
+<tr>
+<td>Approval gate</td>
+<td>New dispatchers/vehicles need admin approval (enforced in production)</td>
+</tr>
+</tbody></table>
+<p><strong>Vehicle statuses:</strong> <code>AVAILABLE</code>, <code>BOOKED</code>, <code>MAINTENANCE</code>, <code>BLOCKED</code></p>
+<hr>
+<h3>G. Customer app experience</h3>
+<table>
+<thead>
+<tr>
+<th>Screen / area</th>
+<th>Features</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Home</strong></td>
+<td>Greeting, avatar, active trip hero, upcoming booking, “New booking”, support email</td>
+</tr>
+<tr>
+<td><strong>Activities</strong></td>
+<td>Tabs: Upcoming / Completed / Canceled; pending expiry countdown</td>
+</tr>
+<tr>
+<td><strong>Profile</strong></td>
+<td>Member since, avatar upload, logout, switch to dispatcher</td>
+</tr>
+<tr>
+<td><strong>Booking details</strong></td>
+<td>Full trip info; live mode for in-progress; extend/cancel flows</td>
+</tr>
+<tr>
+<td><strong>Ongoing trip</strong></td>
+<td>Redirects to booking details (live)</td>
+</tr>
+<tr>
+<td><strong>Support</strong></td>
+<td><code>mailto:support@muhafizarmour.com</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h3>H. Admin portal (“Armored Ops”)</h3>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Features</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Dashboard</strong></td>
+<td>Metrics: users, dispatchers, vehicles, bookings (total, completed, active, pending dispatcher)</td>
+</tr>
+<tr>
+<td><strong>Bookings</strong></td>
+<td>List + detail (route, parties, vehicle, price, overtime, timestamps)</td>
+</tr>
+<tr>
+<td><strong>Dispatchers</strong></td>
+<td>List, detail, approve, block</td>
+</tr>
+<tr>
+<td><strong>Vehicles</strong></td>
+<td>List, detail, approve, edit fields (rates, status, metadata)</td>
+</tr>
+<tr>
+<td><strong>Users</strong></td>
+<td>List, detail, block</td>
+</tr>
+<tr>
+<td><strong>Catalog</strong></td>
+<td>CRUD armour levels &amp; vehicle types (sort order, active flag, safe delete rules)</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>I. Media &amp; infrastructure</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Cloudinary uploads</td>
+<td>Vehicle images and profile photos</td>
+</tr>
+<tr>
+<td>Deployed API</td>
+<td>Mobile app targets production API (e.g. Vercel-hosted backend)</td>
+</tr>
+<tr>
+<td>PostgreSQL + Prisma</td>
+<td>Relational data model with migrations</td>
+</tr>
+<tr>
+<td>Role guards</td>
+<td>JWT + role decorators on protected routes</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>6. Booking state machine (reference)</h2>
+<div class="mermaid-diagram" role="img" aria-label="Diagram 2"><svg id="my-svg" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="statediagram" style="max-width: 495.809px; background-color: transparent;" viewBox="0 0 495.80859375 600" role="graphics-document document" aria-roledescription="stateDiagram"><style>#my-svg{font-family:Segoe UI,Helvetica Neue,Arial,sans-serif;font-size:16px;fill:#183161;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#my-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#my-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#my-svg .error-icon{fill:#ffffff;}#my-svg .error-text{fill:#183161;stroke:#183161;}#my-svg .edge-thickness-normal{stroke-width:1px;}#my-svg .edge-thickness-thick{stroke-width:3.5px;}#my-svg .edge-pattern-solid{stroke-dasharray:0;}#my-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#my-svg .edge-pattern-dashed{stroke-dasharray:3;}#my-svg .edge-pattern-dotted{stroke-dasharray:2;}#my-svg .marker{fill:#1f4495;stroke:#1f4495;}#my-svg .marker.cross{stroke:#1f4495;}#my-svg svg{font-family:Segoe UI,Helvetica Neue,Arial,sans-serif;font-size:16px;}#my-svg p{margin:0;}#my-svg defs [id$="-barbEnd"]{fill:#1f4495;stroke:#1f4495;}#my-svg g.stateGroup text{fill:#1f4495;stroke:none;font-size:10px;}#my-svg g.stateGroup text{fill:#183161;stroke:none;font-size:10px;}#my-svg g.stateGroup .state-title{font-weight:bolder;fill:#183161;}#my-svg g.stateGroup rect{fill:#e8edf4;stroke:#1f4495;}#my-svg g.stateGroup line{stroke:#1f4495;stroke-width:1;}#my-svg .transition{stroke:#1f4495;stroke-width:1;fill:none;}#my-svg .stateGroup .composit{fill:#f4f4f4;border-bottom:1px;}#my-svg .stateGroup .alt-composit{fill:#e0e0e0;border-bottom:1px;}#my-svg .state-note{stroke:#c9b37a;fill:#f8f6f0;}#my-svg .state-note text{fill:#183161;stroke:none;font-size:10px;}#my-svg .stateLabel .box{stroke:none;stroke-width:0;fill:#e8edf4;opacity:0.5;}#my-svg .edgeLabel .label rect{fill:#e8edf4;opacity:0.5;}#my-svg .edgeLabel{background-color:#ffffff;text-align:center;}#my-svg .edgeLabel p{background-color:#ffffff;}#my-svg .edgeLabel rect{opacity:0.5;background-color:#ffffff;fill:#ffffff;}#my-svg .edgeLabel .label text{fill:#183161;}#my-svg .label div .edgeLabel{color:#183161;}#my-svg .stateLabel text{fill:#183161;font-size:10px;font-weight:bold;}#my-svg .node circle.state-start{fill:#1f4495;stroke:#1f4495;}#my-svg .node .fork-join{fill:#1f4495;stroke:#1f4495;}#my-svg .node circle.state-end{fill:#1f4495;stroke:#f4f4f4;stroke-width:1.5;}#my-svg .end-state-inner{fill:#f4f4f4;stroke-width:1.5;}#my-svg .node rect{fill:#e8edf4;stroke:#1f4495;stroke-width:1px;}#my-svg .node polygon{fill:#e8edf4;stroke:#1f4495;stroke-width:1px;}#my-svg [id$="-barbEnd"]{fill:#1f4495;}#my-svg .statediagram-cluster rect{fill:#e8edf4;stroke:#1f4495;stroke-width:1px;}#my-svg .cluster-label,#my-svg .nodeLabel{color:#183161;}#my-svg .statediagram-cluster rect.outer{rx:5px;ry:5px;}#my-svg .statediagram-state .divider{stroke:#1f4495;}#my-svg .statediagram-state .title-state{rx:5px;ry:5px;}#my-svg .statediagram-cluster.statediagram-cluster .inner{fill:#f4f4f4;}#my-svg .statediagram-cluster.statediagram-cluster-alt .inner{fill:#ffffff;}#my-svg .statediagram-cluster .inner{rx:0;ry:0;}#my-svg .statediagram-state rect.basic{rx:5px;ry:5px;}#my-svg .statediagram-state rect.divider{stroke-dasharray:10,10;fill:#ffffff;}#my-svg .note-edge{stroke-dasharray:5;}#my-svg .statediagram-note rect{fill:#f8f6f0;stroke:#c9b37a;stroke-width:1px;rx:0;ry:0;}#my-svg .statediagram-note rect{fill:#f8f6f0;stroke:#c9b37a;stroke-width:1px;rx:0;ry:0;}#my-svg .statediagram-note text{fill:#183161;}#my-svg .statediagram-note .nodeLabel{color:#183161;}#my-svg .statediagram .edgeLabel{color:red;}#my-svg [id$="-dependencyStart"],#my-svg [id$="-dependencyEnd"]{fill:#1f4495;stroke:#1f4495;stroke-width:1;}#my-svg .statediagramTitleText{text-anchor:middle;font-size:18px;fill:#183161;}#my-svg [data-look="neo"].statediagram-cluster rect{fill:#e8edf4;stroke:url(#my-svg-gradient);stroke-width:1;}#my-svg [data-look="neo"].statediagram-cluster rect.outer{rx:5px;ry:5px;filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#my-svg .node .neo-node{stroke:#1f4495;}#my-svg [data-look="neo"].node rect,#my-svg [data-look="neo"].cluster rect,#my-svg [data-look="neo"].node polygon{stroke:url(#my-svg-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#my-svg [data-look="neo"].node path{stroke:url(#my-svg-gradient);stroke-width:1px;}#my-svg [data-look="neo"].node .outer-path{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#my-svg [data-look="neo"].node .neo-line path{stroke:#1f4495;filter:none;}#my-svg [data-look="neo"].node circle{stroke:url(#my-svg-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#my-svg [data-look="neo"].node circle .state-start{fill:#000000;}#my-svg [data-look="neo"].icon-shape .icon{fill:url(#my-svg-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#my-svg [data-look="neo"].icon-shape .icon-neo path{stroke:url(#my-svg-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#my-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><defs><marker id="my-svg_stateDiagram-barbEnd" refX="19" refY="7" markerWidth="20" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto"><path d="M 19,7 L9,13 L14,7 L9,1 Z"/></marker></defs><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M386.871,22L386.871,28.167C386.871,34.333,386.871,46.667,386.871,59C386.871,71.333,386.871,83.667,386.871,89.833L386.871,96" id="my-svg-edge0" class="edge-thickness-normal edge-pattern-solid transition" style="fill:none;;;fill:none" data-edge="true" data-et="edge" data-id="edge0" data-points="W3sieCI6Mzg2Ljg3MTA5Mzc1LCJ5IjoyMn0seyJ4IjozODYuODcxMDkzNzUsInkiOjU5fSx7IngiOjM4Ni44NzEwOTM3NSwieSI6OTZ9XQ==" data-look="classic" marker-end="url(#my-svg_stateDiagram-barbEnd)"/><path d="M386.871,136L386.871,142.167C386.871,148.333,386.871,160.667,386.871,173C386.871,185.333,386.871,197.667,386.871,203.833L386.871,210" id="my-svg-edge1" class="edge-thickness-normal edge-pattern-solid transition" style="fill:none;;;fill:none" data-edge="true" data-et="edge" data-id="edge1" data-points="W3sieCI6Mzg2Ljg3MTA5Mzc1LCJ5IjoxMzZ9LHsieCI6Mzg2Ljg3MTA5Mzc1LCJ5IjoxNzN9LHsieCI6Mzg2Ljg3MTA5Mzc1LCJ5IjoyMTB9XQ==" data-look="classic" marker-end="url(#my-svg_stateDiagram-barbEnd)"/><path d="M324.045,250L304.673,256.167C285.302,262.333,246.559,274.667,227.188,287C207.816,299.333,207.816,311.667,207.816,317.833L207.816,324" id="my-svg-edge2" class="edge-thickness-normal edge-pattern-solid transition" style="fill:none;;;fill:none" data-edge="true" data-et="edge" data-id="edge2" data-points="W3sieCI6MzI0LjA0NDg4NzYwOTY0OTEsInkiOjI1MH0seyJ4IjoyMDcuODE2NDA2MjUsInkiOjI4N30seyJ4IjoyMDcuODE2NDA2MjUsInkiOjMyNH1d" data-look="classic" marker-end="url(#my-svg_stateDiagram-barbEnd)"/><path d="M383.165,250L382.022,256.167C380.88,262.333,378.594,274.667,377.451,290.333C376.309,306,376.309,325,376.309,344C376.309,363,376.309,382,376.309,401C376.309,420,376.309,439,376.309,458C376.309,477,376.309,496,367.107,511.667C357.905,527.333,339.501,539.667,330.299,545.833L321.098,552" id="my-svg-edge3" class="edge-thickness-normal edge-pattern-solid transition" style="fill:none;;;fill:none" data-edge="true" data-et="edge" data-id="edge3" data-points="W3sieCI6MzgzLjE2NDk1MzM5OTEyMjgsInkiOjI1MH0seyJ4IjozNzYuMzA4NTkzNzUsInkiOjI4N30seyJ4IjozNzYuMzA4NTkzNzUsInkiOjM0NH0seyJ4IjozNzYuMzA4NTkzNzUsInkiOjQwMX0seyJ4IjozNzYuMzA4NTkzNzUsInkiOjQ1OH0seyJ4IjozNzYuMzA4NTkzNzUsInkiOjUxNX0seyJ4IjozMjEuMDk3NjU2MjUsInkiOjU1Mn1d" data-look="classic" marker-end="url(#my-svg_stateDiagram-barbEnd)"/><path d="M408.716,250L415.451,256.167C422.187,262.333,435.658,274.667,442.393,287C449.129,299.333,449.129,311.667,449.129,317.833L449.129,324" id="my-svg-edge4" class="edge-thickness-normal edge-pattern-solid transition" style="fill:none;;;fill:none" data-edge="true" data-et="edge" data-id="edge4" data-points="W3sieCI6NDA4LjcxNTk0MDI0MTIyODA1LCJ5IjoyNTB9LHsieCI6NDQ5LjEyODkwNjI1LCJ5IjoyODd9LHsieCI6NDQ5LjEyODkwNjI1LCJ5IjozMjR9XQ==" data-look="classic" marker-end="url(#my-svg_stateDiagram-barbEnd)"/><path d="M187.493,364L181.227,370.167C174.96,376.333,162.427,388.667,156.161,401C149.895,413.333,149.895,425.667,149.895,431.833L149.895,438" id="my-svg-edge5" class="edge-thickness-normal edge-pattern-solid transition" style="fill:none;;;fill:none" data-edge="true" data-et="edge" data-id="edge5" data-points="W3sieCI6MTg3LjQ5Mjk0MTMzNzcxOTMsInkiOjM2NH0seyJ4IjoxNDkuODk0NTMxMjUsInkiOjQwMX0seyJ4IjoxNDkuODk0NTMxMjUsInkiOjQzOH1d" data-look="classic" marker-end="url(#my-svg_stateDiagram-barbEnd)"/><path d="M128.226,478L121.546,484.167C114.865,490.333,101.503,502.667,94.822,515C88.141,527.333,88.141,539.667,88.141,545.833L88.141,552" id="my-svg-edge6" class="edge-thickness-normal edge-pattern-solid transition" style="fill:none;;;fill:none" data-edge="true" data-et="edge" data-id="edge6" data-points="W3sieCI6MTI4LjIyNjQ5Mzk2OTI5ODI1LCJ5Ijo0Nzh9LHsieCI6ODguMTQwNjI1LCJ5Ijo1MTV9LHsieCI6ODguMTQwNjI1LCJ5Ijo1NTJ9XQ==" data-look="classic" marker-end="url(#my-svg_stateDiagram-barbEnd)"/><path d="M237.093,364L246.12,370.167C255.146,376.333,273.2,388.667,282.227,404.333C291.254,420,291.254,439,291.254,458C291.254,477,291.254,496,291.254,511.667C291.254,527.333,291.254,539.667,291.254,545.833L291.254,552" id="my-svg-edge7" class="edge-thickness-normal edge-pattern-solid transition" style="fill:none;;;fill:none" data-edge="true" data-et="edge" data-id="edge7" data-points="W3sieCI6MjM3LjA5MjcyMjAzOTQ3MzcsInkiOjM2NH0seyJ4IjoyOTEuMjUzOTA2MjUsInkiOjQwMX0seyJ4IjoyOTEuMjUzOTA2MjUsInkiOjQ1OH0seyJ4IjoyOTEuMjUzOTA2MjUsInkiOjUxNX0seyJ4IjoyOTEuMjUzOTA2MjUsInkiOjU1Mn1d" data-look="classic" marker-end="url(#my-svg_stateDiagram-barbEnd)"/><path d="M171.563,478L178.244,484.167C184.925,490.333,198.286,502.667,213.58,515C228.873,527.333,246.098,539.667,254.71,545.833L263.322,552" id="my-svg-edge8" class="edge-thickness-normal edge-pattern-solid transition" style="fill:none;;;fill:none" data-edge="true" data-et="edge" data-id="edge8" data-points="W3sieCI6MTcxLjU2MjU2ODUzMDcwMTc1LCJ5Ijo0Nzh9LHsieCI6MjExLjY0ODQzNzUsInkiOjUxNX0seyJ4IjoyNjMuMzIyMTYyODI4OTQ3NCwieSI6NTUyfV0=" data-look="classic" marker-end="url(#my-svg_stateDiagram-barbEnd)"/></g><g class="edgeLabels"><g class="edgeLabel" transform="translate(386.87109375, 59)"><g class="label" data-id="edge0" transform="translate(-29.34375, -12)"><foreignObject width="58.6875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Plan trip</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(386.87109375, 173)"><g class="label" data-id="edge1" transform="translate(-69.953125, -12)"><foreignObject width="139.90625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Select vehicle + pay</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(207.81640625, 287)"><g class="label" data-id="edge2" transform="translate(-66.2578125, -12)"><foreignObject width="132.515625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Dispatcher accepts</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(376.30859375, 401)"><g class="label" data-id="edge3" transform="translate(-62.6953125, -12)"><foreignObject width="125.390625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Dispatcher rejects</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(449.12890625, 287)"><g class="label" data-id="edge4" transform="translate(-38.6796875, -12)"><foreignObject width="77.359375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>1h timeout</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(149.89453125, 401)"><g class="label" data-id="edge5" transform="translate(-30.59375, -12)"><foreignObject width="61.1875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Start trip</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(88.140625, 515)"><g class="label" data-id="edge6" transform="translate(-80.140625, -12)"><foreignObject width="160.28125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Complete (+ overtime)</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(291.25390625, 458)"><g class="label" data-id="edge7" transform="translate(-23.3671875, -12)"><foreignObject width="46.734375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Cancel</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(211.6484375, 515)"><g class="label" data-id="edge8" transform="translate(-23.3671875, -12)"><foreignObject width="46.734375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Cancel</p></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default" id="my-svg-state-root_start-0" data-look="classic" transform="translate(386.87109375, 15)"><circle class="state-start" r="7" width="14" height="14"/></g><g class="node  statediagram-state" id="my-svg-state-REQUESTED-1" data-look="classic" transform="translate(386.87109375, 116)"><rect class="basic label-container" style="" rx="5" ry="5" x="-50.5078125" y="-20" width="101.015625" height="40"/><g class="label" style="" transform="translate(-42.5078125, -12)"><rect/><foreignObject width="85.015625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel markdown-node-label"><p>REQUESTED</p></span></div></foreignObject></g></g><g class="node  statediagram-state" id="my-svg-state-PENDING_DISPATCHER-4" data-look="classic" transform="translate(386.87109375, 230)"><rect class="basic label-container" style="" rx="5" ry="5" x="-88.8359375" y="-20" width="177.671875" height="40"/><g class="label" style="" transform="translate(-80.8359375, -12)"><rect/><foreignObject width="161.671875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel markdown-node-label"><p>PENDING_DISPATCHER</p></span></div></foreignObject></g></g><g class="node  statediagram-state" id="my-svg-state-CONFIRMED-7" data-look="classic" transform="translate(207.81640625, 344)"><rect class="basic label-container" style="" rx="5" ry="5" x="-52.4140625" y="-20" width="104.828125" height="40"/><g class="label" style="" transform="translate(-44.4140625, -12)"><rect/><foreignObject width="88.828125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel markdown-node-label"><p>CONFIRMED</p></span></div></foreignObject></g></g><g class="node  statediagram-state" id="my-svg-state-REJECTED-8" data-look="classic" transform="translate(291.25390625, 572)"><rect class="basic label-container" style="" rx="5" ry="5" x="-42.5390625" y="-20" width="85.078125" height="40"/><g class="label" style="" transform="translate(-34.5390625, -12)"><rect/><foreignObject width="69.078125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel markdown-node-label"><p>REJECTED</p></span></div></foreignObject></g></g><g class="node  statediagram-state" id="my-svg-state-EXPIRED-4" data-look="classic" transform="translate(449.12890625, 344)"><rect class="basic label-container" style="" rx="5" ry="5" x="-37.8203125" y="-20" width="75.640625" height="40"/><g class="label" style="" transform="translate(-29.8203125, -12)"><rect/><foreignObject width="59.640625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel markdown-node-label"><p>EXPIRED</p></span></div></foreignObject></g></g><g class="node  statediagram-state" id="my-svg-state-IN_PROGRESS-8" data-look="classic" transform="translate(149.89453125, 458)"><rect class="basic label-container" style="" rx="5" ry="5" x="-57.4765625" y="-20" width="114.953125" height="40"/><g class="label" style="" transform="translate(-49.4765625, -12)"><rect/><foreignObject width="98.953125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel markdown-node-label"><p>IN_PROGRESS</p></span></div></foreignObject></g></g><g class="node  statediagram-state" id="my-svg-state-COMPLETED-6" data-look="classic" transform="translate(88.140625, 572)"><rect class="basic label-container" style="" rx="5" ry="5" x="-52.09375" y="-20" width="104.1875" height="40"/><g class="label" style="" transform="translate(-44.09375, -12)"><rect/><foreignObject width="88.1875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel markdown-node-label"><p>COMPLETED</p></span></div></foreignObject></g></g></g></g></g><defs><filter id="my-svg-drop-shadow" height="130%" width="130%"><feDropShadow dx="4" dy="4" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"/></filter></defs><defs><filter id="my-svg-drop-shadow-small" height="150%" width="150%"><feDropShadow dx="2" dy="2" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"/></filter></defs><linearGradient id="my-svg-gradient" gradientUnits="objectBoundingBox" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#1f4495" stop-opacity="1"/><stop offset="100%" stop-color="#c9b37a" stop-opacity="1"/></linearGradient></svg></div>
+<hr>
+<h2>7. Pricing &amp; business rules (summary)</h2>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Value / behavior</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Max booking length</td>
+<td>120 hours</td>
+</tr>
+<tr>
+<td>Dispatcher accept timeout</td>
+<td>60 minutes</td>
+</tr>
+<tr>
+<td>Scheduling buffer</td>
+<td>2h (same city) / 5h (intercity), applied both sides</td>
+</tr>
+<tr>
+<td>Min duration</td>
+<td>max(10h, ceil(distance_km / 45))</td>
+</tr>
+<tr>
+<td>Base price</td>
+<td><code>baseRatePerHour × planned hours</code> at selection</td>
+</tr>
+<tr>
+<td>Extension price</td>
+<td><code>extensionRatePerHour × additional hours</code> (additive to prior total)</td>
+</tr>
+<tr>
+<td>Overtime</td>
+<td>Charged at completion if actual end &gt; planned end (<code>baseRatePerHour</code>)</td>
+</tr>
+<tr>
+<td>Production matching</td>
+<td>Only approved dispatchers + approved vehicles</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>8. Data entities (business view)</h2>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>User</strong></td>
+<td>Customer account</td>
+</tr>
+<tr>
+<td><strong>Dispatcher</strong></td>
+<td>Fleet operator account</td>
+</tr>
+<tr>
+<td><strong>Vehicle</strong></td>
+<td>Armoured asset with rates, location, approval</td>
+</tr>
+<tr>
+<td><strong>Booking</strong></td>
+<td>Trip contract linking user, dispatcher, vehicle, route, times, price</td>
+</tr>
+<tr>
+<td><strong>BookingExtensionRequest</strong></td>
+<td>Formal extension proposal and resolution</td>
+</tr>
+<tr>
+<td><strong>ArmourLevelOption / VehicleTypeOption</strong></td>
+<td>Platform taxonomy</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>9. Out of scope / limitations (current build)</h2>
+<ul>
+<li><strong>Payment integration</strong> is represented in UI (Digital/Cash); confirmation is API-driven after the payment step, not a live payment gateway in code reviewed.</li>
+<li><strong>No native push notifications</strong> observed; expiry uses polling/countdown UI.</li>
+<li><strong>No in-app GPS tracking</strong> for live trips; “live” mode is booking-detail focused.</li>
+<li><strong>Admin</strong> does not create bookings or drive trips; governance and visibility only.</li>
+<li><strong>MAINTENANCE</strong> vehicle status exists in schema; dispatcher-facing maintenance workflows are limited.</li>
+</ul>
+<hr>
+<h2>10. Positioning (one-liner)</h2>
+<blockquote>
+<p><strong>Muhafiz Armour</strong> is a Pakistan-focused armoured mobility marketplace: customers book protected transport with transparent hourly pricing; vetted dispatchers fulfill trips through a structured request → confirm → execute → complete workflow with admin oversight and extension handling.</p>
+</blockquote>
+
+  </section>
+</body>
+</html>

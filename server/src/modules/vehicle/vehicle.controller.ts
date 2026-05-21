@@ -50,6 +50,7 @@ export class VehicleController {
         vehicleType: v.vehicleType,
         location: v.location,
         baseRatePerHour: v.baseRatePerHour,
+        extensionRatePerHour: v.extensionRatePerHour,
         certification: v.registrationNumber ? `Certified (${v.registrationNumber})` : `Certified (${v.armourLevel})`,
         condition: v.year && v.year >= new Date().getFullYear() - 2 ? 'Excellent condition' : 'Operational condition',
         features: featuresByLevel[v.armourLevel] ?? ['Bullet-resistant body', 'Secured transport'],

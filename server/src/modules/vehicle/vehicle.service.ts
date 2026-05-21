@@ -40,6 +40,7 @@ export class VehicleService {
         registrationNumber: dto.registrationNumber.trim(),
         imageUrls,
         baseRatePerHour: dto.baseRatePerHour,
+        extensionRatePerHour: dto.extensionRatePerHour,
         seatingCapacity: dto.seatingCapacity != null ? Math.round(Number(dto.seatingCapacity)) : 4,
         location: dto.location.trim(),
         isApproved: false,

@@ -27,6 +27,7 @@ type VehicleDetails = {
   vehicleType: string;
   location: string;
   baseRatePerHour: number;
+  extensionRatePerHour: number;
   certification: string;
   condition: string;
   seatingCapacity?: number;
@@ -87,9 +88,13 @@ export default function CarDetailsScreen() {
     return `${vehicle.manufacturer ?? 'Armoured'} ${vehicle.generation ?? ''} ${vehicle.carModel ?? 'Vehicle'}`.trim();
   }, [vehicle]);
 
-  const images = vehicle?.imageUrls?.length
-    ? vehicle.imageUrls
-    : ['https://images.pexels.com/photos/358070/pexels-photo-358070.jpeg'];
+  const images = useMemo(() => {
+    const urls = vehicle?.imageUrls?.filter((u) => typeof u === 'string' && u.trim().length > 0) ?? [];
+    const unique = [...new Set(urls)];
+    return unique.length > 0
+      ? unique
+      : ['https://images.pexels.com/photos/358070/pexels-photo-358070.jpeg'];
+  }, [vehicle?.imageUrls]);
 
   const specificationCards = useMemo(() => {
     if (!vehicle) return [];
@@ -179,9 +184,9 @@ export default function CarDetailsScreen() {
                   pagingEnabled
                   showsHorizontalScrollIndicator={false}
                   onMomentumScrollEnd={(e) => onGalleryScrollEnd(e.nativeEvent.contentOffset.x)}>
-                  {images.map((img) => (
+                  {images.map((img, index) => (
                     <Image
-                      key={img}
+                      key={`${vehicle.id}-gallery-${index}`}
                       source={{ uri: img }}
                       style={{ width: GALLERY_WIDTH, height: 240 }}
                       resizeMode="cover"
@@ -273,6 +278,7 @@ export default function CarDetailsScreen() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2 pb-1">
                   {specificationCards.map((item) => (
                     <LinearGradient
+                      key={item.key}
                       colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
                       start={{ x: 1, y: 0 }}
                       end={{ x: 1, y: 1 }}
@@ -284,7 +290,7 @@ export default function CarDetailsScreen() {
                         borderColor: 'rgba(255,255,255,0.06)',
                         ...cardShadow,
                       }}>
-                      <View key={item.key}>
+                      <View>
                         <View
                           className="h-8 w-8 items-center justify-center rounded-full"
                           style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
@@ -311,9 +317,9 @@ export default function CarDetailsScreen() {
                       FEATURES
                     </Text>
                     <View className="mt-2 flex-row flex-wrap gap-2">
-                      {vehicle.features.map((f) => (
+                      {vehicle.features.map((f, index) => (
                         <View
-                          key={f}
+                          key={`${vehicle.id}-feature-${index}`}
                           className="rounded-full border px-3 py-1.5"
                           style={{
                             borderColor: 'rgba(255,255,255,0.12)',
@@ -327,7 +333,37 @@ export default function CarDetailsScreen() {
                 ) : null}
 
                 <View
-                  className="mt-5 flex-row items-center justify-between rounded-2xl border px-4 py-3"
+                  className="mt-5 rounded-2xl border px-4 py-3"
+                  style={{
+                    backgroundColor: CARD_BG,
+                    borderColor: 'rgba(255,255,255,0.06)',
+                    ...cardShadow,
+                  }}>
+                  <Text className="text-md font-extrabold" style={{ color: GOLD, letterSpacing: 0.5 }}>
+                    RATES
+                  </Text>
+                  <View className="mt-3 flex-row">
+                    <View className="flex-1 pr-2">
+                      <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+                        Base rate
+                      </Text>
+                      <Text className="mt-1 text-lg font-extrabold text-gray-100">
+                        Rs {vehicle.baseRatePerHour}/hr
+                      </Text>
+                    </View>
+                    <View className="flex-1 pl-2">
+                      <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+                        Extension rate
+                      </Text>
+                      <Text className="mt-1 text-lg font-extrabold text-gray-100">
+                        Rs {vehicle.extensionRatePerHour ?? vehicle.baseRatePerHour}/hr
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View
+                  className="mt-4 flex-row items-center justify-between rounded-2xl border px-4 py-3"
                   style={{
                     backgroundColor: CARD_BG,
                     borderColor: 'rgba(255,255,255,0.06)',
@@ -370,10 +406,13 @@ export default function CarDetailsScreen() {
             <View className="flex-row items-center justify-between">
               <View className="flex-1 pr-3">
                 <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
-                  Rate
+                  Base rate
                 </Text>
-                <Text className="mt-0.5 text-xl font-extrabold" style={{ color: GOLD }}>
+                <Text className="mt-0.5 text-lg font-extrabold" style={{ color: GOLD }}>
                   Rs {vehicle.baseRatePerHour}/hr
+                </Text>
+                <Text className="mt-1 text-[10px] font-semibold" style={{ color: '#9CA3AF' }}>
+                  Extension Rs {vehicle.extensionRatePerHour ?? vehicle.baseRatePerHour}/hr
                 </Text>
               </View>
               <Pressable

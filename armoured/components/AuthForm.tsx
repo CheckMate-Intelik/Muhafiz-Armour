@@ -39,7 +39,14 @@ type AuthScreenShellProps = {
   footer?: ReactNode;
 };
 
-export function AuthScreenShell({ title, bandLabel, subtitle, onBack, children, footer }: AuthScreenShellProps) {
+export function AuthScreenShell({
+  title,
+  bandLabel,
+  subtitle,
+  onBack,
+  children,
+  footer,
+}: AuthScreenShellProps) {
   return (
     <LinearGradient
       colors={[...GRADIENT]}
@@ -74,7 +81,9 @@ export function AuthScreenShell({ title, bandLabel, subtitle, onBack, children, 
             showsVerticalScrollIndicator={false}>
             <View className="overflow-hidden rounded-2xl border" style={CARD_SHADOW}>
               <View className="border-b border-gray-900 bg-black px-4 py-3">
-                <Text className="text-center text-sm font-extrabold" style={{ color: AUTH_GOLD, letterSpacing: 0.6 }}>
+                <Text
+                  className="text-center text-sm font-extrabold"
+                  style={{ color: AUTH_GOLD, letterSpacing: 0.6 }}>
                   {bandLabel}
                 </Text>
               </View>
@@ -91,9 +100,17 @@ export function AuthScreenShell({ title, bandLabel, subtitle, onBack, children, 
   );
 }
 
-export function AuthRoleToggle({ role, onChange }: { role: AppRole; onChange: (role: AppRole) => void }) {
+export function AuthRoleToggle({
+  role,
+  onChange,
+}: {
+  role: AppRole;
+  onChange: (role: AppRole) => void;
+}) {
   return (
-    <View className="mt-4 flex-row rounded-2xl p-1" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+    <View
+      className="mt-4 flex-row rounded-2xl p-1"
+      style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
       {(['USER', 'DISPATCHER'] as const).map((r) => {
         const active = r === role;
         return (
@@ -133,9 +150,9 @@ export function AuthField({
 }) {
   return (
     <View
-      className="rounded-2xl border px-4 py-3 mt-6"
+      className="mt-6 rounded-2xl border px-4 py-3"
       style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
-      <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
+      <Text className="text-md font-bold" style={{ color: '#9CA3AF' }}>
         {label}
       </Text>
       <TextInput
@@ -146,7 +163,7 @@ export function AuthField({
         keyboardType={keyboardType}
         secureTextEntry={secureTextEntry}
         autoCapitalize={autoCapitalize ?? 'none'}
-        className="mt-1 text-sm font-extrabold text-gray-100"
+        className="mt-1 text-md font-extrabold text-gray-100"
       />
     </View>
   );

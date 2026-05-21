@@ -9,9 +9,11 @@ import {
   AuthRoleToggle,
   AuthScreenShell,
 } from '@/components/AuthForm';
-import { AppRole, loginDispatcher, loginUser, setActiveRole } from '@/lib/api';
+import { AppRole, loginDispatcher, loginUser } from '@/lib/api';
+import { useStore } from '@/store/store';
 
 export default function LoginScreen() {
+  const completeAuth = useStore((s) => s.completeAuth);
   const [role, setRole] = useState<AppRole>('USER');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,11 +27,11 @@ export default function LoginScreen() {
       setSubmitting(true);
       if (role === 'DISPATCHER') {
         await loginDispatcher({ email: email.trim(), password });
-        await setActiveRole('DISPATCHER');
+        await completeAuth('DISPATCHER');
         router.replace('/(dispatcher-tabs)' as any);
       } else {
         await loginUser({ email: email.trim(), password });
-        await setActiveRole('USER');
+        await completeAuth('USER');
         router.replace('/(tabs)');
       }
     } catch (e) {

@@ -8,6 +8,7 @@ import {
   dispatcherGet,
   dispatcherPatch,
   dispatcherUploadProfileImage,
+  clearAllStoredSessions,
   ensureDispatcherSession,
   ensureUserSession,
   getActiveRole,
@@ -71,6 +72,8 @@ export type AuthState = {
   uploadUserProfilePhoto: (localUri: string) => Promise<void>;
   uploadDispatcherProfilePhoto: (localUri: string) => Promise<void>;
   switchRole: (role: AppRole) => Promise<void>;
+  /** Call after login/signup once credentials are stored; hydrates before navigation. */
+  completeAuth: (role: AppRole) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -198,15 +201,32 @@ export const useStore = create<AuthState>((set, get) => ({
     await get().hydrate();
   },
 
-  logout: async () => {
-    const role = get().activeRole;
+  completeAuth: async (role) => {
+    await setActiveRole(role);
     useBookingsStore.getState().resetBookings();
-    if (role === 'DISPATCHER') {
-      await setStoredDispatcherSession(null);
-      set({ dispatcherSession: null, dispatcherProfile: null, error: null });
-      return;
-    }
-    await setStoredUserSession(null);
-    set({ session: null, profile: null, error: null });
+    set({
+      activeRole: role,
+      session: null,
+      dispatcherSession: null,
+      profile: null,
+      dispatcherProfile: null,
+      error: null,
+      loading: true,
+    });
+    await get().hydrate();
+  },
+
+  logout: async () => {
+    useBookingsStore.getState().resetBookings();
+    await clearAllStoredSessions();
+    set({
+      activeRole: 'USER',
+      session: null,
+      dispatcherSession: null,
+      profile: null,
+      dispatcherProfile: null,
+      error: null,
+      loading: false,
+    });
   },
 }));

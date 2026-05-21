@@ -317,7 +317,12 @@ export class BookingService {
     );
     if (!ok) throw new BadRequestException('Extension conflicts with another booking');
 
-    const plannedPrice = Math.round(booking.vehicle.baseRatePerHour * durationHours);
+    const originalDurationHours =
+      (booking.endTime.getTime() - booking.startTime.getTime()) / (1000 * 60 * 60);
+    const baseTotal =
+      booking.totalPrice ?? Math.round(booking.vehicle.baseRatePerHour * originalDurationHours);
+    const extensionRate = booking.vehicle.extensionRatePerHour ?? booking.vehicle.baseRatePerHour;
+    const plannedPrice = baseTotal + Math.round(extensionRate * dto.hours);
 
     await this.prisma.bookingExtensionRequest.create({
       data: {
