@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { isNotAuthenticatedError } from '@/lib/api';
+import { redirectToLogin } from '@/lib/safeRouter';
+import { useNavigationReady } from '@/hooks/useNavigationReady';
 import { useStore, dispatcherAvatarUrl } from '@/store/store';
 import { useBookingsStore, type DispatcherBooking } from '@/store/bookingsStore';
 import {
@@ -72,16 +74,18 @@ export default function DispatcherDashboardScreen() {
   const dispatcherLoading = useBookingsStore((s) => s.dispatcherLoading);
   const dispatcherLoaded = useBookingsStore((s) => s.dispatcherLoaded);
   const refreshDispatcherBookings = useBookingsStore((s) => s.refreshDispatcherBookings);
+  const navigationReady = useNavigationReady();
 
   useEffect(() => {
     void hydrate();
   }, [hydrate]);
 
   useEffect(() => {
+    if (!navigationReady) return;
     refreshDispatcherBookings().catch((e) => {
-      if (isNotAuthenticatedError(e)) router.replace('/login' as any);
+      if (isNotAuthenticatedError(e)) redirectToLogin();
     });
-  }, [refreshDispatcherBookings]);
+  }, [refreshDispatcherBookings, navigationReady]);
 
   const completedTrips = dispatcherCompleted.length;
   const totalEarnings = dispatcherCompleted.reduce((sum, t) => sum + (t.totalPrice ?? 0), 0);

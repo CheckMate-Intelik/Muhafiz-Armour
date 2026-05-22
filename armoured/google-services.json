@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "146944738301",
+    "project_id": "muhafiz-armour",
+    "storage_bucket": "muhafiz-armour.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:146944738301:android:ff6a977e51127753d00f94",
+        "android_client_info": {
+          "package_name": "com.intelikexpo.armoured"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNimO9QemMPBj0FzaNlL9fuWoy3_VXDmk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

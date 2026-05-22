@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { isNotAuthenticatedError } from '@/lib/api';
+import { redirectToLogin } from '@/lib/safeRouter';
+import { useNavigationReady } from '@/hooks/useNavigationReady';
 import { useBookingsStore, type UserBooking } from '@/store/bookingsStore';
 import { useStore, userAvatarUrl } from '@/store/store';
 import { UserBookingCard, type UserBookingListItem } from '../../components/UserBookingCard';
@@ -61,6 +63,7 @@ export default function Home() {
   const session = useStore((s) => s.session);
   const userBookings = useBookingsStore((s) => s.userBookings);
   const refreshUserBookings = useBookingsStore((s) => s.refreshUserBookings);
+  const navigationReady = useNavigationReady();
 
   useEffect(() => {
     void hydrate();
@@ -77,9 +80,10 @@ export default function Home() {
   const headerAvatarUri = userAvatarUrl(profile, 'sm');
 
   useEffect(() => {
+    if (!navigationReady) return;
     let sub: any = null;
     void refreshUserBookings().catch((e) => {
-      if (isNotAuthenticatedError(e)) router.replace('/login' as any);
+      if (isNotAuthenticatedError(e)) redirectToLogin();
     });
     sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') void refreshUserBookings().catch(() => null);
@@ -87,7 +91,7 @@ export default function Home() {
     return () => {
       if (sub) sub.remove();
     };
-  }, [refreshUserBookings]);
+  }, [refreshUserBookings, navigationReady]);
 
   const activeBooking = useMemo<UserBookingListItem | null>(
     () =>

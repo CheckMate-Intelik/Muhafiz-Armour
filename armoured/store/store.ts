@@ -18,6 +18,7 @@ import {
   setStoredDispatcherSession,
   setStoredUserSession,
 } from '@/lib/api';
+import { syncPushTokensWithServer, unregisterPushTokensFromServer } from '@/lib/notifications';
 import { useBookingsStore } from '@/store/bookingsStore';
 
 export type UserProfile = {
@@ -125,6 +126,7 @@ export const useStore = create<AuthState>((set, get) => ({
         });
       }
       await get().refreshProfile();
+      void syncPushTokensWithServer();
     } catch (e) {
       set({ error: e instanceof Error ? e.message : 'Failed to load session' });
     } finally {
@@ -199,6 +201,7 @@ export const useStore = create<AuthState>((set, get) => ({
     useBookingsStore.getState().resetBookings();
     set({ activeRole: role, error: null });
     await get().hydrate();
+    void syncPushTokensWithServer();
   },
 
   completeAuth: async (role) => {
@@ -217,6 +220,7 @@ export const useStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
+    await unregisterPushTokensFromServer();
     useBookingsStore.getState().resetBookings();
     await clearAllStoredSessions();
     set({

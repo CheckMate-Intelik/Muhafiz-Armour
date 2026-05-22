@@ -41,6 +41,7 @@ model User {
   isBlocked        Boolean   @default(false)
   createdAt        DateTime  @default(now())
   bookings         Booking[]
+  pushDeviceTokens PushDeviceToken[]
 }
 
 model Dispatcher {
@@ -54,8 +55,23 @@ model Dispatcher {
   isBlocked        Boolean  @default(false)
   createdAt        DateTime @default(now())
 
-  vehicles  Vehicle[]
-  bookings  Booking[]
+  vehicles         Vehicle[]
+  bookings         Booking[]
+  pushDeviceTokens PushDeviceToken[]
+}
+
+model PushDeviceToken {
+  id            String   @id @default(uuid()) @db.Uuid
+  expoPushToken String   @unique
+  platform      String
+  userId        String?  @db.Uuid
+  dispatcherId  String?  @db.Uuid
+  updatedAt     DateTime @updatedAt
+  user          User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  dispatcher    Dispatcher?  @relation(fields: [dispatcherId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([dispatcherId])
 }
 
 model Booking {

@@ -7,6 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { isNotAuthenticatedError } from '@/lib/api';
+import { redirectToLogin } from '@/lib/safeRouter';
+import { useNavigationReady } from '@/hooks/useNavigationReady';
 import { useBookingsStore } from '@/store/bookingsStore';
 import { useStore, userAvatarUrl } from '@/store/store';
 
@@ -59,16 +61,18 @@ export default function ActivitiesScreen() {
   const refreshUserBookings = useBookingsStore((s) => s.refreshUserBookings);
   const bookings = userBookings as unknown as Booking[];
   const loading = userLoading && !userLoaded;
+  const navigationReady = useNavigationReady();
 
   useEffect(() => {
     void hydrate();
   }, [hydrate]);
 
   useEffect(() => {
+    if (!navigationReady) return;
     refreshUserBookings().catch((e) => {
-      if (isNotAuthenticatedError(e)) router.replace('/login' as any);
+      if (isNotAuthenticatedError(e)) redirectToLogin();
     });
-  }, [refreshUserBookings]);
+  }, [refreshUserBookings, navigationReady]);
 
   const hasPendingDispatcher = useMemo(
     () => bookings.some((b) => normalizeStatus(b.status) === 'PENDING_DISPATCHER'),

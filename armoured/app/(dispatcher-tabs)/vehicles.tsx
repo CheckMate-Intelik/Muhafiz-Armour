@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { VehicleCard } from '@/components/VehicleCard';
 import { dispatcherGet, ensureDispatcherSession, isNotAuthenticatedError } from '@/lib/api';
+import { redirectToLogin } from '@/lib/safeRouter';
 
 type VehicleTab = 'Approved' | 'Pending';
 
@@ -45,7 +46,7 @@ export default function DispatcherVehiclesScreen() {
         setVehicles(Array.isArray(data) ? data : []);
       } catch (e) {
         if (!cancelled && isNotAuthenticatedError(e)) {
-          router.replace('/login' as any);
+          redirectToLogin();
         }
       } finally {
         if (!cancelled) setLoading(false);

@@ -278,6 +278,19 @@ export async function apiPost<T>(path: string, userId: string, body: unknown): P
   return (await res.json()) as T;
 }
 
+export async function apiDelete<T>(path: string, userId: string, body?: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'DELETE',
+    headers: { 'content-type': 'application/json', 'x-user-id': userId },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const details = await safeReadError(res);
+    throw new Error(details ?? `DELETE ${path} failed`);
+  }
+  return (await res.json()) as T;
+}
+
 export async function apiPatch<T>(path: string, userId: string, body?: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: 'PATCH',
@@ -364,6 +377,19 @@ export async function dispatcherPost<T>(path: string, dispatcherId: string, body
   if (!res.ok) {
     const details = await safeReadError(res);
     throw new Error(details ?? `POST ${path} failed`);
+  }
+  return (await res.json()) as T;
+}
+
+export async function dispatcherDelete<T>(path: string, dispatcherId: string, body?: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'DELETE',
+    headers: { 'content-type': 'application/json', 'x-dispatcher-id': dispatcherId },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const details = await safeReadError(res);
+    throw new Error(details ?? `DELETE ${path} failed`);
   }
   return (await res.json()) as T;
 }

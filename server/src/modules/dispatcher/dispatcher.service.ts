@@ -9,12 +9,14 @@ import {
   withPendingExpiryFields,
 } from '../booking/booking-pending-expiry.util';
 import { UpdateDispatcherProfileDto } from './dto/update-dispatcher-profile.dto';
+import { BookingNotificationsService } from '../notifications/booking-notifications.service';
 
 @Injectable()
 export class DispatcherService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly bookings: BookingService,
+    private readonly bookingNotifications: BookingNotificationsService,
   ) {}
 
   async getById(id: string) {
@@ -110,10 +112,12 @@ export class DispatcherService {
       throw new BadRequestException('Booking is not pending dispatcher');
     }
 
+    const previousStatus = booking.status;
+
     if (!accept) {
       const vid = booking.vehicleId;
-      return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-        const updated = await tx.booking.update({
+      const updated = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        const row = await tx.booking.update({
           where: { id: bookingId },
           data: { status: 'REJECTED', vehicleId: null, dispatcherId: null },
           include: { user: true, vehicle: true, dispatcher: true },
@@ -124,15 +128,19 @@ export class DispatcherService {
             data: { status: 'AVAILABLE' },
           });
         }
-        return updated;
+        return row;
       });
+      this.bookingNotifications.notifyStatusChange(updated, previousStatus, 'DISPATCHER');
+      return updated;
     }
 
-    return this.prisma.booking.update({
+    const updated = await this.prisma.booking.update({
       where: { id: bookingId },
       data: { status: 'CONFIRMED' },
       include: { user: true, vehicle: true, dispatcher: true },
     });
+    this.bookingNotifications.notifyStatusChange(updated, previousStatus, 'DISPATCHER');
+    return updated;
   }
 
   async startBooking(dispatcherId: string, bookingId: string) {
@@ -141,11 +149,14 @@ export class DispatcherService {
     if (booking.dispatcherId !== dispatcherId) throw new BadRequestException('Not your booking');
     if (booking.status !== 'CONFIRMED') throw new BadRequestException('Booking must be CONFIRMED to start');
 
-    return this.prisma.booking.update({
+    const previousStatus = booking.status;
+    const updated = await this.prisma.booking.update({
       where: { id: bookingId },
       data: { status: 'IN_PROGRESS', actualStartTime: new Date() },
       include: { user: true, vehicle: true, dispatcher: true },
     });
+    this.bookingNotifications.notifyStatusChange(updated, previousStatus, 'DISPATCHER');
+    return updated;
   }
 
   async completeBooking(dispatcherId: string, bookingId: string) {
@@ -167,8 +178,9 @@ export class DispatcherService {
     const totalPrice = Math.round(booking.vehicle.baseRatePerHour * (plannedHours + overtimeHours));
 
     const vid = booking.vehicleId;
-    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const updated = await tx.booking.update({
+    const previousStatus = booking.status;
+    const updated = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const row = await tx.booking.update({
         where: { id: bookingId },
         data: {
           status: 'COMPLETED',
@@ -184,8 +196,10 @@ export class DispatcherService {
           data: { status: 'AVAILABLE' },
         });
       }
-      return updated;
+      return row;
     });
+    this.bookingNotifications.notifyStatusChange(updated, previousStatus, 'DISPATCHER');
+    return updated;
   }
 
   async cancelBooking(dispatcherId: string, bookingId: string) {
@@ -197,8 +211,9 @@ export class DispatcherService {
     }
 
     const vid = booking.vehicleId;
-    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const updated = await tx.booking.update({
+    const previousStatus = booking.status;
+    const updated = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const row = await tx.booking.update({
         where: { id: bookingId },
         data: {
           status: 'REJECTED',
@@ -214,8 +229,10 @@ export class DispatcherService {
           data: { status: 'AVAILABLE' },
         });
       }
-      return updated;
+      return row;
     });
+    this.bookingNotifications.notifyStatusChange(updated, previousStatus, 'DISPATCHER');
+    return updated;
   }
 
   private calculateOvertimeMinutes(plannedEnd: Date, actualEnd: Date) {

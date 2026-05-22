@@ -7,6 +7,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { BookingSummaryCard } from '@/components/BookingSummaryCard';
 import { dispatcherGet, ensureDispatcherSession, isNotAuthenticatedError } from '@/lib/api';
+import { redirectToLogin } from '@/lib/safeRouter';
+import { useNavigationReady } from '@/hooks/useNavigationReady';
 import { useBookingsStore } from '@/store/bookingsStore';
 import { dispatcherAvatarUrl, useStore } from '@/store/store';
 
@@ -59,6 +61,7 @@ export default function DispatcherBookingsScreen() {
   const dispatcherLoaded = useBookingsStore((s) => s.dispatcherLoaded);
   const refreshDispatcherBookings = useBookingsStore((s) => s.refreshDispatcherBookings);
   const loading = vehiclesLoading || (dispatcherLoading && !dispatcherLoaded);
+  const navigationReady = useNavigationReady();
 
   useEffect(() => {
     void hydrate();
@@ -71,12 +74,14 @@ export default function DispatcherBookingsScreen() {
   }, [params.tab]);
 
   useEffect(() => {
+    if (!navigationReady) return;
     refreshDispatcherBookings().catch((e) => {
-      if (isNotAuthenticatedError(e)) router.replace('/login' as any);
+      if (isNotAuthenticatedError(e)) redirectToLogin();
     });
-  }, [refreshDispatcherBookings]);
+  }, [refreshDispatcherBookings, navigationReady]);
 
   useEffect(() => {
+    if (!navigationReady) return;
     let cancelled = false;
     async function loadVehicles() {
       try {
@@ -85,7 +90,7 @@ export default function DispatcherBookingsScreen() {
         if (cancelled) return;
         setVehicles(Array.isArray(vs) ? vs : []);
       } catch (e) {
-        if (isNotAuthenticatedError(e)) router.replace('/login' as any);
+        if (isNotAuthenticatedError(e)) redirectToLogin();
       } finally {
         if (!cancelled) setVehiclesLoading(false);
       }
@@ -94,7 +99,7 @@ export default function DispatcherBookingsScreen() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [navigationReady]);
 
   const approvedVehicles = useMemo(() => vehicles.filter((v) => v.isApproved), [vehicles]);
 

@@ -8,6 +8,7 @@ import {
   effectiveMinDurationHours,
 } from '../../common/trip-planning';
 import { MatchingService } from '../matching/matching.service';
+import { BookingNotificationsService } from '../notifications/booking-notifications.service';
 import { RequestBookingDto } from './dto/request-booking.dto';
 import { UpdateBookingScheduleDto } from './dto/update-booking-schedule.dto';
 import { ExtendBookingDto } from './dto/extend-booking.dto';
@@ -29,6 +30,7 @@ export class BookingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly matching: MatchingService,
+    private readonly bookingNotifications: BookingNotificationsService,
   ) {}
 
   planTripMeta(dto: { pickupLat: number; pickupLng: number; dropLat: number; dropLng: number; pickupCity?: string; dropCity?: string }) {
@@ -251,8 +253,8 @@ export class BookingService {
     const durationHours = (booking.endTime.getTime() - booking.startTime.getTime()) / (1000 * 60 * 60);
     const plannedPrice = Math.round(vehicle.baseRatePerHour * durationHours);
 
-    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const updated = await tx.booking.update({
+    const updated = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const row = await tx.booking.update({
         where: { id: bookingId },
         data: {
           vehicleId: vehicle.id,
@@ -267,8 +269,10 @@ export class BookingService {
         where: { id: vehicle.id },
         data: { status: 'BOOKED' },
       });
-      return updated;
+      return row;
     });
+    this.bookingNotifications.notifyStatusChange(updated, 'REQUESTED', 'USER');
+    return updated;
   }
 
   async extendActiveBooking(userId: string, bookingId: string, dto: ExtendBookingDto) {
@@ -340,6 +344,7 @@ export class BookingService {
       include: { user: true, dispatcher: true, vehicle: true, ...extensionRequestsInclude },
     });
     if (!updated) throw new NotFoundException('Booking not found');
+    this.bookingNotifications.notify('EXTENSION_REQUESTED', updated);
     return serializeBookingWithExtension(updated);
   }
 
@@ -399,6 +404,7 @@ export class BookingService {
       include: { user: true, dispatcher: true, vehicle: true, ...extensionRequestsInclude },
     });
     if (!updated) throw new NotFoundException('Booking not found');
+    this.bookingNotifications.notify('EXTENSION_APPROVED', updated);
     return serializeBookingWithExtension(updated);
   }
 
@@ -406,17 +412,17 @@ export class BookingService {
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.userId !== userId) throw new BadRequestException('Not your booking');
-    return this.rejectPendingExtensionRequest(bookingId);
+    return this.rejectPendingExtensionRequest(bookingId, false);
   }
 
   async declineExtensionRequest(dispatcherId: string, bookingId: string) {
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.dispatcherId !== dispatcherId) throw new BadRequestException('Not your booking');
-    return this.rejectPendingExtensionRequest(bookingId);
+    return this.rejectPendingExtensionRequest(bookingId, true);
   }
 
-  private async rejectPendingExtensionRequest(bookingId: string) {
+  private async rejectPendingExtensionRequest(bookingId: string, notifyUser: boolean) {
     const pending = await this.prisma.bookingExtensionRequest.findFirst({
       where: { bookingId, status: 'PENDING' },
       orderBy: { createdAt: 'desc' },
@@ -433,6 +439,9 @@ export class BookingService {
       include: { user: true, dispatcher: true, vehicle: true, ...extensionRequestsInclude },
     });
     if (!updated) throw new NotFoundException('Booking not found');
+    if (notifyUser) {
+      this.bookingNotifications.notify('EXTENSION_DECLINED', updated);
+    }
     return serializeBookingWithExtension(updated);
   }
 
@@ -459,8 +468,9 @@ export class BookingService {
     }
 
     const vid = booking.vehicleId;
-    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const updated = await tx.booking.update({
+    const previousStatus = booking.status;
+    const updated = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const row = await tx.booking.update({
         where: { id: bookingId },
         data: {
           status: 'REJECTED',
@@ -475,8 +485,14 @@ export class BookingService {
           data: { status: 'AVAILABLE' },
         });
       }
-      return updated;
+      return row;
     });
+    this.bookingNotifications.notifyStatusChange(
+      { ...updated, dispatcherId: updated.dispatcherId ?? booking.dispatcherId },
+      previousStatus,
+      'USER',
+    );
+    return updated;
   }
 
   private async assertUserHasNoOverlappingBooking(

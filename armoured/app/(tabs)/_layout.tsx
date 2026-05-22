@@ -1,9 +1,11 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Tabs, router, usePathname } from 'expo-router';
+import { Tabs, usePathname } from 'expo-router';
 import { useEffect } from 'react';
 import { AppState, Pressable, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { useNavigationReady } from '@/hooks/useNavigationReady';
+import { safeReplace } from '@/lib/safeRouter';
 import { useStore } from '@/store/store';
 import { useBookingsStore } from '@/store/bookingsStore';
 
@@ -16,16 +18,18 @@ export default function TabLayout() {
   const pathname = usePathname();
   const activeRole = useStore((s) => s.activeRole);
   const hydrate = useStore((s) => s.hydrate);
+  const navigationReady = useNavigationReady();
 
   useEffect(() => {
     void hydrate();
   }, [hydrate]);
 
   useEffect(() => {
+    if (!navigationReady) return;
     if (activeRole === 'DISPATCHER') {
-      router.replace('/(dispatcher-tabs)' as any);
+      safeReplace('/(dispatcher-tabs)' as any);
     }
-  }, [activeRole]);
+  }, [activeRole, navigationReady]);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +63,7 @@ export default function TabLayout() {
     }
 
     async function checkOngoing() {
+      if (!navigationReady) return;
       if (activeRole !== 'USER') return;
       if (pathname === '/login' || pathname === '/signup' || pathname === '/booking-details') return;
       try {
@@ -79,7 +84,7 @@ export default function TabLayout() {
           return;
         }
 
-        router.replace({ pathname: '/booking-details' as any, params: { id: ongoing.id, live: '1' } });
+        safeReplace({ pathname: '/booking-details' as any, params: { id: ongoing.id, live: '1' } });
       } catch {
         // Ignore: screens already handle login redirects.
       }
@@ -106,7 +111,7 @@ export default function TabLayout() {
       if (interval) clearInterval(interval);
       if (sub) sub.remove();
     };
-  }, [pathname, activeRole]);
+  }, [pathname, activeRole, navigationReady]);
 
   return (
     <Tabs
