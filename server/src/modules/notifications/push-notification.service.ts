@@ -22,18 +22,18 @@ export class PushNotificationService {
 
   async sendToUser(userId: string, title: string, body: string, data: PushDataPayload) {
     const tokens = await this.prisma.pushDeviceToken.findMany({
-      where: { userId },
+      where: { userId, dispatcherId: null },
       select: { expoPushToken: true },
     });
-    await this.sendToTokens(tokens.map((t) => t.expoPushToken), title, body, data);
+    await this.sendToTokens(tokens.map((t) => t.expoPushToken), title, body, { ...data, role: 'USER' });
   }
 
   async sendToDispatcher(dispatcherId: string, title: string, body: string, data: PushDataPayload) {
     const tokens = await this.prisma.pushDeviceToken.findMany({
-      where: { dispatcherId },
+      where: { dispatcherId, userId: null },
       select: { expoPushToken: true },
     });
-    await this.sendToTokens(tokens.map((t) => t.expoPushToken), title, body, data);
+    await this.sendToTokens(tokens.map((t) => t.expoPushToken), title, body, { ...data, role: 'DISPATCHER' });
   }
 
   private async sendToTokens(tokens: string[], title: string, body: string, data: PushDataPayload) {

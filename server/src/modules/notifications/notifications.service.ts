@@ -23,7 +23,7 @@ export class NotificationsService {
         update: {
           platform: dto.platform,
           userId: user.sub,
-          dispatcherId: existing?.dispatcherId ?? undefined,
+          dispatcherId: null,
         },
       });
     }
@@ -38,7 +38,7 @@ export class NotificationsService {
       update: {
         platform: dto.platform,
         dispatcherId: user.sub,
-        userId: existing?.userId ?? undefined,
+        userId: null,
       },
     });
   }

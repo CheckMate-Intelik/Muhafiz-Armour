@@ -143,39 +143,45 @@ export function UserBookingCard({
           <Text className="text-base font-semibold text-gray-100">{emptyLabel}</Text>
         </View>
       ) : (
-        <LinearGradient
-          colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
-          start={{ x: 1, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ borderRadius: 10 }}>
-          <Pressable
-            disabled={!canPress}
-            onPress={() => booking && onPress?.(booking)}
-            className="px-4 py-4">
-            <View className="flex-row items-center">
-              {showDateBox ? (
-                <View
-                  className="mr-4 items-center justify-center rounded-2xl px-3 py-2"
-                  style={{
-                    backgroundColor: 'rgba(255,255,255,0.04)',
-                    borderColor: 'rgba(255,255,255,0.06)',
-                    borderWidth: 1,
-                    minWidth: 72,
-                  }}>
-                  <Text
-                    className="text-[11px] font-extrabold"
-                    style={{ color: '#C9B37A', letterSpacing: 0.6 }}>
-                    {start ? formatMonth(start) : '—'}
-                  </Text>
-                  <Text className="mt-0.5 text-[20px] font-extrabold text-gray-100">
-                    {start ? String(start.getDate()).padStart(2, '0') : '—'}
-                  </Text>
-                  <Text className="mt-0.5 text-[11px] font-semibold" style={{ color: '#B8BBC0' }}>
-                    {start ? formatTime(start) : '—'}
-                  </Text>
-                </View>
-              ) : null}
-
+        <Pressable
+          disabled={!canPress}
+          onPress={() => booking && onPress?.(booking)}
+          className="flex-row justify-between">
+          {showDateBox ? (
+            <LinearGradient
+              colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="items-center justify-center"
+              style={{
+                // backgroundColor: 'rgba(255,255,255,0.04)',
+                borderColor: 'rgba(255,255,255,0.06)',
+                borderRadius: 10,
+                borderWidth: 1,
+                width: '22%',
+              }}>
+              <View className="mr-2 items-center justify-center rounded-2xl py-2">
+                <Text
+                  className="text-[11px] font-extrabold"
+                  style={{ color: '#C9B37A', letterSpacing: 0.6 }}>
+                  {start ? formatMonth(start) : '—'}
+                </Text>
+                <Text className="mt-0.5 text-[20px] font-extrabold text-gray-100">
+                  {start ? String(start.getDate()).padStart(2, '0') : '—'}
+                </Text>
+                <Text className="mt-0.5 text-[11px] font-semibold" style={{ color: '#B8BBC0' }}>
+                  {start ? formatTime(start) : '—'}
+                </Text>
+              </View>
+            </LinearGradient>
+          ) : null}
+          <View className="w-[77%] flex-row items-center">
+            <LinearGradient
+              colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="px-4 py-4"
+              style={{ borderRadius: 10 }}>
               <View className="flex-1">
                 {isActiveCard ? (
                   <View className="mb-2 flex-row items-center justify-between">
@@ -290,9 +296,9 @@ export function UserBookingCard({
                   </View>
                 ) : null}
               </View>
-            </View>
-          </Pressable>
-        </LinearGradient>
+            </LinearGradient>
+          </View>
+        </Pressable>
       )}
     </View>
   );

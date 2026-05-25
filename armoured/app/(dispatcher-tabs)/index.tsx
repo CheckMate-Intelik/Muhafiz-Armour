@@ -16,11 +16,7 @@ import {
 } from '../../components/ActiveBookingHeroCard';
 import { UserBookingCard, type UserBookingListItem } from '../../components/UserBookingCard';
 
-const SCREEN_GRADIENT_COLORS = [
-  'rgb(31, 68, 149)',
-  'rgb(24, 49, 97)',
-  '#020617',
-] as const;
+const SCREEN_GRADIENT_COLORS = ['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617'] as const;
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_PADDING = 20;
@@ -28,7 +24,7 @@ const ACTIVE_CARD_WIDTH = Math.round(SCREEN_WIDTH * 0.85);
 const ACTIVE_CARD_GAP = 12;
 const ACTIVE_CARD_SIDE_INSET = Math.max(
   SCREEN_PADDING,
-  Math.round((SCREEN_WIDTH - ACTIVE_CARD_WIDTH) / 2),
+  Math.round((SCREEN_WIDTH - ACTIVE_CARD_WIDTH) / 2)
 );
 
 const listCardShadow = {
@@ -46,10 +42,8 @@ function normalizeStatus(status: string | null | undefined) {
   return (status ?? '').trim().toUpperCase();
 }
 
-function pickSoonestUpcoming(rows: DispatcherBooking[]) {
-  const upcoming = rows.filter((b) => normalizeStatus(b.status) === 'CONFIRMED');
-  if (upcoming.length === 0) return null;
-  const sorted = [...upcoming].sort((a, b) => {
+function sortByStartTime<T extends { id: string; startTime?: string | null }>(rows: T[]) {
+  return [...rows].sort((a, b) => {
     const ta = new Date(a.startTime ?? '').getTime();
     const tb = new Date(b.startTime ?? '').getTime();
     const aOk = Number.isFinite(ta) && !Number.isNaN(ta);
@@ -59,7 +53,39 @@ function pickSoonestUpcoming(rows: DispatcherBooking[]) {
     if (bOk) return 1;
     return String(a.id).localeCompare(String(b.id));
   });
-  return sorted[0] ?? null;
+}
+
+function pickSoonestUpcoming(rows: DispatcherBooking[]) {
+  const upcoming = rows.filter((b) => normalizeStatus(b.status) === 'CONFIRMED');
+  return sortByStartTime(upcoming)[0] ?? null;
+}
+
+function pickSoonestTripRequest(rows: DispatcherBooking[]) {
+  const pending = rows.filter((b) => normalizeStatus(b.status) === 'PENDING_DISPATCHER');
+  return sortByStartTime(pending)[0] ?? null;
+}
+
+function openDispatcherBookingDetails(b: DispatcherBooking) {
+  const customerName = b.user?.name ?? '—';
+  const payout = b.totalPrice ?? 0;
+  const vehicleName = `${b.vehicle?.manufacturer ?? ''} ${b.vehicle?.carModel ?? ''}`.trim();
+  router.push({
+    pathname: '/booking-details' as any,
+    params: {
+      id: b.id,
+      pickupLocation: b.pickupLocation,
+      dropLocation: b.dropLocation,
+      status: b.status,
+      startTime: b.startTime,
+      endTime: b.endTime,
+      totalPrice: String(payout),
+      dispatcherName: '',
+      customerName,
+      vehicleArmour: b.vehicle?.armourLevel ?? '',
+      vehicleType: b.vehicle?.vehicleType ?? '',
+      vehicleName,
+    },
+  });
 }
 
 export default function DispatcherDashboardScreen() {
@@ -69,6 +95,7 @@ export default function DispatcherDashboardScreen() {
   const profileLoading = useStore((s) => s.loading);
   const headerAvatarUri = dispatcherAvatarUrl(profile, 'sm');
 
+  const dispatcherRequests = useBookingsStore((s) => s.dispatcherRequests);
   const dispatcherActive = useBookingsStore((s) => s.dispatcherActive);
   const dispatcherCompleted = useBookingsStore((s) => s.dispatcherCompleted);
   const dispatcherLoading = useBookingsStore((s) => s.dispatcherLoading);
@@ -89,15 +116,24 @@ export default function DispatcherDashboardScreen() {
 
   const completedTrips = dispatcherCompleted.length;
   const totalEarnings = dispatcherCompleted.reduce((sum, t) => sum + (t.totalPrice ?? 0), 0);
-  const dispatcherName =
-    (profile?.name ?? dispatcherSession?.name ?? '').trim() || 'Dispatcher';
+  const dispatcherName = (profile?.name ?? dispatcherSession?.name ?? '').trim() || 'Dispatcher';
 
   const activeBookings = useMemo(
     () => dispatcherActive.filter((b) => normalizeStatus(b.status) === 'IN_PROGRESS'),
-    [dispatcherActive],
+    [dispatcherActive]
   );
   const upcomingBooking = useMemo(() => pickSoonestUpcoming(dispatcherActive), [dispatcherActive]);
+  const tripRequestBooking = useMemo(
+    () => pickSoonestTripRequest(dispatcherRequests),
+    [dispatcherRequests]
+  );
   const loading = dispatcherLoading && !dispatcherLoaded;
+
+  const goToBookingRequests = () =>
+    router.push({
+      pathname: '/(dispatcher-tabs)/bookings' as any,
+      params: { tab: 'requests' },
+    });
 
   return (
     <LinearGradient
@@ -112,7 +148,9 @@ export default function DispatcherDashboardScreen() {
             <View>
               <Text className="text-[22px] font-bold text-[#C9B37A]">Welcome!</Text>
               <Text className="text-2xl font-bold text-[#C9B37A]">
-                {profileLoading && !profile?.name && !dispatcherSession?.name ? '…' : dispatcherName}
+                {profileLoading && !profile?.name && !dispatcherSession?.name
+                  ? '…'
+                  : dispatcherName}
               </Text>
             </View>
             <View className="flex-row items-center gap-2">
@@ -128,7 +166,7 @@ export default function DispatcherDashboardScreen() {
 
           <View className="mt-5 flex-row gap-3 px-5">
             <View className="flex-1 rounded-2xl">
-              <View className="bg-black px-4 py-3 rounded-t-2xl">
+              <View className="rounded-t-2xl bg-black px-4 py-3">
                 <View className="flex-row items-center justify-between">
                   <Text
                     className="text-[11px] font-extrabold"
@@ -142,8 +180,13 @@ export default function DispatcherDashboardScreen() {
                   </View>
                 </View>
               </View>
-              <View className="px-4 py-4 rounded-b-2xl bg-[#222222]">
-                <Text className="text-2xl font-bold text-gray-100">Rs {totalEarnings.toFixed(2)}</Text>
+              <View className="rounded-b-2xl bg-[#222222] px-4 py-4">
+                <Text className="text-lg font-bold text-gray-100">
+                  Rs.{' '}
+                  <Text className="text-lg font-normal text-gray-100">
+                    {totalEarnings.toFixed(2)}
+                  </Text>
+                </Text>
                 <Text className="mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
                   This period
                 </Text>
@@ -151,7 +194,7 @@ export default function DispatcherDashboardScreen() {
             </View>
 
             <View className="flex-1 rounded-2xl bg-black">
-              <View className="px-4 py-3 rounded-t-2xl">
+              <View className="rounded-t-2xl px-4 py-3">
                 <View className="flex-row items-center justify-between">
                   <Text
                     className="text-[11px] font-extrabold"
@@ -165,7 +208,7 @@ export default function DispatcherDashboardScreen() {
                   </View>
                 </View>
               </View>
-              <View className="px-4 py-4 rounded-b-2xl bg-[#222222]">
+              <View className="rounded-b-xl bg-[#222222] px-4 py-4">
                 <Text className="text-2xl font-extrabold text-gray-100">{completedTrips}</Text>
                 <Text className="mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
                   All time
@@ -174,12 +217,12 @@ export default function DispatcherDashboardScreen() {
             </View>
           </View>
 
-          <View className="mt-6">
-            <Text
+          <View className="mt-4">
+            {/* <Text
               className="px-5 text-[13px] font-extrabold"
               style={{ letterSpacing: 2, color: '#9CA3AF' }}>
               ACTIVE BOOKINGS
-            </Text>
+            </Text> */}
 
             {loading ? (
               <View className="mt-6 items-center">
@@ -196,7 +239,10 @@ export default function DispatcherDashboardScreen() {
                 decelerationRate="fast"
                 snapToInterval={ACTIVE_CARD_WIDTH + ACTIVE_CARD_GAP}
                 snapToAlignment="start"
-                contentContainerStyle={{ paddingHorizontal: ACTIVE_CARD_SIDE_INSET, paddingTop: 12 }}>
+                contentContainerStyle={{
+                  paddingHorizontal: ACTIVE_CARD_SIDE_INSET,
+                  paddingTop: 12,
+                }}>
                 {activeBookings.map((b, i) => (
                   <View
                     key={b.id}
@@ -227,18 +273,18 @@ export default function DispatcherDashboardScreen() {
               emptyLabel="No upcoming bookings"
               showDateBox
               rightActionLabel="See all"
-              onRightActionPress={() =>
-                router.push({
-                  pathname: '/(dispatcher-tabs)/bookings' as any,
-                  params: { tab: 'requests' },
-                })
-              }
-              onPress={(b) =>
-                router.push({
-                  pathname: '/booking-details' as any,
-                  params: { id: String(b.id) },
-                })
-              }
+              onRightActionPress={goToBookingRequests}
+              onPress={(b) => openDispatcherBookingDetails(b as DispatcherBooking)}
+            />
+
+            <UserBookingCard
+              booking={tripRequestBooking as UserBookingListItem | null}
+              title="TRIP REQUEST"
+              emptyLabel="No trip requests"
+              showDateBox
+              rightActionLabel="See all"
+              onRightActionPress={goToBookingRequests}
+              onPress={(b) => openDispatcherBookingDetails(b as DispatcherBooking)}
             />
           </View>
         </ScrollView>

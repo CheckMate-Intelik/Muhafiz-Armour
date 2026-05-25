@@ -217,6 +217,7 @@ export const useStore = create<AuthState>((set, get) => ({
       loading: true,
     });
     await get().hydrate();
+    void syncPushTokensWithServer();
   },
 
   logout: async () => {

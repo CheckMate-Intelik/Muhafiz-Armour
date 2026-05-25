@@ -56,13 +56,15 @@ function InfoBox({
   label: string;
   value: string;
 }) {
+  const label2 =
+    label == 'Armour Level' ? 'Armour' : label == 'Time Remaining' ? 'Time Left' : label;
   return (
-    <View className="flex-1 items-center justify-center px-2" style={{ minHeight: 80 }}>
-      <FontAwesome name={icon} size={18} color="#C9B37A" />
-      <Text className="mt-1 text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
-        {label}
+    <View className="flex-1 items-center justify-center px-2" style={{ minHeight: 70 }}>
+      <FontAwesome name={icon} size={15} color="#C9B37A" />
+      <Text className="text-center text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+        {label2}
       </Text>
-      <Text numberOfLines={1} className="mt-0.5 text-[14px] font-extrabold text-gray-100">
+      <Text numberOfLines={1} className="mt-0.5 text-[12px] font-extrabold text-gray-100">
         {value}
       </Text>
     </View>
@@ -92,7 +94,7 @@ export function ActiveBookingHeroCard({
         }}>
         <View className="bg-black px-4 py-3">
           <Text
-            className="text-[14px] font-extrabold"
+            className="text-[12px] font-extrabold"
             style={{ color: '#D8DADF', letterSpacing: 0.5 }}>
             ACTIVE BOOKING
           </Text>
@@ -136,7 +138,7 @@ export function ActiveBookingHeroCard({
           // elevation: 8,
         }}>
         {/* Top section */}
-        <View className="px-4 pt-4">
+        <View className="px-4 pt-2">
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">
               <View
@@ -144,9 +146,9 @@ export function ActiveBookingHeroCard({
                 // style={{ backgroundColor: '#22C55E' }}
               />
               <Text
-                className="text-[14px] font-extrabold"
+                className="mr-4 text-[13px] font-extrabold"
                 style={{ color: '#22C55E', letterSpacing: 0.5 }}>
-                ACTIVE NOW
+                ACTIVE
               </Text>
             </View>
 
@@ -162,7 +164,7 @@ export function ActiveBookingHeroCard({
             </View>
           </View>
 
-          <View className="mt-4 flex-row">
+          <View className="mt-2 flex-row">
             {/* Route (left) */}
             <View className="flex-1 pr-3">
               <View className="flex-row">
@@ -189,18 +191,18 @@ export function ActiveBookingHeroCard({
                   <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                     Pickup
                   </Text>
-                  <Text numberOfLines={1} className="text-md mt-1 font-extrabold text-gray-100">
+                  <Text numberOfLines={1} className="text-md mt-0 font-extrabold text-gray-100">
                     {(booking.pickupLocation ?? '').trim() || '—'}
                   </Text>
                   <Text className="mt-0.5 text-[12px] font-semibold" style={{ color: '#9CA3AF' }}>
                     {start ? `${formatDayLabel(start)}, ${formatTimeLabel(start)}` : '—'}
                   </Text>
 
-                  <View className="mt-4">
+                  <View className="mt-2">
                     <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                       Drop-off
                     </Text>
-                    <Text numberOfLines={1} className="text-md mt-1 font-extrabold text-gray-100">
+                    <Text numberOfLines={1} className="text-md mt-0 font-extrabold text-gray-100">
                       {(booking.dropLocation ?? '').trim() || '—'}
                     </Text>
                     <Text className="mt-0.5 text-[12px] font-semibold" style={{ color: '#9CA3AF' }}>

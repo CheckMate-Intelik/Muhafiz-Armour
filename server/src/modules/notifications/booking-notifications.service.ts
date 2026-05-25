@@ -67,23 +67,26 @@ export class BookingNotificationsService {
 
   notify(kind: BookingNotificationKind, booking: BookingTarget) {
     const copy = COPY[kind];
-    const data: PushDataPayload = {
-      bookingId: booking.id,
-      status: booking.status,
-      kind,
-      role: this.targetRole(kind),
-    };
-
     const task = (async () => {
       if (this.targetsUser(kind) && booking.userId) {
-        await this.push.sendToUser(booking.userId, copy.title, this.bodyWithRoute(copy.body, booking), data);
+        await this.push.sendToUser(booking.userId, copy.title, this.bodyWithRoute(copy.body, booking), {
+          bookingId: booking.id,
+          status: booking.status,
+          kind,
+          role: 'USER',
+        });
       }
       if (this.targetsDispatcher(kind) && booking.dispatcherId) {
         await this.push.sendToDispatcher(
           booking.dispatcherId,
           copy.title,
           this.bodyWithRoute(copy.body, booking),
-          { ...data, role: 'DISPATCHER' },
+          {
+            bookingId: booking.id,
+            status: booking.status,
+            kind,
+            role: 'DISPATCHER',
+          },
         );
       }
     })();
@@ -111,10 +114,6 @@ export class BookingNotificationsService {
       'BOOKING_CANCELLED_BY_USER',
       'EXTENSION_REQUESTED',
     ].includes(kind);
-  }
-
-  private targetRole(kind: BookingNotificationKind): PushDataPayload['role'] {
-    return this.targetsUser(kind) && !this.targetsDispatcher(kind) ? 'USER' : 'DISPATCHER';
   }
 
   private bodyWithRoute(base: string, booking: BookingTarget) {

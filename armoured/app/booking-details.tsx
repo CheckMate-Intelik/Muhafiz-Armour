@@ -15,6 +15,7 @@ import {
   ensureDispatcherSession,
   ensureUserSession,
 } from '@/lib/api';
+import { paramString } from '@/lib/routeParams';
 import { useStore } from '@/store/store';
 import { useBookingsStore } from '@/store/bookingsStore';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -25,19 +26,19 @@ const DISPATCHER_SNOOZE_KEY = 'armoured_dispatcher:ongoing-trip-snooze:v1';
 const DISPATCHER_IN_MEMORY_SNOOZE_KEY = '__armouredDispatcherOngoingTripSnoozeUntilMs';
 
 type BookingParams = {
-  id?: string;
-  live?: string;
-  pickupLocation?: string;
-  dropLocation?: string;
-  status?: string;
-  startTime?: string;
-  endTime?: string;
-  totalPrice?: string;
-  dispatcherName?: string;
-  customerName?: string;
-  vehicleArmour?: string;
-  vehicleType?: string;
-  vehicleName?: string;
+  id?: string | string[];
+  live?: string | string[];
+  pickupLocation?: string | string[];
+  dropLocation?: string | string[];
+  status?: string | string[];
+  startTime?: string | string[];
+  endTime?: string | string[];
+  totalPrice?: string | string[];
+  dispatcherName?: string | string[];
+  customerName?: string | string[];
+  vehicleArmour?: string | string[];
+  vehicleType?: string | string[];
+  vehicleName?: string | string[];
 };
 
 type ExtensionRequest = {
@@ -160,33 +161,40 @@ export default function BookingDetailsScreen() {
   const activeRole = useStore((s) => s.activeRole);
   const isDispatcherMode = activeRole === 'DISPATCHER';
 
-  const bookingId = (params.id ?? '').trim();
-  const isLiveRoute = params.live === '1';
-  const initialStatus = (params.status ?? '').trim().toUpperCase();
+  const bookingId = paramString(params.id);
+  const isLiveRoute = paramString(params.live) === '1';
+  const initialStatus = paramString(params.status).toUpperCase();
   const hasParamDetails = Boolean(
-    (params.pickupLocation ?? '').trim() && (params.dropLocation ?? '').trim()
+    paramString(params.pickupLocation) && paramString(params.dropLocation)
   );
 
   const shouldFetch = Boolean(bookingId);
   const shouldPollInterval =
     Boolean(bookingId) &&
-    (isLiveRoute || initialStatus === 'IN_PROGRESS' || initialStatus === 'CONFIRMED');
+    (isLiveRoute ||
+      initialStatus === 'IN_PROGRESS' ||
+      initialStatus === 'CONFIRMED' ||
+      (isDispatcherMode && initialStatus === 'PENDING_DISPATCHER'));
 
   const load = useCallback(async () => {
     if (!bookingId || !shouldFetch) return;
     try {
       if (isDispatcherMode) {
         const s = await ensureDispatcherSession();
-        const active = await dispatcherGet<DispatcherLiveBooking[]>(
-          `/dispatcher/bookings/active`,
-          s.dispatcherId
-        );
-        const match = Array.isArray(active) ? active.find((b) => b.id === bookingId) : undefined;
+        const [active, requests] = await Promise.all([
+          dispatcherGet<DispatcherLiveBooking[]>(`/dispatcher/bookings/active`, s.dispatcherId),
+          dispatcherGet<DispatcherLiveBooking[]>(`/dispatcher/requests`, s.dispatcherId),
+        ]);
+        const rows = [
+          ...(Array.isArray(active) ? active : []),
+          ...(Array.isArray(requests) ? requests : []),
+        ];
+        const match = rows.find((b) => String(b.id) === bookingId);
         setFetchedDispatcher(match ?? null);
       } else {
         const s = await ensureUserSession();
         const rows = await apiGet<UserLiveBooking[]>(`/bookings`, s.userId);
-        const match = Array.isArray(rows) ? rows.find((b) => b.id === bookingId) : undefined;
+        const match = Array.isArray(rows) ? rows.find((b) => String(b.id) === bookingId) : undefined;
         setFetchedUser(match ?? null);
       }
     } catch {
@@ -248,7 +256,7 @@ export default function BookingDetailsScreen() {
       const payout = b.totalPrice ?? NaN;
       const vehicleName =
         [v?.manufacturer, v?.carModel].filter(Boolean).join(' ').trim() ||
-        (params.vehicleName ?? '').trim() ||
+        paramString(params.vehicleName) ||
         v?.vehicleType ||
         '—';
       return {
@@ -268,20 +276,20 @@ export default function BookingDetailsScreen() {
         createdAt: b.createdAt ?? null,
       };
     }
-    const payout = Number(params.totalPrice ?? '');
+    const payout = Number(paramString(params.totalPrice));
     return {
       personLabel,
-      personName: isDispatcherMode ? (params.customerName ?? '—') : (params.dispatcherName ?? '—'),
-      status: params.status ?? '—',
+      personName: isDispatcherMode ? paramString(params.customerName) || '—' : paramString(params.dispatcherName) || '—',
+      status: paramString(params.status) || '—',
       payoutLabel: Number.isFinite(payout) ? `Rs ${payout.toFixed(2)}` : '—',
-      vehicleName: params.vehicleName ?? '—',
-      vehicleType: params.vehicleType ?? '—',
-      vehicleArmour: params.vehicleArmour ?? '—',
+      vehicleName: paramString(params.vehicleName) || '—',
+      vehicleType: paramString(params.vehicleType) || '—',
+      vehicleArmour: paramString(params.vehicleArmour) || '—',
       id: bookingId || '—',
-      pickupLocation: params.pickupLocation ?? '—',
-      dropLocation: params.dropLocation ?? '—',
-      startTime: params.startTime ?? '',
-      endTime: params.endTime ?? '',
+      pickupLocation: paramString(params.pickupLocation) || '—',
+      dropLocation: paramString(params.dropLocation) || '—',
+      startTime: paramString(params.startTime),
+      endTime: paramString(params.endTime),
       pendingExpiresAt: null,
       createdAt: null,
     };
@@ -300,13 +308,14 @@ export default function BookingDetailsScreen() {
 
   useEffect(() => {
     if (!shouldPollInterval) return;
-    const st = display.status;
+    const st = (display.status ?? '').trim().toUpperCase();
     if (st === 'COMPLETED') {
       router.replace(isDispatcherMode ? ('/(dispatcher-tabs)' as any) : ('/(tabs)' as any));
       return;
     }
-    if (st === 'REJECTED' || st === 'EXPIRED') {
-      router.replace(isDispatcherMode ? ('/(dispatcher-tabs)' as any) : ('/(tabs)' as any));
+    // Only auto-leave when a pending request expires; decline/accept navigate explicitly.
+    if (st === 'EXPIRED') {
+      router.replace(isDispatcherMode ? ('/(dispatcher-tabs)/bookings' as any) : ('/(tabs)/activities' as any));
     }
   }, [shouldPollInterval, display.status, isDispatcherMode]);
 
@@ -519,22 +528,60 @@ export default function BookingDetailsScreen() {
   }
 
   async function respondDispatcher(accept: boolean) {
-    const id = display.id;
-    if (!id || id === '—') return;
-    try {
-      setBusy(true);
-      const s = await ensureDispatcherSession();
-      await dispatcherPatch(`/dispatcher/bookings/${id}/respond`, s.dispatcherId, { accept });
-      await useBookingsStore
-        .getState()
-        .refreshDispatcherBookings()
-        .catch(() => null);
-      router.replace('/(dispatcher-tabs)/bookings' as any);
-    } catch (e) {
-      Alert.alert('Failed', e instanceof Error ? e.message : 'Request failed');
-    } finally {
-      setBusy(false);
+    const id = bookingId || paramString(display.id) || '';
+    if (!id || id === '—') {
+      Alert.alert('Error', 'Missing booking id. Go back and open the request again.');
+      return;
     }
+
+    const run = async () => {
+      try {
+        setBusy(true);
+        const s = await ensureDispatcherSession();
+        const updated = await dispatcherPatch<DispatcherLiveBooking>(
+          `/dispatcher/bookings/${id}/respond`,
+          s.dispatcherId,
+          { accept },
+        );
+        setFetchedDispatcher(updated);
+        await useBookingsStore
+          .getState()
+          .refreshDispatcherBookings()
+          .catch(() => null);
+        router.replace({
+          pathname: '/(dispatcher-tabs)/bookings' as any,
+          params: { tab: accept ? 'requests' : 'requests' },
+        });
+      } catch (e) {
+        Alert.alert('Failed', e instanceof Error ? e.message : 'Request failed');
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    if (!accept) {
+      Alert.alert('Decline trip?', 'This booking request will be declined.', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Decline',
+          style: 'destructive',
+          onPress: () => {
+            void run();
+          },
+        },
+      ]);
+      return;
+    }
+
+    Alert.alert('Accept trip?', 'Confirm this booking request.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Accept',
+        onPress: () => {
+          void run();
+        },
+      },
+    ]);
   }
 
   async function startTripDispatcher(bookingIdParam: string) {
@@ -670,13 +717,12 @@ export default function BookingDetailsScreen() {
 
   const st = (display.status ?? '').trim().toUpperCase();
   const userMayCancel = st === 'REQUESTED' || st === 'PENDING_DISPATCHER' || st === 'CONFIRMED';
-  const showUserExtend = !isDispatcherMode && (st === 'IN_PROGRESS' || st === 'CONFIRMED');
+  const showUserExtend = !isDispatcherMode && st === 'IN_PROGRESS';
   const showUserCancel = !isDispatcherMode && userMayCancel;
   const showDispatcherStart = isDispatcherMode && st === 'CONFIRMED';
   const showDispatcherComplete = isDispatcherMode && st === 'IN_PROGRESS';
   const showDispatcherCancel = isDispatcherMode && st === 'CONFIRMED';
-  const showDispatcherRespond =
-    isDispatcherMode && (st === 'REQUESTED' || st === 'PENDING_DISPATCHER');
+  const showDispatcherRespond = isDispatcherMode && st === 'PENDING_DISPATCHER';
   const showUserInfoDuringTrip = !isDispatcherMode && st === 'IN_PROGRESS';
 
   const extensionRequest: ExtensionRequest | null = isDispatcherMode
@@ -721,7 +767,11 @@ export default function BookingDetailsScreen() {
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={{ paddingBottom: 40 }} className="px-5 pt-4">
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 40 }}
+          className="px-5 pt-4"
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled>
           <BookingDetailsBody
             personLabel={display.personLabel}
             personName={display.personName}
@@ -958,7 +1008,11 @@ export default function BookingDetailsScreen() {
             <View className="mt-4 flex-row gap-3">
               <Pressable
                 disabled={busy}
-                onPress={() => void respondDispatcher(false)}
+                hitSlop={8}
+                onPress={() => {
+                  if (busy) return;
+                  void respondDispatcher(false);
+                }}
                 className="flex-1 items-center justify-center rounded-2xl py-4"
                 style={{
                   backgroundColor: '#0B0F14',
@@ -972,7 +1026,11 @@ export default function BookingDetailsScreen() {
               </Pressable>
               <Pressable
                 disabled={busy}
-                onPress={() => void respondDispatcher(true)}
+                hitSlop={8}
+                onPress={() => {
+                  if (busy) return;
+                  void respondDispatcher(true);
+                }}
                 className="flex-1 items-center justify-center rounded-2xl py-4"
                 style={{ backgroundColor: '#C9B37A', opacity: busy ? 0.6 : 1 }}>
                 <Text className="text-sm font-extrabold" style={{ color: '#0B0F14' }}>

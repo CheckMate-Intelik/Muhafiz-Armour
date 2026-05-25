@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { PendingExpiryCountdown } from '@/components/PendingExpiryCountdown';
+import { BookingHistoryCard } from '@/components/BookingHistoryCard';
 import { useEffect, useMemo, useState } from 'react';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -203,154 +203,9 @@ export default function ActivitiesScreen() {
           ) : null}
 
           <View className="mt-4">
-            {rides.map((r) =>
-              (() => {
-                const vehicleName =
-                  `${r.vehicle?.manufacturer ?? ''} ${r.vehicle?.carModel ?? ''}`.trim();
-                const bookingStatus = normalizeStatus(r.status);
-                const headerStatusLabel =
-                  bookingStatus === 'COMPLETED'
-                    ? 'COMPLETED MISSION'
-                    : bookingStatus === 'REJECTED' || bookingStatus === 'EXPIRED'
-                      ? 'CANCELED MISSION'
-                      : bookingStatus === 'IN_PROGRESS'
-                        ? 'ACTIVE MISSION'
-                        : 'UPCOMING MISSION';
-                const dispatcherAndArmour =
-                  `${r.dispatcher?.name ?? '—'} • ${r.vehicle?.armourLevel ?? '—'}`.trim();
-                const costLabel =
-                  typeof r.totalPrice === 'number' ? `Rs ${r.totalPrice.toFixed(2)}` : '—';
-                return (
-                  <Pressable
-                    key={r.id}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/booking-details' as any,
-                        params: {
-                          id: r.id,
-                          pickupLocation: r.pickupLocation,
-                          dropLocation: r.dropLocation,
-                          status: r.status,
-                          startTime: r.startTime,
-                          endTime: r.endTime,
-                          totalPrice: r.totalPrice == null ? '' : String(r.totalPrice),
-                          dispatcherName: r.dispatcher?.name ?? '',
-                          customerName: '',
-                          vehicleArmour: r.vehicle?.armourLevel ?? '',
-                          vehicleType: r.vehicle?.vehicleType ?? '',
-                          vehicleName: vehicleName || '',
-                        },
-                      })
-                    }
-                    className="mb-4 overflow-hidden rounded-2xl"
-                    style={{
-                      backgroundColor: '#0B0F14',
-                      borderColor: 'rgba(255,255,255,0.06)',
-                      borderWidth: 1,
-                      shadowColor: '#000',
-                      shadowOpacity: 0.28,
-                      shadowRadius: 18,
-                      shadowOffset: { width: 0, height: 14 },
-                      elevation: 8,
-                    }}>
-                    <View
-                      className="border-b px-4 pb-3 pt-3.5"
-                      style={{
-                        backgroundColor: '#000000',
-                        borderBottomColor: 'rgba(255,255,255,0.06)',
-                      }}>
-                      <View className="flex-row items-center justify-between">
-                        <View className="min-w-0 flex-1 pr-2">
-                          <Text
-                            numberOfLines={1}
-                            className="text-[14px] font-extrabold"
-                            style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
-                            {headerStatusLabel} - {dispatcherAndArmour}
-                          </Text>
-                          {bookingStatus === 'PENDING_DISPATCHER' ? (
-                            <PendingExpiryCountdown
-                              status={r.status}
-                              pendingExpiresAt={r.pendingExpiresAt}
-                              createdAt={r.createdAt}
-                              variant="mission"
-                              className="mt-1"
-                            />
-                          ) : null}
-                        </View>
-                        <FontAwesome name="car" size={22} color="#C9B37A" />
-                      </View>
-                    </View>
-
-                    <View
-                      className="px-4 py-4"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
-                      <View className="flex-row">
-                        <View className="mr-3 w-5 items-center">
-                          <View
-                            className="h-3 w-3 rounded-full"
-                            style={{
-                              borderWidth: 2,
-                              borderColor: '#F59E0B',
-                              backgroundColor: 'transparent',
-                            }}
-                          />
-                          <View
-                            className="my-2 w-[2px] flex-1"
-                            style={{ backgroundColor: 'rgba(34,197,94,0.7)' }}
-                          />
-                          <View
-                            className="h-3 w-3 rounded-full"
-                            style={{ borderWidth: 2, borderColor: '#E5E7EB' }}
-                          />
-                        </View>
-
-                        <View className="flex-1">
-                          <View className="flex-row">
-                            <View className="flex-1 pr-3">
-                              <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
-                                FROM:
-                              </Text>
-                              <Text
-                                numberOfLines={1}
-                                className="mt-1 text-[14px] font-extrabold text-gray-100">
-                                {r.pickupLocation || '—'}
-                              </Text>
-                            </View>
-
-                            <View className="w-[90px] items-end">
-                              <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
-                                COST:
-                              </Text>
-                              <Text
-                                numberOfLines={1}
-                                className="mt-1 text-[14px] font-extrabold text-[#C9B37A]">
-                                {costLabel}
-                              </Text>
-                            </View>
-                          </View>
-
-                          <View
-                            className="mt-3 border-t"
-                            style={{ borderTopColor: 'rgba(255,255,255,0.06)' }}
-                          />
-
-                          <View className="mt-3">
-                            <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
-                              TO:
-                            </Text>
-                            <Text
-                              numberOfLines={1}
-                              className="mt-1 text-[14px] font-extrabold text-gray-100">
-                              {r.dropLocation || '—'}
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-                    </View>
-                  </Pressable>
-                );
-              })()
-            )}
+            {rides.map((r) => (
+              <BookingHistoryCard key={r.id} booking={r} variant="user" />
+            ))}
           </View>
         </ScrollView>
       </SafeAreaView>

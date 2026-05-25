@@ -282,8 +282,8 @@ export class BookingService {
     });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.userId !== userId) throw new BadRequestException('Not your booking');
-    if (!['CONFIRMED', 'IN_PROGRESS'].includes(booking.status)) {
-      throw new BadRequestException('Booking cannot be extended');
+    if (booking.status !== 'IN_PROGRESS') {
+      throw new BadRequestException('Trip must be started before requesting an extension');
     }
     if (!booking.vehicleId || !booking.vehicle) throw new BadRequestException('Vehicle missing on booking');
     if (booking.extensionRequests.length > 0) {

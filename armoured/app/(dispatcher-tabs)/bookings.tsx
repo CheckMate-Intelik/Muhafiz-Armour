@@ -1,27 +1,16 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useEffect, useMemo, useState } from 'react';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { BookingSummaryCard } from '@/components/BookingSummaryCard';
+import { BookingHistoryCard } from '@/components/BookingHistoryCard';
 import { dispatcherGet, ensureDispatcherSession, isNotAuthenticatedError } from '@/lib/api';
 import { redirectToLogin } from '@/lib/safeRouter';
 import { useNavigationReady } from '@/hooks/useNavigationReady';
 import { useBookingsStore } from '@/store/bookingsStore';
 import { dispatcherAvatarUrl, useStore } from '@/store/store';
-
-function dispatcherMissionBanner(status: string) {
-  const s = (status ?? '').trim().toUpperCase();
-  if (s === 'IN_PROGRESS') return 'ACTIVE MISSION';
-  if (s === 'CONFIRMED') return 'CONFIRMED MISSION';
-  if (s === 'COMPLETED') return 'COMPLETED MISSION';
-  if (s === 'REJECTED' || s === 'EXPIRED') return 'CANCELED MISSION';
-  if (s === 'PENDING_DISPATCHER') return 'PENDING MISSION';
-  if (s === 'REQUESTED') return 'REQUEST MISSION';
-  return 'BOOKING';
-}
 
 type BookingTab = 'Booking Requests' | 'Booking History';
 
@@ -304,48 +293,9 @@ export default function DispatcherBookingsScreen() {
             </View>
           ) : null}
 
-          {list.map((b) => {
-            const customerName = b.user?.name ?? '—';
-            const payout = b.totalPrice ?? 0;
-            const vehicleName =
-              `${b.vehicle?.manufacturer ?? ''} ${b.vehicle?.carModel ?? ''}`.trim();
-            const vehicleBit = b.vehicle?.vehicleType ?? b.vehicle?.armourLevel ?? '—';
-            const missionHeaderLine = `${dispatcherMissionBanner(b.status)} - ${customerName} • ${vehicleBit}`;
-
-            return (
-              <View key={b.id}>
-                <BookingSummaryCard
-                  variant="mission"
-                  missionHeaderLine={missionHeaderLine}
-                  pickupLocation={b.pickupLocation}
-                  dropLocation={b.dropLocation}
-                  payout={payout}
-                  status={b.status}
-                  pendingExpiresAt={b.pendingExpiresAt}
-                  createdAt={b.createdAt}
-                  onPress={() =>
-                    router.push({
-                      pathname: '/booking-details' as any,
-                      params: {
-                        id: b.id,
-                        pickupLocation: b.pickupLocation,
-                        dropLocation: b.dropLocation,
-                        status: b.status,
-                        startTime: b.startTime,
-                        endTime: b.endTime,
-                        totalPrice: String(payout),
-                        dispatcherName: '',
-                        customerName,
-                        vehicleArmour: b.vehicle?.armourLevel ?? '',
-                        vehicleType: b.vehicle?.vehicleType ?? '',
-                        vehicleName: vehicleName || '',
-                      },
-                    })
-                  }
-                />
-              </View>
-            );
-          })}
+          {list.map((b) => (
+            <BookingHistoryCard key={b.id} booking={b} variant="dispatcher" />
+          ))}
         </ScrollView>
       </SafeAreaView>
     </LinearGradient>

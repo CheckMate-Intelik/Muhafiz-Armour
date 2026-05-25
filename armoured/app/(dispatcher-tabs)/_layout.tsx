@@ -65,14 +65,17 @@ export default function DispatcherTabLayout() {
     async function checkOngoing() {
       if (!navigationReady) return;
       if (activeRole !== 'DISPATCHER') return;
-      if (pathname === '/login' || pathname === '/signup' || pathname === '/booking-details') return;
+      if (pathname === '/login' || pathname === '/signup' || pathname === '/booking-details')
+        return;
       try {
         snooze = await readSnooze();
         if (snooze) return;
 
         await useBookingsStore.getState().refreshDispatcherBookings();
         const rows = useBookingsStore.getState().dispatcherActive;
-        const ongoing = Array.isArray(rows) ? rows.find((b) => b.status === 'IN_PROGRESS') : undefined;
+        const ongoing = Array.isArray(rows)
+          ? rows.find((b) => b.status === 'IN_PROGRESS')
+          : undefined;
         if (cancelled) return;
         if (!ongoing?.id) {
           if (snooze) {
@@ -155,10 +158,14 @@ export default function DispatcherTabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
-                width: focused ? '300%' : 52,
-                marginLeft: 10,
+                width: focused ? '300%' : '100%',
+                marginLeft: '50%',
               }}>
-              <FontAwesome name="home" size={focused ? 24 : 28} color={focused ? '#C9B37A' : 'black'} />
+              <FontAwesome
+                name="home"
+                size={focused ? 24 : 28}
+                color={focused ? '#C9B37A' : 'black'}
+              />
               {focused && (
                 <Text
                   style={{
@@ -188,9 +195,13 @@ export default function DispatcherTabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
-                width: focused ? '370%' : 52,
+                width: focused ? '370%' : '100%',
               }}>
-              <FontAwesome name="list-alt" size={focused ? 24 : 28} color={focused ? '#C9B37A' : 'black'} />
+              <FontAwesome
+                name="list-alt"
+                size={focused ? 24 : 28}
+                color={focused ? '#C9B37A' : 'black'}
+              />
               {focused && (
                 <Text
                   style={{
@@ -220,9 +231,13 @@ export default function DispatcherTabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
-                width: focused ? '350%' : 52,
+                width: focused ? '350%' : '100%',
               }}>
-              <FontAwesome name="car" size={focused ? 24 : 28} color={focused ? '#C9B37A' : 'black'} />
+              <FontAwesome
+                name="car"
+                size={focused ? 24 : 28}
+                color={focused ? '#C9B37A' : 'black'}
+              />
               {focused && (
                 <Text
                   style={{
@@ -252,10 +267,14 @@ export default function DispatcherTabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
-                width: focused ? '300%' : 52,
-                marginRight: 10,
+                width: focused ? '300%' : '100%',
+                marginRight: '50%',
               }}>
-              <FontAwesome name="user" size={focused ? 24 : 28} color={focused ? '#C9B37A' : 'black'} />
+              <FontAwesome
+                name="user"
+                size={focused ? 24 : 28}
+                color={focused ? '#C9B37A' : 'black'}
+              />
               {focused && (
                 <Text
                   style={{

@@ -8,18 +8,27 @@ import {
   apiPost,
   dispatcherDelete,
   dispatcherPost,
+  getActiveRole,
   getStoredDispatcherSession,
   getStoredUserSession,
 } from '@/lib/api';
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
+  handleNotification: async (notification) => {
+    const data = notification.request.content.data as Record<string, unknown>;
+    const targetRole = typeof data.role === 'string' ? data.role : null;
+    const activeRole = await getActiveRole();
+    const show =
+      !targetRole || targetRole === activeRole || (targetRole !== 'USER' && targetRole !== 'DISPATCHER');
+
+    return {
+      shouldShowAlert: show,
+      shouldPlaySound: show,
+      shouldSetBadge: false,
+      shouldShowBanner: show,
+      shouldShowList: show,
+    };
+  },
 });
 
 export type PushRegistrationResult = {
@@ -77,16 +86,19 @@ export async function syncPushTokensWithServer(): Promise<void> {
     platform: registration.platform,
   };
 
-  const [user, dispatcher] = await Promise.all([getStoredUserSession(), getStoredDispatcherSession()]);
+  const activeRole = await getActiveRole();
+  if (activeRole === 'DISPATCHER') {
+    const dispatcher = await getStoredDispatcherSession();
+    if (dispatcher?.dispatcherId) {
+      await dispatcherPost('/notifications/register', dispatcher.dispatcherId, body).catch(() => null);
+    }
+    return;
+  }
 
-  const tasks: Promise<unknown>[] = [];
+  const user = await getStoredUserSession();
   if (user?.userId) {
-    tasks.push(apiPost('/notifications/register', user.userId, body).catch(() => null));
+    await apiPost('/notifications/register', user.userId, body).catch(() => null);
   }
-  if (dispatcher?.dispatcherId) {
-    tasks.push(dispatcherPost('/notifications/register', dispatcher.dispatcherId, body).catch(() => null));
-  }
-  await Promise.all(tasks);
 }
 
 export async function unregisterPushTokensFromServer(): Promise<void> {
