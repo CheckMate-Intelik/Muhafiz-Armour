@@ -14,6 +14,7 @@ import {
   ActiveBookingHeroCard,
   type ActiveBookingHeroData,
 } from '../../components/ActiveBookingHeroCard';
+import { NotificationBellButton } from '@/components/NotificationBellButton';
 import { UserBookingCard, type UserBookingListItem } from '../../components/UserBookingCard';
 
 const SCREEN_GRADIENT_COLORS = ['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617'] as const;
@@ -154,9 +155,7 @@ export default function DispatcherDashboardScreen() {
               </Text>
             </View>
             <View className="flex-row items-center gap-2">
-              <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
-                <FontAwesome name="bell-o" size={16} color="#111827" />
-              </Pressable>
+              <NotificationBellButton />
               <Image
                 source={{ uri: headerAvatarUri }}
                 style={{ width: 36, height: 36, borderRadius: 18 }}

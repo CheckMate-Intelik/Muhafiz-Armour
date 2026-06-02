@@ -1,18 +1,30 @@
+import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 
-import { addNotificationResponseListener, syncPushTokensWithServer } from '@/lib/notifications';
+import {
+  addNotificationReceivedListener,
+  addNotificationResponseListener,
+  recordSessionNotification,
+  syncPushTokensWithServer,
+} from '@/lib/notifications';
 import { safePush } from '@/lib/safeRouter';
 
 export function NotificationBootstrap() {
   useEffect(() => {
     void syncPushTokensWithServer();
 
+    void Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) void recordSessionNotification(response.notification);
+    });
+
     const appStateSub = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
         void syncPushTokensWithServer();
       }
     });
+
+    const removeReceivedListener = addNotificationReceivedListener();
 
     const removeNavListener = addNotificationResponseListener(({ bookingId, status, role }) => {
       if (!bookingId) return;
@@ -29,6 +41,7 @@ export function NotificationBootstrap() {
 
     return () => {
       appStateSub.remove();
+      removeReceivedListener();
       removeNavListener();
     };
   }, []);

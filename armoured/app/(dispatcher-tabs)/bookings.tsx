@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { BookingHistoryCard } from '@/components/BookingHistoryCard';
+import { NotificationBellButton } from '@/components/NotificationBellButton';
 import { dispatcherGet, ensureDispatcherSession, isNotAuthenticatedError } from '@/lib/api';
 import { redirectToLogin } from '@/lib/safeRouter';
 import { useNavigationReady } from '@/hooks/useNavigationReady';
@@ -123,9 +124,7 @@ export default function DispatcherBookingsScreen() {
               <Text className="text-lg font-semibold text-[#C9B37A]">My missions</Text>
             </View>
             <View className="flex-row items-center gap-2">
-              <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
-                <FontAwesome name="bell-o" size={16} color="#111827" />
-              </Pressable>
+              <NotificationBellButton />
               <Image
                 source={{ uri: headerAvatarUri }}
                 style={{ width: 36, height: 36, borderRadius: 18 }}

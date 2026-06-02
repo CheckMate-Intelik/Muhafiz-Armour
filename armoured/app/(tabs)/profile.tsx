@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, Text, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { NotificationBellButton } from '@/components/NotificationBellButton';
 import { useStore, userAvatarUrl } from '@/store/store';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -74,9 +75,7 @@ export default function ProfileScreen() {
               </Text> */}
             </View>
             <View className="flex-row items-center gap-2">
-              <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
-                <FontAwesome name="bell-o" size={16} color="#111827" />
-              </Pressable>
+              <NotificationBellButton />
               <Image source={{ uri: avatarSmall }} style={{ width: 36, height: 36, borderRadius: 18 }} />
             </View>
           </View>

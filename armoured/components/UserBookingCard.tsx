@@ -101,7 +101,7 @@ export function UserBookingCard({
 
   return (
     <View
-      className="overflow-hidden"
+      className="w-full overflow-hidden"
       style={{
         // backgroundColor: '#222222',
         // borderColor: 'rgba(255,255,255,0.06)',
@@ -146,7 +146,7 @@ export function UserBookingCard({
         <Pressable
           disabled={!canPress}
           onPress={() => booking && onPress?.(booking)}
-          className="flex-row justify-between">
+          className="w-full flex-row gap-2">
           {showDateBox ? (
             <LinearGradient
               colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
@@ -154,13 +154,13 @@ export function UserBookingCard({
               end={{ x: 1, y: 1 }}
               className="items-center justify-center"
               style={{
-                // backgroundColor: 'rgba(255,255,255,0.04)',
                 borderColor: 'rgba(255,255,255,0.06)',
                 borderRadius: 10,
                 borderWidth: 1,
-                width: '22%',
+                width: 76,
+                flexShrink: 0,
               }}>
-              <View className="mr-2 items-center justify-center rounded-2xl py-2">
+              <View className="items-center justify-center rounded-2xl py-2">
                 <Text
                   className="text-[11px] font-extrabold"
                   style={{ color: '#C9B37A', letterSpacing: 0.6 }}>
@@ -175,13 +175,13 @@ export function UserBookingCard({
               </View>
             </LinearGradient>
           ) : null}
-          <View className="w-[77%] flex-row items-center">
+          <View className="min-w-0 flex-1">
             <LinearGradient
               colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
               start={{ x: 1, y: 0 }}
               end={{ x: 1, y: 1 }}
-              className="px-4 py-4"
-              style={{ borderRadius: 10 }}>
+              className="w-full px-4 py-4"
+              style={{ borderRadius: 10, flex: 1 }}>
               <View className="flex-1">
                 {isActiveCard ? (
                   <View className="mb-2 flex-row items-center justify-between">

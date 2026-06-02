@@ -33,6 +33,7 @@ export default function RootLayout() {
         <Stack.Screen name="booking-details" options={{ headerShown: false }} />
         <Stack.Screen name="pick-location" options={{ headerShown: false }} />
         <Stack.Screen name="new-booking" options={{ headerShown: false }} />
+        <Stack.Screen name="notifications" options={{ headerShown: false }} />
       </Stack>
     </SafeAreaProvider>
   );

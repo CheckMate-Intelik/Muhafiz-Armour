@@ -12,6 +12,7 @@ import { useBookingsStore, type UserBooking } from '@/store/bookingsStore';
 import { useStore, userAvatarUrl } from '@/store/store';
 import { UserBookingCard, type UserBookingListItem } from '../../components/UserBookingCard';
 import { ActiveBookingHeroCard } from '../../components/ActiveBookingHeroCard';
+import { NotificationBellButton } from '@/components/NotificationBellButton';
 
 function normalizeStatus(status: string | null | undefined) {
   return (status ?? '').trim().toUpperCase();
@@ -120,9 +121,7 @@ export default function Home() {
               <Text className="text-2xl font-semibold text-[#C9B37A]">{userName}</Text>
             </View>
             <View className="flex-row items-center gap-2">
-              <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
-                <FontAwesome name="bell-o" size={16} color="#111827" />
-              </Pressable>
+              <NotificationBellButton />
               <Image
                 source={{ uri: headerAvatarUri }}
                 style={{ width: 36, height: 36, borderRadius: 18 }}

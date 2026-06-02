@@ -12,6 +12,8 @@ import {
   getStoredDispatcherSession,
   getStoredUserSession,
 } from '@/lib/api';
+import type { SessionNotification } from '@/store/sessionNotificationsStore';
+import { useSessionNotificationsStore } from '@/store/sessionNotificationsStore';
 
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
@@ -122,16 +124,64 @@ export async function unregisterPushTokensFromServer(): Promise<void> {
   await Promise.all(tasks);
 }
 
-export function addNotificationResponseListener(
-  onNavigate: (data: { bookingId?: string; status?: string; role?: string }) => void,
-) {
+export type NotificationNavData = {
+  bookingId?: string;
+  status?: string;
+  role?: string;
+};
+
+function parseNotificationData(data: Record<string, unknown>): NotificationNavData {
+  return {
+    bookingId: typeof data.bookingId === 'string' ? data.bookingId : undefined,
+    status: typeof data.status === 'string' ? data.status : undefined,
+    role: typeof data.role === 'string' ? data.role : undefined,
+  };
+}
+
+async function shouldRecordForActiveRole(data: Record<string, unknown>) {
+  const targetRole = typeof data.role === 'string' ? data.role : null;
+  const activeRole = await getActiveRole();
+  return (
+    !targetRole || targetRole === activeRole || (targetRole !== 'USER' && targetRole !== 'DISPATCHER')
+  );
+}
+
+export function notificationToSessionItem(notification: Notifications.Notification): SessionNotification {
+  const content = notification.request.content;
+  const data = (content.data ?? {}) as Record<string, unknown>;
+  const parsed = parseNotificationData(data);
+  const id =
+    notification.request.identifier?.trim() ||
+    `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+  return {
+    id,
+    title: (content.title ?? 'Notification').trim() || 'Notification',
+    body: (content.body ?? '').trim(),
+    receivedAt: Date.now(),
+    ...parsed,
+    kind: typeof data.kind === 'string' ? data.kind : undefined,
+  };
+}
+
+export async function recordSessionNotification(notification: Notifications.Notification) {
+  const data = (notification.request.content.data ?? {}) as Record<string, unknown>;
+  if (!(await shouldRecordForActiveRole(data))) return;
+  useSessionNotificationsStore.getState().add(notificationToSessionItem(notification));
+}
+
+export function addNotificationReceivedListener() {
+  const sub = Notifications.addNotificationReceivedListener((notification) => {
+    void recordSessionNotification(notification);
+  });
+  return () => sub.remove();
+}
+
+export function addNotificationResponseListener(onNavigate: (data: NotificationNavData) => void) {
   const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+    void recordSessionNotification(response.notification);
     const data = response.notification.request.content.data as Record<string, unknown>;
-    onNavigate({
-      bookingId: typeof data.bookingId === 'string' ? data.bookingId : undefined,
-      status: typeof data.status === 'string' ? data.status : undefined,
-      role: typeof data.role === 'string' ? data.role : undefined,
-    });
+    onNavigate(parseNotificationData(data));
   });
   return () => sub.remove();
 }

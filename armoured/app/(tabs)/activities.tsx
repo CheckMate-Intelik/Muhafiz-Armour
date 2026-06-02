@@ -10,6 +10,7 @@ import { isNotAuthenticatedError } from '@/lib/api';
 import { redirectToLogin } from '@/lib/safeRouter';
 import { useNavigationReady } from '@/hooks/useNavigationReady';
 import { useBookingsStore } from '@/store/bookingsStore';
+import { NotificationBellButton } from '@/components/NotificationBellButton';
 import { useStore, userAvatarUrl } from '@/store/store';
 
 type RideStatus = 'Upcoming' | 'Completed' | 'Canceled';
@@ -120,9 +121,7 @@ export default function ActivitiesScreen() {
               <Text className="text-lg font-semibold text-[#C9B37A]">Your bookings</Text>
             </View>
             <View className="flex-row items-center gap-2">
-              <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-white">
-                <FontAwesome name="bell-o" size={16} color="#111827" />
-              </Pressable>
+              <NotificationBellButton />
               <Image
                 source={{ uri: headerAvatarUri }}
                 style={{ width: 36, height: 36, borderRadius: 18 }}

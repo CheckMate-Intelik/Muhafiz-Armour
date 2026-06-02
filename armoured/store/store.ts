@@ -20,6 +20,7 @@ import {
 } from '@/lib/api';
 import { syncPushTokensWithServer, unregisterPushTokensFromServer } from '@/lib/notifications';
 import { useBookingsStore } from '@/store/bookingsStore';
+import { useSessionNotificationsStore } from '@/store/sessionNotificationsStore';
 
 export type UserProfile = {
   id: string;
@@ -198,6 +199,7 @@ export const useStore = create<AuthState>((set, get) => ({
 
   switchRole: async (role) => {
     await setActiveRole(role);
+    useSessionNotificationsStore.getState().clear();
     useBookingsStore.getState().resetBookings();
     set({ activeRole: role, error: null });
     await get().hydrate();
@@ -206,6 +208,7 @@ export const useStore = create<AuthState>((set, get) => ({
 
   completeAuth: async (role) => {
     await setActiveRole(role);
+    useSessionNotificationsStore.getState().clear();
     useBookingsStore.getState().resetBookings();
     set({
       activeRole: role,
@@ -222,6 +225,7 @@ export const useStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     await unregisterPushTokensFromServer();
+    useSessionNotificationsStore.getState().clear();
     useBookingsStore.getState().resetBookings();
     await clearAllStoredSessions();
     set({
