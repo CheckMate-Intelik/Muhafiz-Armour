@@ -125,13 +125,7 @@ export function VehicleCard({
               {city || '—'}
             </Text>
           </View>
-          <View className="min-w-0 flex-1 flex-row items-center">
-            <FontAwesome name="shield" size={13} color={metaIcon} />
-            <Text className={footerText} numberOfLines={1} ellipsizeMode="tail">
-              {vehicle.armourLevel || '—'}
-            </Text>
-          </View>
-          <View className="min-w-0 flex-1 flex-row items-center">
+          <View className="items-centerr min-w-0 flex-1 flex-row">
             <FontAwesome name="car" size={13} color={metaIcon} />
             <Text className={footerText} numberOfLines={1} ellipsizeMode="tail">
               {vehicle.vehicleType || '—'}
@@ -141,6 +135,12 @@ export function VehicleCard({
             <FontAwesome name="users" size={13} color={metaIcon} />
             <Text className={footerText} numberOfLines={1} ellipsizeMode="tail">
               {vehicle.seatingCapacity != null ? `${vehicle.seatingCapacity} seats` : '—'}
+            </Text>
+          </View>
+          <View className="min-w-0 flex-1 flex-row items-center">
+            <FontAwesome name="shield" size={13} color={metaIcon} />
+            <Text className={footerText} numberOfLines={1} ellipsizeMode="tail">
+              {vehicle.armourLevel || '—'}
             </Text>
           </View>
         </View>

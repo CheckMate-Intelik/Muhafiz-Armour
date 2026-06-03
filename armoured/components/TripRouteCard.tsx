@@ -102,67 +102,71 @@ export function TripRouteCard({
 
   if (variant === 'mission') {
     return (
-      <Root testID={testID} className="mb-4 overflow-hidden">
-        <View className="flex-row gap-1">
-          <LinearGradient
+      <Root testID={testID} className="mb-2 overflow-hidden">
+        <View className="flex-row">
+          {/* <LinearGradient
             colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
             start={{ x: 1, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{ width: '12%', alignSelf: 'stretch', borderRadius: 10 }}>
-            <Pressable
-              onPress={handlePress}
-              className="flex-1 items-center justify-center"
-              style={{ flex: 1, borderRadius: 10 }}>
-              <FontAwesome
-                name={isExpanded ? 'chevron-down' : 'chevron-right'}
-                size={14}
-                color="#C9B37A"
-              />
-            </Pressable>
-          </LinearGradient>
+            style={{ width: '12%', alignSelf: 'stretch', borderRadius: 10 }}> */}
+          {/* <Pressable
+            onPress={handlePress}
+            className="flex-1 items-center justify-center rounded-xl bg-['#1c1c1c']"
+            style={{ flex: 1, borderRadius: 10, width: '12%' }}>
+            <FontAwesome
+              name={isExpanded ? 'chevron-down' : 'chevron-right'}
+              size={14}
+              color="#C9B37A"
+            />
+          </Pressable> */}
+          {/* </LinearGradient> */}
 
-          <LinearGradient
+          {/* <LinearGradient
             colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
             start={{ x: 1, y: 0 }}
             end={{ x: 1, y: 1 }}
             className="min-w-0 flex-1"
-            style={{ borderRadius: 10 }}>
-            <View
-              className="w-full border-b px-4 pb-3 pt-3.5"
-              style={{ borderBottomColor: 'rgba(255,255,255,0.06)' }}>
-              <View className="flex-row items-center justify-between">
-                <View className="min-w-0 flex-1 pr-2">
-                  <Text
-                    numberOfLines={2}
-                    className="text-[14px] font-extrabold"
-                    style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
-                    {missionHeaderLine || meta?.label || '—'}
+            style={{ borderRadius: 10 }}> */}
+          <Pressable
+            className={`w-full ${isExpanded ? 'rounded-t-xl' : 'rounded-xl'} border-b bg-['#1c1c1c'] px-4 pb-3 pt-3.5`}
+            style={{ borderBottomColor: 'rgba(255,255,255,0.06)' }}
+            onPress={handlePress}>
+            <View className="flex-row items-center justify-between">
+              <FontAwesome
+                name={isExpanded ? 'chevron-down' : 'chevron-right'}
+                size={14}
+                color="#C9B37A"
+                style={{ width: '8%' }}
+              />
+              <View className="min-w-0 flex-1 pr-2">
+                <Text
+                  numberOfLines={2}
+                  className="text-[12px] font-extrabold"
+                  style={{ color: '#B8BBC0', letterSpacing: 0.5 }}>
+                  {missionHeaderLine || meta?.label || '—'}
+                </Text>
+                {isPendingAwaitingDispatcher(status) ? (
+                  <PendingExpiryCountdown
+                    status={status}
+                    pendingExpiresAt={pendingExpiresAt}
+                    createdAt={createdAt}
+                    variant="mission"
+                    className="mt-1"
+                  />
+                ) : (
+                  <Text className="mt-1 text-sm font-bold" style={{ color: '#B8BBC0' }}>
+                    {formatTripDateShort(createdAt)}
                   </Text>
-                  {isPendingAwaitingDispatcher(status) ? (
-                    <PendingExpiryCountdown
-                      status={status}
-                      pendingExpiresAt={pendingExpiresAt}
-                      createdAt={createdAt}
-                      variant="mission"
-                      className="mt-1"
-                    />
-                  ) : (
-                    <Text className="text-md mt-1 font-bold" style={{ color: '#C9B37A' }}>
-                      {formatTripDateShort(createdAt)}
-                    </Text>
-                  )}
-                </View>
-                <FontAwesome name="car" size={22} color="#C9B37A" />
+                )}
               </View>
+              {/* <FontAwesome name="car" size={22} color="#C9B37A" /> */}
             </View>
-          </LinearGradient>
+          </Pressable>
+          {/* </LinearGradient> */}
         </View>
 
         {isExpanded ? (
-          <Pressable
-            onPress={onPress}
-            className="mt-1 rounded-2xl px-4 py-4"
-            style={missionCardOuter}>
+          <Pressable onPress={onPress} className="rounded-b-xl px-4 py-2" style={missionCardOuter}>
             <View className="px-4 py-4">
               <View className="flex-row">
                 <View className="mr-3 w-5 items-center">

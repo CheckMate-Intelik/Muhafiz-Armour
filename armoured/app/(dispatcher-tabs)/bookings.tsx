@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { BookingHistoryCard } from '@/components/BookingHistoryCard';
 import { NotificationBellButton } from '@/components/NotificationBellButton';
+import { SubTabSelector } from '@/components/SubTabSelector';
 import { dispatcherGet, ensureDispatcherSession, isNotAuthenticatedError } from '@/lib/api';
 import { redirectToLogin } from '@/lib/safeRouter';
 import { useNavigationReady } from '@/hooks/useNavigationReady';
@@ -132,49 +133,14 @@ export default function DispatcherBookingsScreen() {
             </View>
           </View>
 
-          <View
-            className="mt-4 flex-row overflow-hidden rounded-xl"
-            style={{ backgroundColor: '#2F3135' }}>
-            {(['Booking Requests', 'Booking History'] as const).map((t, idx) => {
-              const active = tab === t;
-              return (
-                <Pressable
-                  key={t}
-                  onPress={() => setTab(t)}
-                  className="flex-1"
-                  style={{
-                    borderLeftWidth: idx === 0 ? 0 : 1,
-                    borderLeftColor: 'rgba(255,255,255,0.08)',
-                  }}>
-                  <LinearGradient
-                    colors={
-                      active
-                        ? ['rgb(204, 155, 31)', 'rgb(201, 179, 122)']
-                        : ['rgb(37, 37, 37)', 'rgb(0, 0, 0)']
-                    }
-                    start={{ x: 1, y: 0 }}
-                    end={{ x: 1, y: 1 }}>
-                    <View
-                      className="items-center justify-center px-1 py-3"
-                      style={{
-                        height: 70,
-                      }}>
-                      <FontAwesome
-                        name={t === 'Booking Requests' ? 'inbox' : 'history'}
-                        size={22}
-                        color={active ? '#0B0F14' : '#B8BBC0'}
-                      />
-                      <Text
-                        className="mt-1 text-sm font-extrabold"
-                        style={{ color: active ? '#0B0F14' : '#B8BBC0' }}>
-                        {t === 'Booking Requests' ? 'REQUESTS' : 'HISTORY'}
-                      </Text>
-                    </View>
-                  </LinearGradient>
-                </Pressable>
-              );
-            })}
-          </View>
+          <SubTabSelector
+            tabs={[
+              { key: 'Booking Requests', label: 'REQUESTS', icon: 'inbox' },
+              { key: 'Booking History', label: 'HISTORY', icon: 'history' },
+            ]}
+            activeKey={tab}
+            onChange={(key) => setTab(key as BookingTab)}
+          />
         </View>
 
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-4 pt-4">

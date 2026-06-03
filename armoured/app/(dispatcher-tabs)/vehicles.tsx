@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { SubTabSelector } from '@/components/SubTabSelector';
 import { VehicleCard } from '@/components/VehicleCard';
 import { dispatcherGet, ensureDispatcherSession, isNotAuthenticatedError } from '@/lib/api';
 import { redirectToLogin } from '@/lib/safeRouter';
@@ -81,49 +82,14 @@ export default function DispatcherVehiclesScreen() {
             </View>
           </View>
 
-          <View
-            className="mt-4 flex-row overflow-hidden rounded-xl"
-            style={{ backgroundColor: '#2F3135' }}>
-            {(['Approved', 'Pending'] as const).map((t, idx) => {
-              const active = tab === t;
-              return (
-                <Pressable
-                  key={t}
-                  onPress={() => setTab(t)}
-                  className="flex-1"
-                  style={{
-                    borderLeftWidth: idx === 0 ? 0 : 1,
-                    borderLeftColor: 'rgba(255,255,255,0.08)',
-                  }}>
-                  <LinearGradient
-                    colors={
-                      active
-                        ? ['rgb(204, 155, 31)', 'rgb(201, 179, 122)']
-                        : ['rgb(37, 37, 37)', 'rgb(0, 0, 0)']
-                    }
-                    start={{ x: 1, y: 0 }}
-                    end={{ x: 1, y: 1 }}>
-                    <View
-                      className="items-center justify-center px-1 py-3"
-                      style={{
-                        height: 70,
-                      }}>
-                      <FontAwesome
-                        name={t === 'Approved' ? 'check' : 'clock-o'}
-                        size={22}
-                        color={active ? '#0B0F14' : '#B8BBC0'}
-                      />
-                      <Text
-                        className="mt-1 text-sm font-extrabold"
-                        style={{ color: active ? '#0B0F14' : '#B8BBC0' }}>
-                        {t.toUpperCase()}
-                      </Text>
-                    </View>
-                  </LinearGradient>
-                </Pressable>
-              );
-            })}
-          </View>
+          <SubTabSelector
+            tabs={[
+              { key: 'Approved', label: 'APPROVED', icon: 'check' },
+              { key: 'Pending', label: 'PENDING', icon: 'clock-o' },
+            ]}
+            activeKey={tab}
+            onChange={(key) => setTab(key as VehicleTab)}
+          />
         </View>
 
         <Pressable

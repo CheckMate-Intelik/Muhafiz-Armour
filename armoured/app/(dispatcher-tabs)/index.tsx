@@ -165,51 +165,39 @@ export default function DispatcherDashboardScreen() {
 
           <View className="mt-5 flex-row gap-3 px-5">
             <View className="flex-1 rounded-2xl">
-              <View className="rounded-t-2xl bg-black px-4 py-3">
-                <View className="flex-row items-center justify-between">
+              <View className="rounded-2xl bg-[#222222] px-4">
+                <View className="h-12 flex-row items-center justify-between border-b border-[#4d4d4d]">
                   <Text
                     className="text-[11px] font-extrabold"
                     style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
                     TOTAL EARNINGS
                   </Text>
-                  <View
-                    className="h-9 w-9 items-center justify-center rounded-2xl"
-                    style={{ backgroundColor: 'rgba(201,179,122,0.12)' }}>
-                    <FontAwesome name="money" size={16} color="#C9B37A" />
-                  </View>
+                  <FontAwesome name="money" size={16} color="#C9B37A" />
                 </View>
-              </View>
-              <View className="rounded-b-2xl bg-[#222222] px-4 py-4">
-                <Text className="text-lg font-bold text-gray-100">
+                <Text className="mt-4 text-lg font-bold text-gray-100">
                   Rs.{' '}
                   <Text className="text-lg font-normal text-gray-100">
                     {totalEarnings.toFixed(2)}
                   </Text>
                 </Text>
-                <Text className="mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+                <Text className="mb-2 mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
                   This period
                 </Text>
               </View>
             </View>
 
             <View className="flex-1 rounded-2xl bg-black">
-              <View className="rounded-t-2xl px-4 py-3">
-                <View className="flex-row items-center justify-between">
+              <View className="rounded-2xl bg-[#222222] px-4">
+                <View className="h-12 flex-row items-center justify-between border-b border-[#4d4d4d]">
                   <Text
                     className="text-[11px] font-extrabold"
                     style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
                     COMPLETED
                   </Text>
-                  <View
-                    className="h-9 w-9 items-center justify-center rounded-2xl"
-                    style={{ backgroundColor: 'rgba(201,179,122,0.12)' }}>
-                    <FontAwesome name="check" size={16} color="#C9B37A" />
-                  </View>
+                  <FontAwesome name="check" size={16} color="#C9B37A" />
                 </View>
-              </View>
-              <View className="rounded-b-xl bg-[#222222] px-4 py-4">
-                <Text className="text-2xl font-extrabold text-gray-100">{completedTrips}</Text>
-                <Text className="mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+                <Text className="mt-4 text-2xl font-extrabold text-gray-100">{completedTrips}</Text>
+                <Text className="mb-2 mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
                   All time
                 </Text>
               </View>

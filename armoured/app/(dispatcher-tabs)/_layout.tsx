@@ -2,6 +2,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs, usePathname } from 'expo-router';
 import { useEffect } from 'react';
 import { AppState, Pressable, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useNavigationReady } from '@/hooks/useNavigationReady';
@@ -15,6 +16,8 @@ const SNOOZE_KEY = 'armoured_dispatcher:ongoing-trip-snooze:v1';
 const IN_MEMORY_SNOOZE_KEY = '__armouredDispatcherOngoingTripSnoozeUntilMs';
 
 export default function DispatcherTabLayout() {
+  const insets = useSafeAreaInsets();
+  const tabBarBottom = Math.max(insets.bottom, 12) + 8;
   const pathname = usePathname();
   const activeRole = useStore((s) => s.activeRole);
   const hydrate = useStore((s) => s.hydrate);
@@ -122,7 +125,7 @@ export default function DispatcherTabLayout() {
           position: 'absolute',
           width: '90%',
           marginLeft: '5%',
-          bottom: 40,
+          bottom: tabBarBottom,
           borderRadius: 28,
           alignItems: 'center',
           justifyContent: 'center',

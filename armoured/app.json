@@ -22,6 +22,15 @@
           "color": "#ffffff",
           "defaultChannel": "bookings"
         }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "visibility": "hidden",
+          "behavior": "overlay-swipe",
+          "position": "absolute",
+          "backgroundColor": "#020617"
+        }
       ]
     ],
     "experiments": {

@@ -2,6 +2,7 @@ import '../global.css';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { NotificationBootstrap } from '@/components/NotificationBootstrap';
+import { SystemBarsBootstrap } from '@/components/SystemBarsBootstrap';
 import { Stack } from 'expo-router';
 
 export const unstable_settings = {
@@ -13,6 +14,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <NotificationBootstrap />
+      <SystemBarsBootstrap />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(dispatcher-tabs)" options={{ headerShown: false }} />

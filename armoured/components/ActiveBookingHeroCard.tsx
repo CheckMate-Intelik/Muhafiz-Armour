@@ -83,7 +83,7 @@ export function ActiveBookingHeroCard({
   if (!booking) {
     return (
       <View
-        className="mb-4 overflow-hidden rounded-2xl"
+        className="overflow-hidden rounded-2xl p-4"
         style={{
           backgroundColor: '#222222',
           shadowColor: '#000',
@@ -92,14 +92,14 @@ export function ActiveBookingHeroCard({
           shadowOffset: { width: 0, height: 10 },
           elevation: 6,
         }}>
-        <View className="bg-black px-4 py-3">
-          <Text
-            className="text-[12px] font-extrabold"
-            style={{ color: '#D8DADF', letterSpacing: 0.5 }}>
-            ACTIVE BOOKING
-          </Text>
-        </View>
-        <View className="px-4 py-5">
+        {/* <View className="bg-black px-4 py-3"> */}
+        <Text
+          className=" border-b border-[#4d4d4d] pb-2 text-[12px] font-extrabold"
+          style={{ color: '#D8DADF', letterSpacing: 0.5 }}>
+          ACTIVE BOOKING
+        </Text>
+        {/* </View> */}
+        <View className=" pt-4">
           <Text className="text-base font-semibold text-gray-100">{emptyLabel}</Text>
         </View>
       </View>

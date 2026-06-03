@@ -1,5 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { BookingHistoryCard } from '@/components/BookingHistoryCard';
+import { SubTabSelector } from '@/components/SubTabSelector';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
@@ -129,57 +130,15 @@ export default function ActivitiesScreen() {
             </View>
           </View>
 
-          <View
-            className="mt-4 flex-row overflow-hidden rounded-xl"
-            style={{ backgroundColor: '#2F3135' }}>
-            {(
-              [
-                { key: 'Upcoming', label: 'UPCOMING', icon: 'calendar' },
-                { key: 'Completed', label: 'COMPLETED', icon: 'check' },
-                { key: 'Canceled', label: 'CANCELED', icon: 'times' },
-              ] as const
-            ).map((t, idx) => {
-              const active = status === t.key;
-              return (
-                <Pressable
-                  key={t.key}
-                  onPress={() => setStatus(t.key)}
-                  className="flex-1"
-                  style={{
-                    borderLeftWidth: idx === 0 ? 0 : 1,
-                    borderLeftColor: 'rgba(255,255,255,0.08)',
-                  }}>
-                  <LinearGradient
-                    colors={
-                      active
-                        ? ['rgb(204, 155, 31)', 'rgb(201, 179, 122)']
-                        : ['rgb(37, 37, 37)', 'rgb(0, 0, 0)']
-                    }
-                    start={{ x: 1, y: 0 }}
-                    end={{ x: 1, y: 1 }}>
-                    <View
-                      className="items-center justify-center px-1 py-3"
-                      style={{
-                        height: 70,
-                        // borderRadius: 10,
-                        // margin:6
-                      }}>
-                      <FontAwesome
-                        name={t.icon as any}
-                        size={22}
-                        color={active ? '#0B0F14' : '#B8BBC0'}
-                      />
-                      <Text
-                        className="mt-1 text-sm font-extrabold"
-                        style={{ color: active ? '#0B0F14' : '#B8BBC0' }}>
-                        {t.label}
-                      </Text>
-                    </View>
-                  </LinearGradient>
-                </Pressable>
-              );
-            })}
-          </View>
+          <SubTabSelector
+            tabs={[
+              { key: 'Upcoming', label: 'UPCOMING', icon: 'calendar' },
+              { key: 'Completed', label: 'COMPLETED', icon: 'check' },
+              { key: 'Canceled', label: 'CANCELED', icon: 'times' },
+            ]}
+            activeKey={status}
+            onChange={(key) => setStatus(key as RideStatus)}
+          />
 
           {loading ? (
             <View className="mt-10 items-center">

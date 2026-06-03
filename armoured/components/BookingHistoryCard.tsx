@@ -28,20 +28,20 @@ function normalizeStatus(status: string | null | undefined) {
 
 function userMissionBanner(status: string | null | undefined) {
   const s = normalizeStatus(status);
-  if (s === 'COMPLETED') return 'COMPLETED MISSION';
-  if (s === 'REJECTED' || s === 'EXPIRED') return 'CANCELED MISSION';
-  if (s === 'IN_PROGRESS') return 'ACTIVE MISSION';
-  return 'UPCOMING MISSION';
+  if (s === 'COMPLETED') return 'COMPLETED';
+  if (s === 'REJECTED' || s === 'EXPIRED') return 'CANCELED';
+  if (s === 'IN_PROGRESS') return 'ACTIVE';
+  return 'UPCOMING';
 }
 
 function dispatcherMissionBanner(status: string | null | undefined) {
   const s = normalizeStatus(status);
-  if (s === 'IN_PROGRESS') return 'ACTIVE MISSION';
-  if (s === 'CONFIRMED') return 'CONFIRMED MISSION';
-  if (s === 'COMPLETED') return 'COMPLETED MISSION';
-  if (s === 'REJECTED' || s === 'EXPIRED') return 'CANCELED MISSION';
-  if (s === 'PENDING_DISPATCHER') return 'PENDING MISSION';
-  if (s === 'REQUESTED') return 'REQUEST MISSION';
+  if (s === 'IN_PROGRESS') return 'ACTIVE';
+  if (s === 'CONFIRMED') return 'CONFIRMED';
+  if (s === 'COMPLETED') return 'COMPLETED';
+  if (s === 'REJECTED' || s === 'EXPIRED') return 'CANCELED';
+  if (s === 'PENDING_DISPATCHER') return 'PENDING';
+  if (s === 'REQUESTED') return 'REQUEST';
   return 'BOOKING';
 }
 
@@ -53,7 +53,7 @@ function missionHeaderLine(booking: BookingHistoryCardBooking, variant: 'user' |
     return `${userMissionBanner(booking.status)} - ${dispatcherAndArmour}`;
   }
   const customerName = booking.user?.name ?? '—';
-  return `${dispatcherMissionBanner(booking.status)} - ${customerName} • ${vehicleBit}`;
+  return `${dispatcherMissionBanner(booking.status)} - ${customerName}`;
 }
 
 function openBookingDetails(booking: BookingHistoryCardBooking, variant: 'user' | 'dispatcher') {
