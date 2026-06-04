@@ -169,7 +169,7 @@ export default function DispatcherBookingsScreen() {
                   }}>
                   <View
                     className="h-[74px] w-[96px] items-center justify-center rounded-lg"
-                    style={{ backgroundColor: '#0B0F14' }}>
+                    style={{ backgroundColor: '#222222' }}>
                     <Text
                       className={`text-xs font-extrabold ${selectedVehicleId === 'ALL' ? 'text-[#C9B37A]' : 'text-[#B8BBC0]'}`}>
                       All
@@ -201,7 +201,7 @@ export default function DispatcherBookingsScreen() {
                       }}>
                       <View
                         className="h-[74px] w-[140px] flex-row items-center overflow-hidden rounded-lg"
-                        style={{ backgroundColor: '#0B0F14' }}>
+                        style={{ backgroundColor: '#222222' }}>
                         <View className="h-[74px] w-[74px] items-center justify-center bg-black/20">
                           {firstImg ? (
                             <Image

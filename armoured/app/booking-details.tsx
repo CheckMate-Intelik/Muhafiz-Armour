@@ -5,6 +5,7 @@ import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { BackButton } from '@/components/BackButton';
 import { BookingDetailsBody } from '@/components/BookingDetailsBody';
 import {
   apiGet,
@@ -194,7 +195,9 @@ export default function BookingDetailsScreen() {
       } else {
         const s = await ensureUserSession();
         const rows = await apiGet<UserLiveBooking[]>(`/bookings`, s.userId);
-        const match = Array.isArray(rows) ? rows.find((b) => String(b.id) === bookingId) : undefined;
+        const match = Array.isArray(rows)
+          ? rows.find((b) => String(b.id) === bookingId)
+          : undefined;
         setFetchedUser(match ?? null);
       }
     } catch {
@@ -279,7 +282,9 @@ export default function BookingDetailsScreen() {
     const payout = Number(paramString(params.totalPrice));
     return {
       personLabel,
-      personName: isDispatcherMode ? paramString(params.customerName) || '—' : paramString(params.dispatcherName) || '—',
+      personName: isDispatcherMode
+        ? paramString(params.customerName) || '—'
+        : paramString(params.dispatcherName) || '—',
       status: paramString(params.status) || '—',
       payoutLabel: Number.isFinite(payout) ? `Rs ${payout.toFixed(2)}` : '—',
       vehicleName: paramString(params.vehicleName) || '—',
@@ -315,7 +320,9 @@ export default function BookingDetailsScreen() {
     }
     // Only auto-leave when a pending request expires; decline/accept navigate explicitly.
     if (st === 'EXPIRED') {
-      router.replace(isDispatcherMode ? ('/(dispatcher-tabs)/bookings' as any) : ('/(tabs)/activities' as any));
+      router.replace(
+        isDispatcherMode ? ('/(dispatcher-tabs)/bookings' as any) : ('/(tabs)/activities' as any)
+      );
     }
   }, [shouldPollInterval, display.status, isDispatcherMode]);
 
@@ -541,7 +548,7 @@ export default function BookingDetailsScreen() {
         const updated = await dispatcherPatch<DispatcherLiveBooking>(
           `/dispatcher/bookings/${id}/respond`,
           s.dispatcherId,
-          { accept },
+          { accept }
         );
         setFetchedDispatcher(updated);
         await useBookingsStore
@@ -686,12 +693,7 @@ export default function BookingDetailsScreen() {
         <SafeAreaView className="flex-1">
           <View className="px-5 pt-4">
             <View className="flex-row items-center justify-between">
-              <Pressable
-                onPress={() => void dismissLive()}
-                className="h-10 w-10 items-center justify-center rounded-2xl"
-                style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-                <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
-              </Pressable>
+              <BackButton onPress={() => void dismissLive()} />
               <Text className="text-lg font-bold text-gray-200">Booking details</Text>
               <View className="h-10 w-10" />
             </View>
@@ -739,7 +741,7 @@ export default function BookingDetailsScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(23, 45, 92)', 'rgb(22, 37, 68)', '#020617']}
+      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       locations={[0, 0.3, 1]}
@@ -747,12 +749,7 @@ export default function BookingDetailsScreen() {
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={onPressBack}
-              className="h-10 w-10 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-              <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
-            </Pressable>
+            <BackButton onPress={onPressBack} />
             <Text className="text-lg font-bold text-gray-200">Booking details</Text>
             {shouldPollInterval ? (
               <Pressable

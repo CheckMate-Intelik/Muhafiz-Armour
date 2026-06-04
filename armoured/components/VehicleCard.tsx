@@ -62,7 +62,7 @@ export function VehicleCard({
     ? 'mt-0.5 text-lg font-bold text-gray-100'
     : 'mt-0.5 text-lg font-bold text-gray-800';
   const rateClass = isDark ? 'text-lg font-bold text-[#C9B37A]' : 'text-lg font-bold text-gray-600';
-  const footerBorder = isDark ? 'border-white/10' : 'border-gray-200';
+  const footerBorder = isDark ? 'border-[#4d4d4d]' : 'border-gray-200';
   const footerText = isDark
     ? 'ml-1 flex-1 text-md font-bold text-gray-300'
     : 'ml-1 flex-1 text-md font-bold text-gray-500';
@@ -100,10 +100,6 @@ export function VehicleCard({
               </Text>
             </View>
           ) : null}
-
-          <Pressable className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-white">
-            <FontAwesome name="heart-o" size={14} color="#111827" />
-          </Pressable>
         </View>
 
         <View className="mt-4 flex-row items-center justify-between">

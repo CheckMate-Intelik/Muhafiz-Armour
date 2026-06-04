@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { APP_GRADIENT, AUTH_CARD, AUTH_GOLD } from '@/components/AuthForm';
 import { PUBLIC_API_BASE_URL, apiPost, ensureUserSession } from '@/lib/api';
 import { paramString } from '@/lib/routeParams';
+import { BackButton } from '@/components/BackButton';
 import { useTripDraftStore } from '@/store/tripDraft';
 
 const MAX_HOURS = 5 * 24;
@@ -180,12 +181,7 @@ export default function BookConfirmScreen() {
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={() => router.back()}
-              className="h-10 w-10 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-              <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
-            </Pressable>
+            <BackButton />
             <Text className="text-lg font-bold text-gray-200">Confirm booking</Text>
             <View className="h-10 w-10" />
           </View>

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BackButton } from '@/components/BackButton';
 import {
   filterPakistanCities,
   findPakistanCityByName,
@@ -104,12 +105,7 @@ export default function NewBookingScreen() {
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={() => router.back()}
-              className="h-10 w-10 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-              <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
-            </Pressable>
+            <BackButton />
             <Text className="text-lg font-bold text-gray-200">New booking</Text>
             <View className="h-10 w-10" />
           </View>

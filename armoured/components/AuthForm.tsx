@@ -1,4 +1,4 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { BackButton } from '@/components/BackButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ReactNode } from 'react';
 import {
@@ -61,13 +61,7 @@ export function AuthScreenShell({
           keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}>
           <View className="px-5 pt-2">
             <View className="flex-row items-center justify-between">
-              <Pressable
-                onPress={onBack}
-                className="h-10 w-10 items-center justify-center rounded-full bg-white"
-                accessibilityRole="button"
-                accessibilityLabel="Go back">
-                <FontAwesome name="angle-left" size={20} color="#111827" />
-              </Pressable>
+              <BackButton variant="auth" onPress={onBack} />
               <Text className="text-2xl font-semibold" style={{ color: AUTH_GOLD }}>
                 {title}
               </Text>

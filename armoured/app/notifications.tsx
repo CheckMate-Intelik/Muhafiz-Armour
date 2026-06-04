@@ -4,6 +4,7 @@ import { FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { BackButton } from '@/components/BackButton';
 import type { NotificationNavData } from '@/lib/notifications';
 import { useSessionNotificationsStore, type SessionNotification } from '@/store/sessionNotificationsStore';
 import { safePush } from '@/lib/safeRouter';
@@ -87,12 +88,7 @@ export default function NotificationsScreen() {
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="flex-row items-center justify-between px-5 pt-4">
-          <Pressable
-            onPress={() => router.back()}
-            className="h-10 w-10 items-center justify-center rounded-2xl"
-            style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-            <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
-          </Pressable>
+          <BackButton />
           <Text className="text-base font-extrabold text-gray-200">Notifications</Text>
           <View className="h-10 w-10" />
         </View>

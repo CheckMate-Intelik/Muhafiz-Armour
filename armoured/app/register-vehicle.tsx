@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { BackButton } from '@/components/BackButton';
 import { PUBLIC_API_BASE_URL, dispatcherPost, dispatcherUploadVehicleImage, ensureDispatcherSession } from '@/lib/api';
 
 const GOLD = '#C9B37A';
@@ -214,13 +215,10 @@ export default function RegisterVehicleScreen() {
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-2">
           <View className="flex-row items-center justify-between">
-            <Pressable
+            <BackButton
               onPress={goBack}
-              className="h-10 w-10 items-center justify-center rounded-full bg-white"
-              accessibilityRole="button"
-              accessibilityLabel={step === 0 ? 'Close' : 'Previous step'}>
-              <FontAwesome name="angle-left" size={20} color="#111827" />
-            </Pressable>
+              accessibilityLabel={step === 0 ? 'Close' : 'Previous step'}
+            />
             <View className="flex-1 items-center px-2">
               <Text className="text-center text-xs font-extrabold" style={{ color: GOLD, letterSpacing: 0.4 }}>
                 STEP {step + 1} OF {STEPS}

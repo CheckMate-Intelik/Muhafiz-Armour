@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { APP_GRADIENT, AUTH_CARD, AUTH_GOLD } from '@/components/AuthForm';
+import { BackButton } from '@/components/BackButton';
 import { PUBLIC_API_BASE_URL } from '@/lib/api';
 import { VehicleCard, VehicleCardData } from '@/components/VehicleCard';
 import { useTripDraftStore } from '@/store/tripDraft';
@@ -206,11 +207,7 @@ export default function VehicleSelectScreen() {
           className="px-5 pt-4"
           keyboardShouldPersistTaps="handled">
           <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={() => router.replace('/(tabs)' as any)}
-              className="h-10 w-10 items-center justify-center rounded-full bg-white">
-              <FontAwesome name="angle-left" size={20} color="#111827" />
-            </Pressable>
+            <BackButton variant="auth" onPress={() => router.replace('/(tabs)' as any)} />
             <Text className="text-2xl font-semibold" style={{ color: AUTH_GOLD }}>
               Choose vehicle
             </Text>

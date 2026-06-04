@@ -102,7 +102,7 @@ export function TripRouteCard({
 
   if (variant === 'mission') {
     return (
-      <Root testID={testID} className="mb-2 overflow-hidden">
+      <Root testID={testID} className="mb-2 overflow-hidden rounded-xl bg-[#222222]">
         <View className="flex-row">
           {/* <LinearGradient
             colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
@@ -128,7 +128,7 @@ export function TripRouteCard({
             className="min-w-0 flex-1"
             style={{ borderRadius: 10 }}> */}
           <Pressable
-            className={`w-full ${isExpanded ? 'rounded-t-xl' : 'rounded-xl'} border-b bg-['#1c1c1c'] px-4 pb-3 pt-3.5`}
+            className={`w-full ${isExpanded ? 'rounded-t-xl' : 'rounded-xl'} bg-['#222222'] px-4 pb-3 pt-3.5`}
             style={{ borderBottomColor: 'rgba(255,255,255,0.06)' }}
             onPress={handlePress}>
             <View className="flex-row items-center justify-between">
@@ -164,6 +164,7 @@ export function TripRouteCard({
           </Pressable>
           {/* </LinearGradient> */}
         </View>
+        <View className={`mx-4 ${isExpanded ? 'border-t border-[#4d4d4d]' : ''}`}></View>
 
         {isExpanded ? (
           <Pressable onPress={onPress} className="rounded-b-xl px-4 py-2" style={missionCardOuter}>
@@ -194,7 +195,7 @@ export function TripRouteCard({
                       <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                         FROM:
                       </Text>
-                      <Text numberOfLines={2} className="text-md mt-1 font-extrabold text-gray-100">
+                      <Text numberOfLines={2} className="text-md mt-1 font-semibold text-gray-100">
                         {from || '—'}
                       </Text>
                     </View>
@@ -206,7 +207,7 @@ export function TripRouteCard({
                         </Text>
                         <Text
                           numberOfLines={1}
-                          className="text-md mt-1 font-extrabold text-gray-100">
+                          className="text-md mt-1 font-semibold text-gray-100">
                           {missionCostLabel}
                         </Text>
                       </View>
@@ -319,9 +320,9 @@ const cardShadow = {
 };
 
 const missionCardOuter = {
-  backgroundColor: 'rgb(28, 28, 28)',
-  borderColor: 'rgba(255,255,255,0.06)',
-  borderWidth: 1,
+  backgroundColor: '#222222',
+  // borderColor: 'rgba(255,255,255,0.06)',
+  // borderWidth: 1,
   shadowColor: '#000',
   shadowOpacity: 0.28,
   shadowRadius: 18,

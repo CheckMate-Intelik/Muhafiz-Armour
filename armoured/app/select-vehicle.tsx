@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { APP_GRADIENT, AUTH_CARD, AUTH_GOLD } from '@/components/AuthForm';
+import { BackButton } from '@/components/BackButton';
 import { apiGet, apiPost, ensureUserSession } from '@/lib/api';
 
 type Option = {
@@ -113,11 +114,7 @@ export default function SelectVehicleScreen() {
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-2">
           <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={() => router.back()}
-              className="h-10 w-10 items-center justify-center rounded-full bg-white">
-              <FontAwesome name="angle-left" size={20} color="#111827" />
-            </Pressable>
+            <BackButton variant="auth" />
             <Text className="text-2xl font-semibold" style={{ color: AUTH_GOLD }}>
               Select vehicle
             </Text>

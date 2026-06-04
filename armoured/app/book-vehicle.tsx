@@ -1,4 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { BackButton } from '@/components/BackButton';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
@@ -62,9 +63,7 @@ export default function BookVehicleScreen() {
     <SafeAreaView className="flex-1 bg-white">
       <View className="px-5 pt-4">
         <View className="flex-row items-center justify-between">
-          <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-2xl bg-gray-100">
-            <FontAwesome name="arrow-left" size={16} color="#111827" />
-          </Pressable>
+          <BackButton variant="light" />
           <Text className="text-base font-extrabold text-gray-900">Booking details</Text>
           <View className="h-10 w-10" />
         </View>

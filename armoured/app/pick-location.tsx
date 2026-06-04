@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { BackButton } from '@/components/BackButton';
 import { findPakistanCityByName, PAKISTAN_CITIES, type PakistanCity } from '@/constants/pakistanCities';
 import { useTripDraftStore } from '@/store/tripDraft';
 
@@ -287,12 +288,7 @@ export default function PickLocationScreen() {
         style={{ flex: 1 }}>
         <SafeAreaView className="flex-1 px-5 pt-4">
           <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={() => router.back()}
-              className="h-10 w-10 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-              <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
-            </Pressable>
+            <BackButton />
             <Text className="text-base font-extrabold text-gray-200">{title}</Text>
             <View className="h-10 w-10" />
           </View>
@@ -322,12 +318,7 @@ export default function PickLocationScreen() {
         style={{ flex: 1 }}>
         <SafeAreaView className="flex-1 px-5 pt-4">
           <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={() => router.back()}
-              className="h-10 w-10 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-              <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
-            </Pressable>
+            <BackButton />
             <Text className="text-base font-extrabold text-gray-200">{title}</Text>
             <View className="h-10 w-10" />
           </View>
@@ -357,12 +348,7 @@ export default function PickLocationScreen() {
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={() => router.back()}
-              className="h-10 w-10 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-              <FontAwesome name="arrow-left" size={16} color="#9CA3AF" />
-            </Pressable>
+            <BackButton />
             <Text className="text-base font-extrabold text-gray-200">{title}</Text>
             <View className="h-10 w-10" />
           </View>

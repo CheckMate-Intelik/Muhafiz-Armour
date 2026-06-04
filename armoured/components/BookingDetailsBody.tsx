@@ -74,11 +74,13 @@ export function BookingDetailsBody({
           className="flex-1 rounded-2xl p-3"
           style={{
             ...cardShadow,
-            backgroundColor: '#0B0F14',
+            backgroundColor: '#222222',
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.06)',
           }}>
-          <Text className="text-md font-bold" style={{ color: '#9CA3AF' }}>
+          <Text
+            className="text-md mb-2 border-b border-[#4d4d4d] pb-2 font-bold"
+            style={{ color: '#C9B37A' }}>
             {personLabel}
           </Text>
           <View className="mt-2 flex-row items-center">
@@ -101,11 +103,13 @@ export function BookingDetailsBody({
             className="rounded-2xl p-3"
             style={{
               ...cardShadow,
-              backgroundColor: '#0B0F14',
+              backgroundColor: '#222222',
               borderWidth: 1,
               borderColor: 'rgba(255,255,255,0.06)',
             }}>
-            <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+            <Text
+              className="border-b border-[#4d4d4d] pb-2 text-[11px] font-bold"
+              style={{ color: '#C9B37A' }}>
               Status
             </Text>
             <Text className={`mt-2 text-xs font-semibold ${statusTextClassName}`} numberOfLines={2}>
@@ -116,11 +120,13 @@ export function BookingDetailsBody({
             className="h-[80px] rounded-2xl p-3"
             style={{
               ...cardShadow,
-              backgroundColor: '#0B0F14',
+              backgroundColor: '#222222',
               borderWidth: 1,
               borderColor: 'rgba(255,255,255,0.06)',
             }}>
-            <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+            <Text
+              className="border-b border-[#4d4d4d] pb-2 text-[11px] font-bold"
+              style={{ color: '#C9B37A' }}>
               Payout
             </Text>
             <Text className="mt-2 text-sm font-semibold text-gray-200" numberOfLines={2}>
@@ -134,12 +140,14 @@ export function BookingDetailsBody({
         className="mt-4 rounded-3xl p-4"
         style={{
           ...cardShadow,
-          backgroundColor: '#0B0F14',
+          backgroundColor: '#222222',
           borderWidth: 1,
           borderColor: 'rgba(255,255,255,0.06)',
         }}>
         <View className="mt-2">
-          <Text className="text-lg font-bold text-gray-100">{vehicleName || '—'}</Text>
+          <Text className="border-b border-[#4d4d4d] pb-2 text-lg font-bold text-[#C9B37A]">
+            {vehicleName || '—'}
+          </Text>
           <View className="mt-2 flex-row items-center gap-2">
             <Text className="text-sm font-bold" style={{ color: '#B8BBC0' }}>
               {vehicleType || '—'}

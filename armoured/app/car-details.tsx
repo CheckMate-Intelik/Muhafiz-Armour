@@ -5,6 +5,7 @@ import { Dimensions, Image, Pressable, ScrollView, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { BackButton } from '@/components/BackButton';
 import { PUBLIC_API_BASE_URL, dispatcherGet, ensureDispatcherSession } from '@/lib/api';
 
 const GOLD = '#C9B37A';
@@ -89,7 +90,8 @@ export default function CarDetailsScreen() {
   }, [vehicle]);
 
   const images = useMemo(() => {
-    const urls = vehicle?.imageUrls?.filter((u) => typeof u === 'string' && u.trim().length > 0) ?? [];
+    const urls =
+      vehicle?.imageUrls?.filter((u) => typeof u === 'string' && u.trim().length > 0) ?? [];
     const unique = [...new Set(urls)];
     return unique.length > 0
       ? unique
@@ -145,13 +147,7 @@ export default function CarDetailsScreen() {
           showsVerticalScrollIndicator={false}>
           <View className="px-5 pt-4">
             <View className="flex-row items-center justify-between">
-              <Pressable
-                onPress={() => router.back()}
-                className="h-10 w-10 items-center justify-center rounded-full bg-white"
-                accessibilityRole="button"
-                accessibilityLabel="Go back">
-                <FontAwesome name="angle-left" size={18} color="#111827" />
-              </Pressable>
+              <BackButton />
               <Text
                 className="flex-1 px-3 text-center text-lg font-extrabold"
                 style={{ color: GOLD }}
@@ -309,7 +305,7 @@ export default function CarDetailsScreen() {
                   ))}
                 </ScrollView>
 
-                {Array.isArray(vehicle.features) && vehicle.features.length > 0 ? (
+                {/* {Array.isArray(vehicle.features) && vehicle.features.length > 0 ? (
                   <>
                     <Text
                       className="text-md mt-4 font-extrabold"
@@ -330,7 +326,7 @@ export default function CarDetailsScreen() {
                       ))}
                     </View>
                   </>
-                ) : null}
+                ) : null} */}
 
                 <View
                   className="mt-5 rounded-2xl border px-4 py-3"
@@ -339,12 +335,14 @@ export default function CarDetailsScreen() {
                     borderColor: 'rgba(255,255,255,0.06)',
                     ...cardShadow,
                   }}>
-                  <Text className="text-md font-extrabold" style={{ color: GOLD, letterSpacing: 0.5 }}>
+                  <Text
+                    className="text-md border-b border-[#4d4d4d] pb-2 font-extrabold"
+                    style={{ color: GOLD, letterSpacing: 0.5 }}>
                     RATES
                   </Text>
                   <View className="mt-3 flex-row">
                     <View className="flex-1 pr-2">
-                      <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+                      <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                         Base rate
                       </Text>
                       <Text className="mt-1 text-lg font-extrabold text-gray-100">
@@ -352,7 +350,7 @@ export default function CarDetailsScreen() {
                       </Text>
                     </View>
                     <View className="flex-1 pl-2">
-                      <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+                      <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
                         Extension rate
                       </Text>
                       <Text className="mt-1 text-lg font-extrabold text-gray-100">

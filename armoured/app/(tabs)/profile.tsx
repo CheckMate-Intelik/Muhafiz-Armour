@@ -51,7 +51,10 @@ export default function ProfileScreen() {
     try {
       await uploadUserProfilePhoto(uri);
     } catch (e) {
-      const msg = e instanceof Error && e.message.trim().length > 0 ? e.message : 'Could not update profile photo';
+      const msg =
+        e instanceof Error && e.message.trim().length > 0
+          ? e.message
+          : 'Could not update profile photo';
       Alert.alert('Upload failed', msg);
     } finally {
       setAvatarBusy(false);
@@ -76,13 +79,16 @@ export default function ProfileScreen() {
             </View>
             <View className="flex-row items-center gap-2">
               <NotificationBellButton />
-              <Image source={{ uri: avatarSmall }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+              <Image
+                source={{ uri: avatarSmall }}
+                style={{ width: 36, height: 36, borderRadius: 18 }}
+              />
             </View>
           </View>
 
           <View className="mt-4">
             <View
-              className="items-center overflow-hidden rounded-2xl bg-black"
+              className="items-center overflow-hidden rounded-2xl"
               style={{
                 shadowColor: '#000',
                 shadowOpacity: 0.22,
@@ -90,21 +96,27 @@ export default function ProfileScreen() {
                 shadowOffset: { width: 0, height: 10 },
                 elevation: 6,
               }}>
-              <View className="w-full border-b border-gray-900 bg-black pb-2 pt-4 rounded-t-xl">
+              <View className="w-full border-b border-[#4d4d4d] bg-[#222222] pb-2 pt-4">
                 <Text
-                  className="text-center text-md font-extrabold"
+                  className="text-md text-center font-extrabold"
                   style={{ color: '#C9B37A', letterSpacing: 0.4 }}>
                   ACCOUNT
                 </Text>
               </View>
-              <View className="items-center py-5 rounded-xl w-full bg-[#0B0F14]">
+              <View className="w-full items-center rounded-b-xl bg-[#222222] py-5">
                 <Pressable
                   onPress={() => void pickProfilePhoto()}
                   disabled={avatarBusy}
                   className="relative items-center justify-center">
                   <Image
                     source={{ uri: avatarLarge }}
-                    style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: '#515458' }}
+                    style={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: 60,
+                      borderWidth: 2,
+                      borderColor: '#515458',
+                    }}
                   />
                   {avatarBusy ? (
                     <View className="absolute inset-0 items-center justify-center rounded-[60px] bg-black/50">
@@ -125,38 +137,38 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-          <View className="mt-4 overflow-hidden rounded-2xl p-4" style={cardShadow}>
-            <DetailRow icon="phone" label="Phone" value={profile?.phone ?? '—'} />
-            <Divider />
-            <DetailRow icon="envelope" label="Email" value={profile?.email ?? '—'} />
-          </View>
+            <View className="mt-4 overflow-hidden rounded-2xl p-4" style={cardShadow}>
+              <DetailRow icon="phone" label="Phone" value={profile?.phone ?? '—'} />
+              <Divider />
+              <DetailRow icon="envelope" label="Email" value={profile?.email ?? '—'} />
+            </View>
 
-          <View className="mt-4 overflow-hidden rounded-2xl p-4" style={cardShadow}>
-            <ActionRow icon="credit-card" title="Payment Methods" />
-            <Divider />
-            <ActionRow icon="history" title="Ride History" />
-            <Divider />
-            <ActionRow icon="shield" title="Privacy & Security" />
-            <Divider />
-            <ActionRow
-              icon="exchange"
-              title="Switch to Dispatcher mode"
-              onPress={async () => {
-                await switchRole('DISPATCHER');
-                router.replace('/(dispatcher-tabs)' as any);
-              }}
-            />
-            <Divider />
-            <ActionRow
-              icon="sign-out"
-              title="Logout"
-              destructive
-              onPress={async () => {
-                await logout();
-                router.replace('/login' as any);
-              }}
-            />
-          </View>
+            <View className="mt-4 overflow-hidden rounded-2xl p-4" style={cardShadow}>
+              <ActionRow icon="credit-card" title="Payment Methods" />
+              <Divider />
+              <ActionRow icon="history" title="Ride History" />
+              <Divider />
+              <ActionRow icon="shield" title="Privacy & Security" />
+              <Divider />
+              <ActionRow
+                icon="exchange"
+                title="Switch to Dispatcher mode"
+                onPress={async () => {
+                  await switchRole('DISPATCHER');
+                  router.replace('/(dispatcher-tabs)' as any);
+                }}
+              />
+              <Divider />
+              <ActionRow
+                icon="sign-out"
+                title="Logout"
+                destructive
+                onPress={async () => {
+                  await logout();
+                  router.replace('/login' as any);
+                }}
+              />
+            </View>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -220,7 +232,7 @@ function ActionRow({
 }
 
 const cardShadow = {
-  backgroundColor: '#0B0F14',
+  backgroundColor: '#222222',
   shadowColor: '#000',
   shadowOpacity: 0.22,
   shadowRadius: 14,

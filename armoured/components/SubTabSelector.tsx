@@ -34,7 +34,7 @@ export function SubTabSelector({ tabs, activeKey, onChange, className }: Props) 
             onPress={() => onChange(t.key)}
             className="flex-1"
             style={{
-              backgroundColor: '#2F3135',
+              backgroundColor: '#222222',
               padding: 5,
             }}>
             <LinearGradient

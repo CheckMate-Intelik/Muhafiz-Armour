@@ -102,10 +102,8 @@ export default function DispatcherVehiclesScreen() {
             shadowOffset: { width: 0, height: 8 },
             elevation: 10,
           }}>
-          <LinearGradient
-            colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
-            start={{ x: 1, y: 0 }}
-            end={{ x: 1, y: 1 }}
+          <View
+            className="bg-[#222222]"
             style={{
               minWidth: 170,
               borderRadius: 9999,
@@ -115,12 +113,12 @@ export default function DispatcherVehiclesScreen() {
               paddingHorizontal: 20,
             }}>
             <View className="flex-row items-center justify-center">
-              <FontAwesome name="plus" size={14} color="#0B0F14" />
+              <FontAwesome name="plus" size={14} color="#C9B37A" />
               <Text className="ml-2 text-sm font-bold" style={{ color: '#C9B37A' }}>
                 Add vehicle
               </Text>
             </View>
-          </LinearGradient>
+          </View>
         </Pressable>
 
         <ScrollView contentContainerStyle={{ paddingBottom: 180 }} className="px-5 pt-4">
