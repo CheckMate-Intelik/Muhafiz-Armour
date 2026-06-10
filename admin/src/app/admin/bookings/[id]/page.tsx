@@ -13,6 +13,92 @@ function fmt(dt: string | Date | null | undefined) {
   return new Date(dt).toLocaleString();
 }
 
+type ExtensionRequest = {
+  id: string;
+  additionalHours: number;
+  previousEndTime: string;
+  requestedEndTime: string;
+  proposedTotalPrice: number;
+  status: string;
+  createdAt: string;
+  resolvedAt: string | null;
+};
+
+function ExtensionCard({
+  ext,
+  index,
+  extensionRatePerHour,
+}: {
+  ext: ExtensionRequest;
+  index: number;
+  extensionRatePerHour?: number | null;
+}) {
+  const estimatedCharge =
+    extensionRatePerHour != null ? Math.round(extensionRatePerHour * ext.additionalHours) : null;
+
+  return (
+    <div
+      className="stack"
+      style={{
+        padding: 14,
+        borderRadius: 12,
+        border: '1px solid rgba(127, 127, 127, 0.2)',
+        background: 'rgba(127, 127, 127, 0.03)',
+      }}>
+      <div className="stack-inline" style={{ justifyContent: 'space-between' }}>
+        <div className="h3">Extension {index + 1}</div>
+        <StatusBadge status={ext.status} />
+      </div>
+      <div className="mono muted" style={{ fontSize: 11 }}>
+        {ext.id}
+      </div>
+      <div className="grid2">
+        <div>
+          <div className="muted">Additional hours</div>
+          <div className="mono" style={{ marginTop: 4 }}>
+            {ext.additionalHours} hr{ext.additionalHours === 1 ? '' : 's'}
+          </div>
+        </div>
+        <div>
+          <div className="muted">Proposed total price</div>
+          <div className="mono" style={{ marginTop: 4 }}>
+            Rs {ext.proposedTotalPrice}
+          </div>
+        </div>
+      </div>
+      {estimatedCharge != null ? (
+        <div>
+          <div className="muted">Est. extension charge (rate × hours)</div>
+          <div className="mono" style={{ marginTop: 4 }}>
+            Rs {estimatedCharge}
+            <span className="muted"> @ Rs {extensionRatePerHour}/hr</span>
+          </div>
+        </div>
+      ) : null}
+      <div>
+        <div className="muted">End time change</div>
+        <div className="mono" style={{ marginTop: 4 }}>
+          {fmt(ext.previousEndTime)} <span className="muted">→</span> {fmt(ext.requestedEndTime)}
+        </div>
+      </div>
+      <div className="grid2">
+        <div>
+          <div className="muted">Requested</div>
+          <div className="mono" style={{ marginTop: 4 }}>
+            {fmt(ext.createdAt)}
+          </div>
+        </div>
+        <div>
+          <div className="muted">Resolved</div>
+          <div className="mono" style={{ marginTop: 4 }}>
+            {fmt(ext.resolvedAt)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminBookingDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -157,6 +243,22 @@ export default function AdminBookingDetailPage() {
                 <div className="mono">{fmt(row.createdAt)}</div>
               </div>
             </div>
+            <div className="divider" />
+            <div className="h3">Extensions</div>
+            {Array.isArray(row.extensionRequests) && row.extensionRequests.length > 0 ? (
+              <div className="stack">
+                {row.extensionRequests.map((ext: ExtensionRequest, index: number) => (
+                  <ExtensionCard
+                    key={ext.id}
+                    ext={ext}
+                    index={index}
+                    extensionRatePerHour={row.vehicle?.extensionRatePerHour}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="muted">No extension requests for this booking.</div>
+            )}
           </div>
         ) : (
           <div className="muted">Not found.</div>

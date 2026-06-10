@@ -2,7 +2,7 @@ export function StatusBadge({ status }: { status: string }) {
   const cls =
     status === 'PENDING' || status === 'PENDING_DISPATCHER' || status === 'REQUESTED'
       ? 'badge badge-yellow'
-      : status === 'CONFIRMED' || status === 'COMPLETED'
+      : status === 'CONFIRMED' || status === 'COMPLETED' || status === 'APPROVED'
         ? 'badge badge-green'
         : status === 'REJECTED' || status === 'EXPIRED'
           ? 'badge badge-red'

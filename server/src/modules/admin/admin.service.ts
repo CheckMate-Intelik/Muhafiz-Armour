@@ -71,6 +71,7 @@ export class AdminService {
         user: { select: { id: true, name: true, phone: true, email: true, isBlocked: true, createdAt: true } },
         dispatcher: { select: { id: true, name: true, phone: true, email: true, isApproved: true, isBlocked: true, createdAt: true } },
         vehicle: true,
+        extensionRequests: { orderBy: { createdAt: 'asc' } },
       },
     });
     if (!booking) throw new NotFoundException('Booking not found');
