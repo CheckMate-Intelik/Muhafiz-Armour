@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { AppState, Platform } from 'react-native';
+import { colors } from '@/constants/theme';
 
-const APP_BACKGROUND = '#020617';
+const APP_BACKGROUND = colors.background;
 
 /** Hide Android software navigation bar; no-op if native module missing (rebuild dev client). */
 async function configureAndroidSystemBars() {

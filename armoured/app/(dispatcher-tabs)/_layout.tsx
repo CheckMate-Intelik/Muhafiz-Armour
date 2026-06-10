@@ -9,6 +9,7 @@ import { useNavigationReady } from '@/hooks/useNavigationReady';
 import { safeReplace } from '@/lib/safeRouter';
 import { useStore } from '@/store/store';
 import { useBookingsStore } from '@/store/bookingsStore';
+import { colors } from '@/constants/theme';
 
 type Snooze = { untilMs: number };
 
@@ -120,16 +121,16 @@ export default function DispatcherTabLayout() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarActiveTintColor: '#1D2DD9',
-        tabBarInactiveTintColor: '#111827',
+        tabBarInactiveTintColor: colors.tabInactive,
         tabBarStyle: {
           position: 'absolute',
           width: '90%',
           marginLeft: '5%',
-          bottom: tabBarBottom,
+          bottom: 12,
           borderRadius: 28,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgb(193, 155, 59)',
+          backgroundColor: colors.tabBar,
           borderTopWidth: 0,
           shadowColor: '#000',
           shadowOpacity: 0.08,
@@ -167,12 +168,12 @@ export default function DispatcherTabLayout() {
               <FontAwesome
                 name="home"
                 size={focused ? 24 : 28}
-                color={focused ? '#C9B37A' : 'black'}
+                color={focused ? colors.gold : colors.black}
               />
               {focused && (
                 <Text
                   style={{
-                    color: '#C9B37A',
+                    color: colors.gold,
                     marginLeft: 8,
                     fontSize: 15,
                     fontWeight: '600',
@@ -203,12 +204,12 @@ export default function DispatcherTabLayout() {
               <FontAwesome
                 name="list-alt"
                 size={focused ? 24 : 28}
-                color={focused ? '#C9B37A' : 'black'}
+                color={focused ? colors.gold : colors.black}
               />
               {focused && (
                 <Text
                   style={{
-                    color: '#C9B37A',
+                    color: colors.gold,
                     marginLeft: 8,
                     fontSize: 15,
                     fontWeight: '600',
@@ -239,12 +240,12 @@ export default function DispatcherTabLayout() {
               <FontAwesome
                 name="car"
                 size={focused ? 24 : 28}
-                color={focused ? '#C9B37A' : 'black'}
+                color={focused ? colors.gold : colors.black}
               />
               {focused && (
                 <Text
                   style={{
-                    color: '#C9B37A',
+                    color: colors.gold,
                     marginLeft: 8,
                     fontSize: 15,
                     fontWeight: '600',
@@ -276,12 +277,12 @@ export default function DispatcherTabLayout() {
               <FontAwesome
                 name="user"
                 size={focused ? 24 : 28}
-                color={focused ? '#C9B37A' : 'black'}
+                color={focused ? colors.gold : colors.black}
               />
               {focused && (
                 <Text
                   style={{
-                    color: '#C9B37A',
+                    color: colors.gold,
                     marginLeft: 8,
                     fontSize: 15,
                     fontWeight: '600',

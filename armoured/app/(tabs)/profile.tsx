@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NotificationBellButton } from '@/components/NotificationBellButton';
 import { useStore, userAvatarUrl } from '@/store/store';
 import { LinearGradient } from 'expo-linear-gradient';
+import { cardShadow, colors, gradientProps, gradients } from '@/constants/theme';
 
 export default function ProfileScreen() {
   const hydrate = useStore((s) => s.hydrate);
@@ -62,17 +63,14 @@ export default function ProfileScreen() {
   }
 
   return (
-    <LinearGradient
-      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
-      style={{ flex: 1 }}>
+    <LinearGradient colors={[...gradients.screen]} {...gradientProps.screen} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-2xl font-semibold text-[#C9B37A]">Profile</Text>
+              <Text className="text-lg font-semibold" style={{ color: colors.gold }}>
+                Profile
+              </Text>
               {/* <Text className="text-lg font-semibold text-gray-200">
                 {profile?.name ?? (loading ? 'Loading…' : 'User')}
               </Text> */}
@@ -96,14 +94,14 @@ export default function ProfileScreen() {
                 shadowOffset: { width: 0, height: 10 },
                 elevation: 6,
               }}>
-              <View className="w-full border-b border-[#4d4d4d] bg-[#222222] pb-2 pt-4">
+              <View
+                className="w-full items-center rounded-b-xl py-5"
+                style={{ backgroundColor: colors.surface }}>
                 <Text
-                  className="text-md text-center font-extrabold"
-                  style={{ color: '#C9B37A', letterSpacing: 0.4 }}>
+                  className="text-md font- mb-4 w-[90%] border-b border-[#4d4d4d] pb-2 text-center"
+                  style={{ color: colors.gold, letterSpacing: 0.4 }}>
                   ACCOUNT
                 </Text>
-              </View>
-              <View className="w-full items-center rounded-b-xl bg-[#222222] py-5">
                 <Pressable
                   onPress={() => void pickProfilePhoto()}
                   disabled={avatarBusy}
@@ -120,18 +118,20 @@ export default function ProfileScreen() {
                   />
                   {avatarBusy ? (
                     <View className="absolute inset-0 items-center justify-center rounded-[60px] bg-black/50">
-                      <ActivityIndicator color="#C9B37A" />
+                      <ActivityIndicator color={colors.gold} />
                     </View>
                   ) : (
-                    <View className="absolute bottom-0 right-0 h-9 w-9 items-center justify-center rounded-full bg-[#C9B37A]">
-                      <FontAwesome name="camera" size={14} color="#0B0F14" />
+                    <View
+                      className="absolute bottom-0 right-0 h-9 w-9 items-center justify-center rounded-full"
+                      style={{ backgroundColor: colors.gold }}>
+                      <FontAwesome name="camera" size={14} color={colors.textOnGold} />
                     </View>
                   )}
                 </Pressable>
-                <Text className="mt-4 text-xl font-bold text-[#C9B37A]">
+                <Text className="mt-4 text-xl" style={{ color: colors.gold }}>
                   {profile?.name ?? (loading ? 'Loading…' : '—')}
                 </Text>
-                <Text className="mt-1 text-sm font-semibold" style={{ color: '#B8BBC0' }}>
+                <Text className="mt-1 text-sm font-semibold" style={{ color: colors.textMuted }}>
                   Member since {memberSince}
                 </Text>
               </View>
@@ -192,10 +192,10 @@ function DetailRow({
   return (
     <View className="flex-row items-center">
       <View className="h-10 w-10 items-center justify-center rounded-2xl bg-[#2F3135]">
-        <FontAwesome name={icon} size={16} color="#B8BBC0" />
+        <FontAwesome name={icon} size={16} color={colors.textMuted} />
       </View>
       <View className="ml-3 flex-1">
-        <Text className="text-[10px] font-bold" style={{ color: '#B8BBC0' }}>
+        <Text className="text-[10px] font-bold" style={{ color: colors.textMuted }}>
           {label}
         </Text>
         <Text className="mt-1 text-sm font-extrabold text-gray-100">{value}</Text>
@@ -219,23 +219,14 @@ function ActionRow({
     <Pressable onPress={onPress} className="flex-row items-center justify-between">
       <View className="flex-row items-center">
         <View className="h-10 w-10 items-center justify-center rounded-2xl bg-[#2F3135]">
-          <FontAwesome name={icon} size={16} color={destructive ? '#F87171' : '#B8BBC0'} />
+          <FontAwesome name={icon} size={16} color={destructive ? '#F87171' : colors.textMuted} />
         </View>
         <Text
           className={`ml-3 text-sm font-extrabold ${destructive ? 'text-red-400' : 'text-gray-100'}`}>
           {title}
         </Text>
       </View>
-      <FontAwesome name="angle-right" size={18} color="#B8BBC0" />
+      <FontAwesome name="angle-right" size={18} color={colors.textMuted} />
     </Pressable>
   );
 }
-
-const cardShadow = {
-  backgroundColor: '#222222',
-  shadowColor: '#000',
-  shadowOpacity: 0.22,
-  shadowRadius: 14,
-  shadowOffset: { width: 0, height: 10 },
-  elevation: 6,
-};

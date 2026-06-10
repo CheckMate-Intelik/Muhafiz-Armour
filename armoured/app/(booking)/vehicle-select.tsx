@@ -6,21 +6,11 @@ import RBSheet from 'react-native-raw-bottom-sheet';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { APP_GRADIENT, AUTH_CARD, AUTH_GOLD } from '@/components/AuthForm';
 import { BackButton } from '@/components/BackButton';
 import { PUBLIC_API_BASE_URL } from '@/lib/api';
 import { VehicleCard, VehicleCardData } from '@/components/VehicleCard';
 import { useTripDraftStore } from '@/store/tripDraft';
-
-const CARD_SHADOW: ViewStyle = {
-  backgroundColor: AUTH_CARD,
-  borderColor: 'rgba(255,255,255,0.06)',
-  shadowColor: '#000',
-  shadowOpacity: 0.22,
-  shadowRadius: 14,
-  shadowOffset: { width: 0, height: 10 },
-  elevation: 6,
-};
+import { colors, gradientProps, gradients, listCardShadow } from '@/constants/theme';
 
 export default function VehicleSelectScreen() {
   const filterSheetRef = useRef<any>(null);
@@ -196,10 +186,8 @@ export default function VehicleSelectScreen() {
 
   return (
     <LinearGradient
-      colors={[...APP_GRADIENT]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      colors={[...gradients.screen]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <ScrollView
@@ -208,17 +196,17 @@ export default function VehicleSelectScreen() {
           keyboardShouldPersistTaps="handled">
           <View className="flex-row items-center justify-between">
             <BackButton variant="auth" onPress={() => router.replace('/(tabs)' as any)} />
-            <Text className="text-2xl font-semibold" style={{ color: AUTH_GOLD }}>
+            <Text className="text-2xl font-semibold" style={{ color: colors.gold }}>
               Choose vehicle
             </Text>
             <View className="h-10 w-10" />
           </View>
 
-          <View className="mt-4 overflow-hidden rounded-2xl border" style={CARD_SHADOW}>
+          <View className="mt-4 overflow-hidden rounded-2xl border" style={listCardShadow}>
             <View className="border-b border-gray-900 bg-black px-4 py-2.5">
               <Text
                 className="text-md text-center font-extrabold"
-                style={{ color: AUTH_GOLD, letterSpacing: 0.5 }}>
+                style={{ color: colors.gold, letterSpacing: 0.5 }}>
                 YOUR TRIP
               </Text>
             </View>
@@ -226,7 +214,7 @@ export default function VehicleSelectScreen() {
               <Text className="text-sm font-semibold text-gray-100" numberOfLines={2}>
                 {draft.pickupAddress} → {draft.dropAddress}
               </Text>
-              <Text className="mt-1 text-sm font-semibold" style={{ color: '#9CA3AF' }}>
+              <Text className="mt-1 text-sm font-semibold" style={{ color: colors.textSecondary }}>
                 {window.start.toLocaleString()} • {baseHours}h
               </Text>
             </View>
@@ -239,7 +227,7 @@ export default function VehicleSelectScreen() {
                 backgroundColor: 'rgba(0, 0, 0, 0.3)',
                 borderColor: 'rgba(255,255,255,0.08)',
               }}>
-              <FontAwesome name="search" size={14} color={AUTH_GOLD} />
+              <FontAwesome name="search" size={14} color={colors.gold} />
               <TextInput
                 value={search}
                 onChangeText={setSearch}
@@ -251,14 +239,14 @@ export default function VehicleSelectScreen() {
             <Pressable
               onPress={() => filterSheetRef.current?.open()}
               className="ml-3 h-11 w-11 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: AUTH_GOLD }}>
-              <FontAwesome name="sliders" size={14} color={AUTH_CARD} />
+              style={{ backgroundColor: colors.gold }}>
+              <FontAwesome name="sliders" size={14} color={colors.textOnGold} />
             </Pressable>
           </View>
 
           <Text
             className="mt-5 text-sm font-extrabold"
-            style={{ color: AUTH_GOLD, letterSpacing: 0.4 }}>
+            style={{ color: colors.gold, letterSpacing: 0.4 }}>
             ARMOUR LEVELS
           </Text>
           <View className="mt-2 flex-row flex-wrap gap-2">
@@ -270,12 +258,12 @@ export default function VehicleSelectScreen() {
                   onPress={() => toggleArmour(type)}
                   className="h-[70px] min-w-[64px] flex-1 justify-center rounded-2xl border px-3 py-2"
                   style={{
-                    backgroundColor: active ? AUTH_GOLD : 'rgba(0, 0, 0, 0.3)',
-                    borderColor: active ? AUTH_GOLD : 'rgba(255,255,255,0.08)',
+                    backgroundColor: active ? colors.gold : 'rgba(0, 0, 0, 0.3)',
+                    borderColor: active ? colors.gold : 'rgba(255,255,255,0.08)',
                   }}>
                   <Text
                     className="text-md text-center font-extrabold"
-                    style={{ color: active ? AUTH_CARD : '#E5E7EB' }}>
+                    style={{ color: active ? colors.textOnGold : '#E5E7EB' }}>
                     {type}
                   </Text>
                 </Pressable>
@@ -285,24 +273,24 @@ export default function VehicleSelectScreen() {
 
           <View className="mt-6 flex-row items-center justify-between">
             <Text className="text-md font-bold text-gray-100">Available vehicles</Text>
-            <Text className="text-md font-bold" style={{ color: '#9CA3AF' }}>
+            <Text className="text-md font-bold" style={{ color: colors.textSecondary }}>
               {filteredVehicles.length} cars
             </Text>
           </View>
 
           {loading ? (
             <View className="mt-10 items-center">
-              <Text className="text-sm font-semibold" style={{ color: '#9CA3AF' }}>
+              <Text className="text-sm font-semibold" style={{ color: colors.textSecondary }}>
                 Loading…
               </Text>
             </View>
           ) : null}
 
           {!loading && filteredVehicles.length === 0 ? (
-            <View className="mt-10 items-center rounded-2xl border px-4 py-8" style={CARD_SHADOW}>
-              <FontAwesome name="car" size={24} color={AUTH_GOLD} />
+            <View className="mt-10 items-center rounded-2xl border px-4 py-8" style={listCardShadow}>
+              <FontAwesome name="car" size={24} color={colors.gold} />
               <Text className="mt-3 text-sm font-extrabold text-gray-100">No vehicles found</Text>
-              <Text className="mt-1 text-center text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+              <Text className="mt-1 text-center text-xs font-semibold" style={{ color: colors.textSecondary }}>
                 Try different armour levels or adjust filters for this time window.
               </Text>
             </View>
@@ -336,11 +324,11 @@ export default function VehicleSelectScreen() {
               borderTopRightRadius: 24,
               paddingHorizontal: 16,
               paddingBottom: 16,
-              backgroundColor: AUTH_CARD,
+              backgroundColor: colors.card,
             },
           }}>
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text className="text-base font-extrabold" style={{ color: AUTH_GOLD }}>
+            <Text className="text-base font-extrabold" style={{ color: colors.gold }}>
               Filters
             </Text>
             <FilterField label="City" value={city} onChangeText={setCity} placeholder="Karachi" />
@@ -350,7 +338,7 @@ export default function VehicleSelectScreen() {
                 backgroundColor: 'rgba(255,255,255,0.04)',
                 borderColor: 'rgba(255,255,255,0.08)',
               }}>
-              <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
+                <Text className="text-xs font-bold" style={{ color: colors.textSecondary }}>
                 Car type
               </Text>
               <Pressable
@@ -366,7 +354,7 @@ export default function VehicleSelectScreen() {
                 <FontAwesome
                   name={carTypePickerOpen ? 'angle-up' : 'angle-down'}
                   size={16}
-                  color={AUTH_GOLD}
+                  color={colors.gold}
                 />
               </Pressable>
               {carTypePickerOpen ? (
@@ -382,7 +370,7 @@ export default function VehicleSelectScreen() {
                         className="flex-row items-center justify-between rounded-lg px-3 py-2">
                         <Text className="text-sm font-bold text-gray-100">{type}</Text>
                         {selected ? (
-                          <FontAwesome name="check" size={14} color={AUTH_GOLD} />
+                          <FontAwesome name="check" size={14} color={colors.gold} />
                         ) : (
                           <View className="h-3.5 w-3.5" />
                         )}
@@ -415,8 +403,8 @@ export default function VehicleSelectScreen() {
             <Pressable
               onPress={applyFilters}
               className="mt-4 items-center justify-center rounded-2xl py-3.5"
-              style={{ backgroundColor: AUTH_GOLD }}>
-              <Text className="text-xs font-extrabold" style={{ color: AUTH_CARD }}>
+              style={{ backgroundColor: colors.gold }}>
+              <Text className="text-xs font-extrabold" style={{ color: colors.textOnGold }}>
                 Apply filters
               </Text>
             </Pressable>
@@ -444,7 +432,7 @@ function FilterField({
     <View
       className="mt-3 rounded-2xl border px-4 py-3"
       style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
-      <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
+      <Text className="text-xs font-bold" style={{ color: colors.textSecondary }}>
         {label}
       </Text>
       <TextInput

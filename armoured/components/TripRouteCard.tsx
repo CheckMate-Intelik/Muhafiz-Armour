@@ -5,6 +5,7 @@ import { Pressable, Text, View } from 'react-native';
 import { PendingExpiryCountdown } from '@/components/PendingExpiryCountdown';
 import { isPendingAwaitingDispatcher } from '@/lib/bookingPendingExpiry';
 import { useState } from 'react';
+import { colors, missionCardOuter } from '@/constants/theme';
 
 type StatusMeta = {
   label: string;
@@ -102,31 +103,11 @@ export function TripRouteCard({
 
   if (variant === 'mission') {
     return (
-      <Root testID={testID} className="mb-2 overflow-hidden rounded-xl bg-[#222222]">
+      <Root
+        testID={testID}
+        className="mb-2 overflow-hidden rounded-xl"
+        style={{ backgroundColor: colors.surface }}>
         <View className="flex-row">
-          {/* <LinearGradient
-            colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
-            start={{ x: 1, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ width: '12%', alignSelf: 'stretch', borderRadius: 10 }}> */}
-          {/* <Pressable
-            onPress={handlePress}
-            className="flex-1 items-center justify-center rounded-xl bg-['#1c1c1c']"
-            style={{ flex: 1, borderRadius: 10, width: '12%' }}>
-            <FontAwesome
-              name={isExpanded ? 'chevron-down' : 'chevron-right'}
-              size={14}
-              color="#C9B37A"
-            />
-          </Pressable> */}
-          {/* </LinearGradient> */}
-
-          {/* <LinearGradient
-            colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
-            start={{ x: 1, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="min-w-0 flex-1"
-            style={{ borderRadius: 10 }}> */}
           <Pressable
             className={`w-full ${isExpanded ? 'rounded-t-xl' : 'rounded-xl'} bg-['#222222'] px-4 pb-3 pt-3.5`}
             style={{ borderBottomColor: 'rgba(255,255,255,0.06)' }}
@@ -135,14 +116,14 @@ export function TripRouteCard({
               <FontAwesome
                 name={isExpanded ? 'chevron-down' : 'chevron-right'}
                 size={14}
-                color="#C9B37A"
+                color={colors.gold}
                 style={{ width: '8%' }}
               />
               <View className="min-w-0 flex-1 pr-2">
                 <Text
                   numberOfLines={2}
                   className="text-[12px] font-extrabold"
-                  style={{ color: '#B8BBC0', letterSpacing: 0.5 }}>
+                  style={{ color: colors.textMuted, letterSpacing: 0.5 }}>
                   {missionHeaderLine || meta?.label || '—'}
                 </Text>
                 {isPendingAwaitingDispatcher(status) ? (
@@ -154,7 +135,7 @@ export function TripRouteCard({
                     className="mt-1"
                   />
                 ) : (
-                  <Text className="mt-1 text-sm font-bold" style={{ color: '#B8BBC0' }}>
+                  <Text className="mt-1 text-sm font-bold" style={{ color: colors.textMuted }}>
                     {formatTripDateShort(createdAt)}
                   </Text>
                 )}
@@ -192,7 +173,7 @@ export function TripRouteCard({
                 <View className="flex-1">
                   <View className="flex-row">
                     <View className="flex-1 pr-3">
-                      <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+                      <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
                         FROM:
                       </Text>
                       <Text numberOfLines={2} className="text-md mt-1 font-semibold text-gray-100">
@@ -202,7 +183,7 @@ export function TripRouteCard({
 
                     {missionCostLabel ? (
                       <View className="w-[90px] items-end">
-                        <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+                        <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
                           COST:
                         </Text>
                         <Text
@@ -221,7 +202,7 @@ export function TripRouteCard({
 
                   <View className="mt-3 flex-row items-start justify-between">
                     <View className="min-w-0 flex-1 pr-2">
-                      <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+                      <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
                         TO:
                       </Text>
                       <Text numberOfLines={2} className="text-md mt-1 font-extrabold text-gray-100">
@@ -319,13 +300,3 @@ const cardShadow = {
   elevation: 4,
 };
 
-const missionCardOuter = {
-  backgroundColor: '#222222',
-  // borderColor: 'rgba(255,255,255,0.06)',
-  // borderWidth: 1,
-  shadowColor: '#000',
-  shadowOpacity: 0.28,
-  shadowRadius: 18,
-  shadowOffset: { width: 0, height: 14 },
-  elevation: 8,
-};

@@ -15,9 +15,8 @@ import {
   type ActiveBookingHeroData,
 } from '../../components/ActiveBookingHeroCard';
 import { NotificationBellButton } from '@/components/NotificationBellButton';
+import { colors, gradientProps, gradients } from '@/constants/theme';
 import { UserBookingCard, type UserBookingListItem } from '../../components/UserBookingCard';
-
-const SCREEN_GRADIENT_COLORS = ['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617'] as const;
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_PADDING = 20;
@@ -27,17 +26,6 @@ const ACTIVE_CARD_SIDE_INSET = Math.max(
   SCREEN_PADDING,
   Math.round((SCREEN_WIDTH - ACTIVE_CARD_WIDTH) / 2)
 );
-
-const listCardShadow = {
-  backgroundColor: 'rgba(255, 255, 255, 0.13)',
-  borderColor: 'rgba(255,255,255,0.06)',
-  borderWidth: 1,
-  shadowColor: '#000',
-  shadowOpacity: 0.28,
-  shadowRadius: 18,
-  shadowOffset: { width: 0, height: 14 },
-  elevation: 8,
-};
 
 function normalizeStatus(status: string | null | undefined) {
   return (status ?? '').trim().toUpperCase();
@@ -138,17 +126,17 @@ export default function DispatcherDashboardScreen() {
 
   return (
     <LinearGradient
-      colors={[...SCREEN_GRADIENT_COLORS]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      colors={[...gradients.screen]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="pt-4">
           <View className="flex-row items-center justify-between px-5">
             <View>
-              <Text className="text-[22px] font-bold text-[#C9B37A]">Welcome!</Text>
-              <Text className="text-2xl font-bold text-[#C9B37A]">
+              <Text className="text-[22px] font-bold" style={{ color: colors.gold }}>
+                Welcome!
+              </Text>
+              <Text className="text-2xl font-bold" style={{ color: colors.gold }}>
                 {profileLoading && !profile?.name && !dispatcherSession?.name
                   ? '…'
                   : dispatcherName}
@@ -165,14 +153,16 @@ export default function DispatcherDashboardScreen() {
 
           <View className="mt-5 flex-row gap-3 px-5">
             <View className="flex-1 rounded-2xl">
-              <View className="rounded-2xl bg-[#222222] px-4">
-                <View className="h-12 flex-row items-center justify-between border-b border-[#4d4d4d]">
+              <View className="rounded-2xl px-4" style={{ backgroundColor: colors.surface }}>
+                <View
+                  className="h-12 flex-row items-center justify-between border-b"
+                  style={{ borderBottomColor: colors.borderDivider }}>
                   <Text
                     className="text-[11px] font-extrabold"
-                    style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
+                    style={{ color: colors.gold, letterSpacing: 0.5 }}>
                     TOTAL EARNINGS
                   </Text>
-                  <FontAwesome name="money" size={16} color="#C9B37A" />
+                  <FontAwesome name="money" size={16} color={colors.gold} />
                 </View>
                 <Text className="mt-4 text-lg font-bold text-gray-100">
                   Rs.{' '}
@@ -180,24 +170,26 @@ export default function DispatcherDashboardScreen() {
                     {totalEarnings.toFixed(2)}
                   </Text>
                 </Text>
-                <Text className="mb-2 mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+                <Text className="mb-2 mt-1 text-xs font-semibold" style={{ color: colors.textSecondary }}>
                   This period
                 </Text>
               </View>
             </View>
 
             <View className="flex-1 rounded-2xl bg-black">
-              <View className="rounded-2xl bg-[#222222] px-4">
-                <View className="h-12 flex-row items-center justify-between border-b border-[#4d4d4d]">
+              <View className="rounded-2xl px-4" style={{ backgroundColor: colors.surface }}>
+                <View
+                  className="h-12 flex-row items-center justify-between border-b"
+                  style={{ borderBottomColor: colors.borderDivider }}>
                   <Text
                     className="text-[11px] font-extrabold"
-                    style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
+                    style={{ color: colors.gold, letterSpacing: 0.5 }}>
                     COMPLETED
                   </Text>
-                  <FontAwesome name="check" size={16} color="#C9B37A" />
+                  <FontAwesome name="check" size={16} color={colors.gold} />
                 </View>
                 <Text className="mt-4 text-2xl font-extrabold text-gray-100">{completedTrips}</Text>
-                <Text className="mb-2 mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+                <Text className="mb-2 mt-1 text-xs font-semibold" style={{ color: colors.textSecondary }}>
                   All time
                 </Text>
               </View>
@@ -253,7 +245,7 @@ export default function DispatcherDashboardScreen() {
             )}
           </View>
 
-          <View className="mt-2 px-5">
+          <View className="px-5">
             <UserBookingCard
               booking={upcomingBooking as UserBookingListItem | null}
               title="UPCOMING BOOKING"

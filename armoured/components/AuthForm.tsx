@@ -13,22 +13,20 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import {
+  APP_GRADIENT,
+  AUTH_CARD,
+  AUTH_GOLD,
+  cardShadow as CARD_SHADOW,
+  colors,
+  gradientProps,
+  gradients,
+} from '@/constants/theme';
 import type { AppRole } from '@/lib/api';
 
-export const AUTH_GOLD = '#C9B37A';
-export const AUTH_CARD = '#0B0F14';
-export const APP_GRADIENT = ['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617'] as const;
-const GRADIENT = APP_GRADIENT;
+export { APP_GRADIENT, AUTH_CARD, AUTH_GOLD } from '@/constants/theme';
 
-const CARD_SHADOW: ViewStyle = {
-  backgroundColor: AUTH_CARD,
-  borderColor: 'rgba(255,255,255,0.06)',
-  shadowColor: '#000',
-  shadowOpacity: 0.22,
-  shadowRadius: 14,
-  shadowOffset: { width: 0, height: 10 },
-  elevation: 6,
-};
+const GRADIENT = gradients.screen;
 
 type AuthScreenShellProps = {
   title: string;
@@ -50,9 +48,7 @@ export function AuthScreenShell({
   return (
     <LinearGradient
       colors={[...GRADIENT]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView
@@ -115,7 +111,7 @@ export function AuthRoleToggle({
             style={active ? { backgroundColor: AUTH_GOLD } : undefined}>
             <Text
               className="text-sm font-extrabold"
-              style={{ color: active ? AUTH_CARD : '#9CA3AF' }}>
+              style={{ color: active ? AUTH_CARD : colors.textSecondary }}>
               {r === 'USER' ? 'User' : 'Dispatcher'}
             </Text>
           </Pressable>
@@ -182,8 +178,8 @@ export function AuthPrimaryButton({
       onPress={onPress}
       disabled={inactive}
       className="mt-4 items-center justify-center rounded-2xl py-3.5"
-      style={{ backgroundColor: inactive ? 'rgba(255,255,255,0.1)' : AUTH_GOLD }}>
-      <Text className="text-sm font-extrabold" style={{ color: inactive ? '#6B7280' : AUTH_CARD }}>
+      style={{ backgroundColor: inactive ? colors.disabledStrong : AUTH_GOLD }}>
+      <Text className="text-sm font-extrabold" style={{ color: inactive ? colors.textDisabled : AUTH_CARD }}>
         {busy && loadingLabel ? loadingLabel : label}
       </Text>
     </Pressable>

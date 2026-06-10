@@ -2,6 +2,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Text, View } from 'react-native';
 
 import { PendingExpiryCountdown } from '@/components/PendingExpiryCountdown';
+import { colors } from '@/constants/theme';
 import { isPendingAwaitingDispatcher } from '@/lib/bookingPendingExpiry';
 
 export type BookingDetailsBodyProps = {
@@ -63,7 +64,7 @@ export function BookingDetailsBody({
             variant="dark"
             className="mt-1"
           />
-          <Text className="mt-2 text-[11px] font-semibold" style={{ color: '#B8BBC0' }}>
+          <Text className="mt-2 text-[11px] font-semibold" style={{ color: colors.textMuted }}>
             If not accepted within 1 hour, this request will expire automatically.
           </Text>
         </View>
@@ -74,13 +75,13 @@ export function BookingDetailsBody({
           className="flex-1 rounded-2xl p-3"
           style={{
             ...cardShadow,
-            backgroundColor: '#222222',
+            backgroundColor: colors.surface,
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.06)',
           }}>
           <Text
-            className="text-md mb-2 border-b border-[#4d4d4d] pb-2 font-bold"
-            style={{ color: '#C9B37A' }}>
+            className="text-md mb-2 border-b pb-2 font-bold"
+            style={{ borderBottomColor: colors.borderDivider, color: colors.gold }}>
             {personLabel}
           </Text>
           <View className="mt-2 flex-row items-center">
@@ -91,7 +92,7 @@ export function BookingDetailsBody({
                 borderWidth: 1,
                 borderColor: 'rgba(255,255,255,0.06)',
               }}>
-              <FontAwesome name="user" size={16} color="#9CA3AF" />
+              <FontAwesome name="user" size={16} color={colors.textSecondary} />
             </View>
             <Text className="text-md ml-2 flex-1 font-bold text-gray-200" numberOfLines={1}>
               {personName}
@@ -103,13 +104,13 @@ export function BookingDetailsBody({
             className="rounded-2xl p-3"
             style={{
               ...cardShadow,
-              backgroundColor: '#222222',
+              backgroundColor: colors.surface,
               borderWidth: 1,
               borderColor: 'rgba(255,255,255,0.06)',
             }}>
             <Text
-              className="border-b border-[#4d4d4d] pb-2 text-[11px] font-bold"
-              style={{ color: '#C9B37A' }}>
+              className="border-b pb-2 text-[11px] font-bold"
+              style={{ borderBottomColor: colors.borderDivider, color: colors.gold }}>
               Status
             </Text>
             <Text className={`mt-2 text-xs font-semibold ${statusTextClassName}`} numberOfLines={2}>
@@ -120,13 +121,13 @@ export function BookingDetailsBody({
             className="h-[80px] rounded-2xl p-3"
             style={{
               ...cardShadow,
-              backgroundColor: '#222222',
+              backgroundColor: colors.surface,
               borderWidth: 1,
               borderColor: 'rgba(255,255,255,0.06)',
             }}>
             <Text
-              className="border-b border-[#4d4d4d] pb-2 text-[11px] font-bold"
-              style={{ color: '#C9B37A' }}>
+              className="border-b pb-2 text-[11px] font-bold"
+              style={{ borderBottomColor: colors.borderDivider, color: colors.gold }}>
               Payout
             </Text>
             <Text className="mt-2 text-sm font-semibold text-gray-200" numberOfLines={2}>
@@ -140,28 +141,30 @@ export function BookingDetailsBody({
         className="mt-4 rounded-3xl p-4"
         style={{
           ...cardShadow,
-          backgroundColor: '#222222',
+          backgroundColor: colors.surface,
           borderWidth: 1,
           borderColor: 'rgba(255,255,255,0.06)',
         }}>
         <View className="mt-2">
-          <Text className="border-b border-[#4d4d4d] pb-2 text-lg font-bold text-[#C9B37A]">
+          <Text
+            className="border-b pb-2 text-lg font-bold"
+            style={{ borderBottomColor: colors.borderDivider, color: colors.gold }}>
             {vehicleName || '—'}
           </Text>
           <View className="mt-2 flex-row items-center gap-2">
-            <Text className="text-sm font-bold" style={{ color: '#B8BBC0' }}>
+            <Text className="text-sm font-bold" style={{ color: colors.textMuted }}>
               {vehicleType || '—'}
             </Text>
             <View className="flex-row items-center gap-1">
-              <FontAwesome name="shield" size={16} color="#C9B37A" />
-              <Text className="text-md font-semibold" style={{ color: '#B8BBC0' }}>
+              <FontAwesome name="shield" size={16} color={colors.gold} />
+              <Text className="text-md font-semibold" style={{ color: colors.textMuted }}>
                 {vehicleArmour || '—'}
               </Text>
             </View>
           </View>
         </View>
         <View className="mt-3">
-          <Text className="text-sm font-bold" style={{ color: '#9CA3AF' }}>
+          <Text className="text-sm font-bold" style={{ color: colors.textSecondary }}>
             Booking ID
           </Text>
           <Text className="mt-1 text-sm font-extrabold text-gray-100">{bookingId || '—'}</Text>
@@ -172,7 +175,7 @@ export function BookingDetailsBody({
 
       <View className="mt-5 flex-row items-center">
         <View className="relative h-11 w-11 items-center justify-center">
-          <FontAwesome name="calendar-o" size={20} color="#9CA3AF" />
+          <FontAwesome name="calendar-o" size={20} color={colors.textSecondary} />
           <View
             className="absolute bottom-0.5 right-0.5 rounded-sm"
             style={{
@@ -180,11 +183,11 @@ export function BookingDetailsBody({
               borderWidth: 1,
               borderColor: 'rgba(255,255,255,0.06)',
             }}>
-            <FontAwesome name="clock-o" size={9} color="#9CA3AF" />
+            <FontAwesome name="clock-o" size={9} color={colors.textSecondary} />
           </View>
         </View>
         <View className="ml-1 flex-1">
-          <Text className="text-md" style={{ color: '#B8BBC0' }}>
+          <Text className="text-md" style={{ color: colors.textMuted }}>
             Trip duration: <Text className="font-bold text-gray-100">{tripDurationText}</Text>
           </Text>
         </View>
@@ -192,10 +195,10 @@ export function BookingDetailsBody({
 
       <View className="mt-4 flex-row items-center">
         <View className="h-11 w-11 items-center justify-center">
-          <FontAwesome name="calendar-o" size={20} color="#9CA3AF" />
+          <FontAwesome name="calendar-o" size={20} color={colors.textSecondary} />
         </View>
         <View className="ml-1 flex-1">
-          <Text className="text-md" style={{ color: '#B8BBC0' }}>
+          <Text className="text-md" style={{ color: colors.textMuted }}>
             Trip date: <Text className="font-bold text-gray-100">{tripStartDateText}</Text>
           </Text>
         </View>
@@ -210,7 +213,7 @@ export function BookingDetailsBody({
               borderWidth: 1,
               borderColor: 'rgba(255,255,255,0.06)',
             }}>
-            <FontAwesome name="map-marker" size={18} color="#C9B37A" />
+            <FontAwesome name="map-marker" size={18} color={colors.gold} />
           </View>
           <View
             style={{
@@ -233,25 +236,25 @@ export function BookingDetailsBody({
           </View>
         </View>
         <View className="flex-1 pl-2">
-          <Text className="text-md font-semibold" style={{ color: '#B8BBC0' }}>
+          <Text className="text-md font-semibold" style={{ color: colors.textMuted }}>
             Pickup location
           </Text>
           <Text className="mt-0.5 text-lg font-bold text-gray-100" numberOfLines={4}>
             {pickupLocation || '—'}
           </Text>
-          <Text className="text-md mt-1 font-medium" style={{ color: '#9CA3AF' }}>
+          <Text className="text-md mt-1 font-medium" style={{ color: colors.textSecondary }}>
             {pickupAtText}
           </Text>
 
           <View className="h-6" />
 
-          <Text className="text-md font-semibold" style={{ color: '#B8BBC0' }}>
+          <Text className="text-md font-semibold" style={{ color: colors.textMuted }}>
             Return location
           </Text>
           <Text className="mt-0.5 text-lg font-bold text-gray-100" numberOfLines={4}>
             {dropLocation || '—'}
           </Text>
-          <Text className="text-md mt-1 font-medium" style={{ color: '#9CA3AF' }}>
+          <Text className="text-md mt-1 font-medium" style={{ color: colors.textSecondary }}>
             {returnAtText}
           </Text>
         </View>

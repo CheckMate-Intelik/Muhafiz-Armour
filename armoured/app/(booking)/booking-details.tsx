@@ -20,6 +20,7 @@ import { paramString } from '@/lib/routeParams';
 import { useStore } from '@/store/store';
 import { useBookingsStore } from '@/store/bookingsStore';
 import { LinearGradient } from 'expo-linear-gradient';
+import { colors, gradientProps, gradients } from '@/constants/theme';
 
 const USER_SNOOZE_KEY = 'armoured:ongoing-trip-snooze:v1';
 const USER_IN_MEMORY_SNOOZE_KEY = '__armouredOngoingTripSnoozeUntilMs';
@@ -647,18 +648,16 @@ export default function BookingDetailsScreen() {
   if (!bookingId) {
     return (
       <LinearGradient
-        colors={['rgb(26, 68, 160)', 'rgb(22, 34, 63)', '#020617']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        locations={[0, 0.45, 1]}
+        colors={[...gradients.screenBookingError]}
+        {...gradientProps.screenBookingMuted}
         style={{ flex: 1 }}>
         <SafeAreaView className="flex-1 items-center justify-center px-5">
           <Text className="text-sm font-semibold text-gray-100">Missing booking.</Text>
           <Pressable
             onPress={() => router.back()}
             className="mt-4 rounded-2xl px-4 py-3"
-            style={{ backgroundColor: '#C9B37A' }}>
-            <Text className="text-xs font-extrabold" style={{ color: '#0B0F14' }}>
+            style={{ backgroundColor: colors.gold }}>
+            <Text className="text-xs font-extrabold" style={{ color: colors.textOnGold }}>
               Go back
             </Text>
           </Pressable>
@@ -670,10 +669,8 @@ export default function BookingDetailsScreen() {
   if (shouldFetch && !pollReady && (!hasParamDetails || isLiveRoute)) {
     return (
       <LinearGradient
-        colors={['#1a2744', '#0f172a', '#020617']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        locations={[0, 0.45, 1]}
+        colors={[...gradients.screenBookingMuted]}
+        {...gradientProps.screenBookingMuted}
         style={{ flex: 1 }}>
         <SafeAreaView className="flex-1 items-center justify-center">
           <Text className="text-sm font-semibold text-gray-100">Loading…</Text>
@@ -685,10 +682,8 @@ export default function BookingDetailsScreen() {
   if (isLiveRoute && shouldPollInterval && pollReady && !hasLiveRow) {
     return (
       <LinearGradient
-        colors={['#1a2744', '#0f172a', '#020617']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        locations={[0, 0.45, 1]}
+        colors={[...gradients.screenBookingMuted]}
+        {...gradientProps.screenBookingMuted}
         style={{ flex: 1 }}>
         <SafeAreaView className="flex-1">
           <View className="px-5 pt-4">
@@ -700,14 +695,14 @@ export default function BookingDetailsScreen() {
           </View>
           <View className="flex-1 items-center justify-center px-5">
             <Text className="text-base font-extrabold text-gray-100">No active trip</Text>
-            <Text className="mt-2 text-xs font-semibold" style={{ color: '#B8BBC0' }}>
+            <Text className="mt-2 text-xs font-semibold" style={{ color: colors.textMuted }}>
               This trip may have ended.
             </Text>
             <Pressable
               onPress={() => void dismissLive()}
               className="mt-4 rounded-2xl px-4 py-3"
-              style={{ backgroundColor: '#C9B37A' }}>
-              <Text className="text-xs font-extrabold" style={{ color: '#0B0F14' }}>
+              style={{ backgroundColor: colors.gold }}>
+              <Text className="text-xs font-extrabold" style={{ color: colors.textOnGold }}>
                 {isDispatcherMode ? 'Back to bookings' : 'Back to home'}
               </Text>
             </Pressable>
@@ -741,10 +736,8 @@ export default function BookingDetailsScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.3, 1]}
+      colors={[...gradients.screenBooking]}
+      {...gradientProps.screenBooking}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
@@ -756,7 +749,7 @@ export default function BookingDetailsScreen() {
                 onPress={() => void load()}
                 className="h-10 w-10 items-center justify-center rounded-2xl"
                 style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-                <FontAwesome name="refresh" size={16} color="#9CA3AF" />
+                <FontAwesome name="refresh" size={16} color={colors.textSecondary} />
               </Pressable>
             ) : (
               <View className="h-10 w-10" />
@@ -794,7 +787,7 @@ export default function BookingDetailsScreen() {
                 borderWidth: 1,
                 borderColor: 'rgba(255,255,255,0.06)',
               }}>
-              <Text className="text-md font-semibold" style={{ color: '#B8BBC0' }}>
+              <Text className="text-md font-semibold" style={{ color: colors.textMuted }}>
                 You’ll be notified here once the dispatcher completes the trip.
               </Text>
             </View>
@@ -809,16 +802,16 @@ export default function BookingDetailsScreen() {
                 borderColor: 'rgba(255,255,255,0.08)',
               }}>
               <Text className="text-lg font-bold text-gray-100">Trip extension</Text>
-              <Text className="text-md font-bold" style={{ color: '#B8BBC0' }}>
+              <Text className="text-md font-bold" style={{ color: colors.textMuted }}>
                 Requested: {formatAdditionalHours(extensionRequest.additionalHours)}
               </Text>
-              <Text className="text-md font-bold" style={{ color: '#B8BBC0' }}>
+              <Text className="text-md font-bold" style={{ color: colors.textMuted }}>
                 Current end: {formatExtensionDateTime(extensionRequest.previousEndTime)}
               </Text>
-              <Text className="text-md font-bold" style={{ color: '#B8BBC0' }}>
+              <Text className="text-md font-bold" style={{ color: colors.textMuted }}>
                 Proposed end: {formatExtensionDateTime(extensionRequest.requestedEndTime)}
               </Text>
-              <Text className="text-md font-bold" style={{ color: '#B8BBC0' }}>
+              <Text className="text-md font-bold" style={{ color: colors.textMuted }}>
                 Proposed total: Rs {extensionRequest.proposedTotalPrice.toFixed(2)}
               </Text>
               <Text
@@ -865,7 +858,7 @@ export default function BookingDetailsScreen() {
                 }}
                 className="flex-1 items-center justify-center rounded-2xl py-4"
                 style={{
-                  backgroundColor: '#0B0F14',
+                  backgroundColor: colors.card,
                   borderWidth: 1,
                   borderColor: 'rgba(239,68,68,0.45)',
                   opacity: busy ? 0.6 : 1,
@@ -881,8 +874,8 @@ export default function BookingDetailsScreen() {
                   if (id && id !== '—') void approveExtensionDispatcher(id);
                 }}
                 className="flex-1 items-center justify-center rounded-2xl py-4"
-                style={{ backgroundColor: '#C9B37A', opacity: busy ? 0.6 : 1 }}>
-                <Text className="text-sm font-extrabold" style={{ color: '#0B0F14' }}>
+                style={{ backgroundColor: colors.gold, opacity: busy ? 0.6 : 1 }}>
+                <Text className="text-sm font-extrabold" style={{ color: colors.textOnGold }}>
                   {busy ? 'Please wait…' : 'Approve'}
                 </Text>
               </Pressable>
@@ -892,10 +885,10 @@ export default function BookingDetailsScreen() {
           {showUserExtendActions ? (
             <View className="mt-4 gap-3">
               <Text className="text-lg font-extrabold text-gray-100">Extend booking</Text>
-              <Text className="text-md font-semibold" style={{ color: '#B8BBC0' }}>
+              <Text className="text-md font-semibold" style={{ color: colors.textMuted }}>
                 Extension requires dispatcher approval after availability is checked.
               </Text>
-              <Text className="text-md font-semibold" style={{ color: '#9CA3AF' }}>
+              <Text className="text-md font-semibold" style={{ color: colors.textSecondary }}>
                 Add up to {maxExtendHours} hour{maxExtendHours === 1 ? '' : 's'} (booking max{' '}
                 {MAX_BOOKING_HOURS} h total).
               </Text>
@@ -907,12 +900,12 @@ export default function BookingDetailsScreen() {
                     borderWidth: 1,
                     borderColor: 'rgba(201,179,122,0.25)',
                   }}>
-                  <Text className="text-md font-semibold" style={{ color: '#B8BBC0' }}>
+                  <Text className="text-md font-semibold" style={{ color: colors.textMuted }}>
                     Extension rate:{' '}
                     <Text className="font-bold text-gray-100">Rs {extensionRatePerHour}/hr</Text>
                   </Text>
                   {estimatedExtensionCharge != null ? (
-                    <Text className="text-md mt-1 font-semibold" style={{ color: '#B8BBC0' }}>
+                    <Text className="text-md mt-1 font-semibold" style={{ color: colors.textMuted }}>
                       Estimated extension charge:{' '}
                       <Text className="font-bold text-gray-100">
                         Rs {estimatedExtensionCharge.toFixed(0)}
@@ -928,7 +921,7 @@ export default function BookingDetailsScreen() {
                   accessibilityLabel="Decrease extension hours"
                   className="h-12 w-12 items-center justify-center rounded-2xl"
                   style={{
-                    backgroundColor: '#0B0F14',
+                    backgroundColor: colors.card,
                     borderWidth: 1,
                     borderColor: 'rgba(255,255,255,0.12)',
                     opacity: busy || extendHours <= 1 ? 0.45 : 1,
@@ -938,7 +931,7 @@ export default function BookingDetailsScreen() {
                 <View
                   className="min-h-12 flex-1 flex-row items-center justify-center rounded-2xl px-3"
                   style={{
-                    backgroundColor: '#0B0F14',
+                    backgroundColor: colors.card,
                     borderWidth: 1,
                     borderColor: 'rgba(255,255,255,0.12)',
                   }}>
@@ -961,7 +954,7 @@ export default function BookingDetailsScreen() {
                     className="min-w-[3rem] text-center text-lg font-extrabold text-gray-100"
                     style={{ paddingVertical: 8 }}
                   />
-                  <Text className="ml-1 text-sm font-bold" style={{ color: '#9CA3AF' }}>
+                  <Text className="ml-1 text-sm font-bold" style={{ color: colors.textSecondary }}>
                     hr{extendHours === 1 ? '' : 's'}
                   </Text>
                 </View>
@@ -971,7 +964,7 @@ export default function BookingDetailsScreen() {
                   accessibilityLabel="Increase extension hours"
                   className="h-12 w-12 items-center justify-center rounded-2xl"
                   style={{
-                    backgroundColor: '#0B0F14',
+                    backgroundColor: colors.card,
                     borderWidth: 1,
                     borderColor: 'rgba(255,255,255,0.12)',
                     opacity: busy || extendHours >= maxExtendHours ? 0.45 : 1,
@@ -984,13 +977,13 @@ export default function BookingDetailsScreen() {
                 onPress={() => void extendUser()}
                 className="items-center rounded-2xl py-3"
                 style={{
-                  backgroundColor: busy ? 'rgba(255,255,255,0.06)' : '#C9B37A',
+                  backgroundColor: busy ? 'rgba(255,255,255,0.06)' : colors.gold,
                   borderWidth: 1,
                   borderColor: 'rgba(255,255,255,0.06)',
                 }}>
                 <Text
                   className="text-md font-extrabold"
-                  style={{ color: busy ? '#9CA3AF' : '#0B0F14' }}>
+                  style={{ color: busy ? colors.textSecondary : colors.textOnGold }}>
                   {busy
                     ? 'Please wait…'
                     : estimatedExtensionCharge != null
@@ -1012,7 +1005,7 @@ export default function BookingDetailsScreen() {
                 }}
                 className="flex-1 items-center justify-center rounded-2xl py-4"
                 style={{
-                  backgroundColor: '#0B0F14',
+                  backgroundColor: colors.card,
                   borderWidth: 1,
                   borderColor: 'rgba(255,255,255,0.12)',
                   opacity: busy ? 0.6 : 1,
@@ -1029,8 +1022,8 @@ export default function BookingDetailsScreen() {
                   void respondDispatcher(true);
                 }}
                 className="flex-1 items-center justify-center rounded-2xl py-4"
-                style={{ backgroundColor: '#C9B37A', opacity: busy ? 0.6 : 1 }}>
-                <Text className="text-sm font-extrabold" style={{ color: '#0B0F14' }}>
+                style={{ backgroundColor: colors.gold, opacity: busy ? 0.6 : 1 }}>
+                <Text className="text-sm font-extrabold" style={{ color: colors.textOnGold }}>
                   {busy ? 'Please wait…' : 'Accept'}
                 </Text>
               </Pressable>
@@ -1046,12 +1039,12 @@ export default function BookingDetailsScreen() {
               }}
               className="mt-4 items-center justify-center rounded-2xl py-4"
               style={{
-                backgroundColor: busy ? 'rgba(255,255,255,0.12)' : '#C9B37A',
+                backgroundColor: busy ? 'rgba(255,255,255,0.12)' : colors.gold,
                 opacity: busy ? 0.6 : 1,
               }}>
               <Text
                 className="text-sm font-extrabold"
-                style={{ color: busy ? '#9CA3AF' : '#0B0F14' }}>
+                style={{ color: busy ? colors.textSecondary : colors.textOnGold }}>
                 {busy ? 'Please wait…' : 'Start trip'}
               </Text>
             </Pressable>

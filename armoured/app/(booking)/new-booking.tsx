@@ -20,20 +20,10 @@ import {
   type PakistanCity,
 } from '@/constants/pakistanCities';
 import { useTripDraftStore } from '@/store/tripDraft';
+import { colors, gradientProps, gradients, listCardShadow } from '@/constants/theme';
 
 type CityPickerTarget = 'pickup' | 'drop' | null;
 type MapTarget = 'pickup' | 'drop';
-
-const cardOuter = {
-  backgroundColor: '#0B0F14',
-  borderColor: 'rgba(255,255,255,0.06)',
-  borderWidth: 1,
-  shadowColor: '#000',
-  shadowOpacity: 0.28,
-  shadowRadius: 18,
-  shadowOffset: { width: 0, height: 14 },
-  elevation: 8,
-};
 
 export default function NewBookingScreen() {
   const draft = useTripDraftStore();
@@ -97,10 +87,8 @@ export default function NewBookingScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      colors={[...gradients.screen]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
@@ -114,7 +102,7 @@ export default function NewBookingScreen() {
         <ScrollView contentContainerStyle={{ paddingBottom: 40 }} className="px-5 pt-6">
           <Text
             className="text-[13px] font-extrabold"
-            style={{ letterSpacing: 2, color: '#9CA3AF' }}>
+            style={{ letterSpacing: 2, color: colors.textSecondary }}>
             TRIP LOCATIONS
           </Text>
           <Text className="mt-1 text-sm font-semibold text-gray-300">
@@ -149,12 +137,12 @@ export default function NewBookingScreen() {
             onPress={continueToSchedule}
             className="mt-6 items-center justify-center rounded-2xl py-4"
             style={{
-              backgroundColor: canContinue ? '#C9B37A' : 'rgba(255,255,255,0.08)',
+              backgroundColor: canContinue ? colors.gold : colors.disabled,
               opacity: canContinue ? 1 : 0.7,
             }}>
             <Text
               className="text-sm font-extrabold"
-              style={{ color: canContinue ? '#0B0F14' : '#9CA3AF' }}>
+              style={{ color: canContinue ? colors.textOnGold : colors.textSecondary }}>
               {canContinue ? 'Continue — date & time' : 'Select pickup and drop-off first'}
             </Text>
           </Pressable>
@@ -173,7 +161,7 @@ export default function NewBookingScreen() {
               onStartShouldSetResponder={() => true}
               className="mt-auto rounded-t-3xl px-5 pb-8 pt-4"
               style={{
-                backgroundColor: '#0B0F14',
+                backgroundColor: colors.card,
                 borderTopWidth: 1,
                 borderTopColor: 'rgba(255,255,255,0.08)',
                 maxHeight: '85%',
@@ -192,7 +180,7 @@ export default function NewBookingScreen() {
 
               <Text
                 className="text-[13px] font-extrabold"
-                style={{ letterSpacing: 2, color: '#C9B37A' }}>
+                style={{ letterSpacing: 2, color: colors.gold }}>
                 {cityPicker === 'pickup' ? 'PICKUP CITY' : 'DROP-OFF CITY'}
               </Text>
               <Text className="mt-1 text-sm font-semibold text-gray-300">
@@ -206,18 +194,18 @@ export default function NewBookingScreen() {
                   borderWidth: 1,
                   borderColor: 'rgba(255,255,255,0.08)',
                 }}>
-                <FontAwesome name="search" size={14} color="#9CA3AF" />
+                <FontAwesome name="search" size={14} color={colors.textSecondary} />
                 <TextInput
                   value={cityQuery}
                   onChangeText={setCityQuery}
                   placeholder="Search city…"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.textSecondary}
                   className="ml-2 flex-1 py-3 text-sm font-semibold"
                   style={{ color: '#F3F4F6' }}
                 />
                 {cityQuery.length > 0 ? (
                   <Pressable onPress={() => setCityQuery('')} hitSlop={8}>
-                    <FontAwesome name="times-circle" size={14} color="#9CA3AF" />
+                    <FontAwesome name="times-circle" size={14} color={colors.textSecondary} />
                   </Pressable>
                 ) : null}
               </View>
@@ -247,16 +235,16 @@ export default function NewBookingScreen() {
                           <FontAwesome
                             name="map-pin"
                             size={14}
-                            color={selected ? '#C9B37A' : '#9CA3AF'}
+                            color={selected ? colors.gold : colors.textSecondary}
                           />
                         </View>
                         <Text
                           className="ml-3 text-sm font-bold"
-                          style={{ color: selected ? '#C9B37A' : '#F3F4F6' }}>
+                          style={{ color: selected ? colors.gold : undefined }}>
                           {item.name}
                         </Text>
                       </View>
-                      {selected ? <FontAwesome name="check" size={14} color="#C9B37A" /> : null}
+                      {selected ? <FontAwesome name="check" size={14} color={colors.gold} /> : null}
                     </Pressable>
                   );
                 }}
@@ -301,7 +289,7 @@ function LocationCard({
   const mapDisabled = disabledMap === true || !hasCity;
 
   return (
-    <View className="mt-4 overflow-hidden rounded-2xl" style={cardOuter}>
+    <View className="mt-4 overflow-hidden rounded-2xl" style={listCardShadow}>
       <View
         className="border-b px-4 py-3"
         style={{ backgroundColor: '#000000', borderBottomColor: 'rgba(255,255,255,0.06)' }}>
@@ -314,7 +302,7 @@ function LocationCard({
             </View>
             <Text
               className="ml-3 text-[14px] font-extrabold"
-              style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
+              style={{ color: colors.gold, letterSpacing: 0.5 }}>
               {title}
             </Text>
           </View>
@@ -340,17 +328,17 @@ function LocationCard({
             borderColor: 'rgba(255,255,255,0.08)',
           }}>
           <View className="flex-1 pr-2">
-            <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF', letterSpacing: 0.6 }}>
+            <Text className="text-[11px] font-bold" style={{ color: colors.textSecondary, letterSpacing: 0.6 }}>
               CITY
             </Text>
             <Text
               numberOfLines={1}
               className={`mt-1 text-[15px] font-extrabold ${hasCity ? 'text-gray-100' : ''}`}
-              style={!hasCity ? { color: '#9CA3AF' } : undefined}>
+              style={!hasCity ? { color: colors.textSecondary } : undefined}>
               {hasCity ? cityName : 'Select a city…'}
             </Text>
           </View>
-          <FontAwesome name="chevron-down" size={14} color="#9CA3AF" />
+          <FontAwesome name="chevron-down" size={14} color={colors.textSecondary} />
         </Pressable>
 
         <Pressable
@@ -360,17 +348,17 @@ function LocationCard({
           style={{
             backgroundColor: mapDisabled ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.04)',
             borderWidth: 1,
-            borderColor: locationReady ? '#C9B37A' : 'rgba(255,255,255,0.08)',
+            borderColor: locationReady ? colors.gold : 'rgba(255,255,255,0.08)',
             opacity: mapDisabled ? 0.5 : 1,
           }}>
           <View className="flex-1 pr-2">
-            <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF', letterSpacing: 0.6 }}>
+            <Text className="text-[11px] font-bold" style={{ color: colors.textSecondary, letterSpacing: 0.6 }}>
               EXACT LOCATION
             </Text>
             <Text
               numberOfLines={2}
               className="mt-1 text-[14px] font-bold"
-              style={{ color: locationReady ? '#F3F4F6' : '#9CA3AF' }}>
+              style={{ color: locationReady ? undefined : colors.textSecondary }}>
               {locationReady
                 ? address
                 : hasCity
@@ -378,7 +366,7 @@ function LocationCard({
                   : 'Choose a city first'}
             </Text>
           </View>
-          <FontAwesome name="map" size={16} color={locationReady ? '#C9B37A' : '#9CA3AF'} />
+          <FontAwesome name="map" size={16} color={locationReady ? colors.gold : colors.textSecondary} />
         </Pressable>
       </View>
     </View>

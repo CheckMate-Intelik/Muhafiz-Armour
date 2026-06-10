@@ -1,6 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
 import { Pressable, type PressableProps, type ViewStyle } from 'react-native';
+import { colors } from '@/constants/theme';
 
 export type BackButtonVariant = 'dark' | 'light' | 'auth' | 'gold';
 
@@ -18,7 +19,7 @@ const GOLD_CONTAINER: ViewStyle = {
   borderRadius: 20,
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundColor: '#222222',
+  backgroundColor: colors.surface,
 };
 
 const VARIANTS: Record<BackButtonVariant, VariantStyle> = {
@@ -26,13 +27,13 @@ const VARIANTS: Record<BackButtonVariant, VariantStyle> = {
     container: GOLD_CONTAINER,
     icon: 'angle-left',
     iconSize: 22,
-    iconColor: '#C9B37A',
+    iconColor: colors.gold,
   },
   gold: {
     container: GOLD_CONTAINER,
     icon: 'angle-left',
     iconSize: 22,
-    iconColor: '#C9B37A',
+    iconColor: colors.gold,
   },
   light: {
     container: {

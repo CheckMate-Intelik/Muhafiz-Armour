@@ -6,24 +6,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { APP_GRADIENT, AUTH_CARD, AUTH_GOLD } from '@/components/AuthForm';
 import { PUBLIC_API_BASE_URL, apiPost, ensureUserSession } from '@/lib/api';
 import { paramString } from '@/lib/routeParams';
 import { BackButton } from '@/components/BackButton';
 import { useTripDraftStore } from '@/store/tripDraft';
+import { colors, gradientProps, gradients, listCardShadow } from '@/constants/theme';
 
 const MAX_HOURS = 5 * 24;
-
-const CARD_SHADOW: ViewStyle = {
-  backgroundColor: AUTH_CARD,
-  borderColor: 'rgba(255,255,255,0.06)',
-  borderWidth: 1,
-  shadowColor: '#000',
-  shadowOpacity: 0.28,
-  shadowRadius: 18,
-  shadowOffset: { width: 0, height: 14 },
-  elevation: 8,
-};
 
 export default function BookConfirmScreen() {
   const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId?: string | string[] }>();
@@ -151,18 +140,16 @@ export default function BookConfirmScreen() {
   if (!tripReady) {
     return (
       <LinearGradient
-        colors={[...APP_GRADIENT]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        locations={[0, 0.5, 1]}
+        colors={[...gradients.screen]}
+        {...gradientProps.screen}
         style={{ flex: 1 }}>
         <SafeAreaView className="flex-1 items-center justify-center px-5">
           <Text className="text-sm font-semibold text-gray-300">Trip details are missing.</Text>
           <Pressable
             onPress={() => router.replace('/(tabs)' as any)}
             className="mt-4 rounded-2xl px-4 py-3"
-            style={{ backgroundColor: AUTH_GOLD }}>
-            <Text className="text-xs font-extrabold" style={{ color: '#0B0F14' }}>
+            style={{ backgroundColor: colors.gold }}>
+            <Text className="text-xs font-extrabold" style={{ color: colors.textOnGold }}>
               Back to home
             </Text>
           </Pressable>
@@ -173,10 +160,8 @@ export default function BookConfirmScreen() {
 
   return (
     <LinearGradient
-      colors={[...APP_GRADIENT]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      colors={[...gradients.screen]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
@@ -190,22 +175,22 @@ export default function BookConfirmScreen() {
         <ScrollView contentContainerStyle={{ paddingBottom: 140 }} className="px-5 pt-4">
           <Text
             className="text-[13px] font-extrabold"
-            style={{ letterSpacing: 2, color: '#9CA3AF' }}>
+            style={{ letterSpacing: 2, color: colors.textSecondary }}>
             TRIP DETAILS
           </Text>
 
-          <View className="mt-3 rounded-2xl px-4 py-4" style={CARD_SHADOW}>
-            <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+          <View className="mt-3 rounded-2xl px-4 py-4" style={listCardShadow}>
+            <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
               Pickup
             </Text>
             <Text className="mt-1 text-sm font-extrabold text-gray-100">{pickupAddress}</Text>
             <View className="my-3 border-t" style={{ borderTopColor: 'rgba(255,255,255,0.06)' }} />
-            <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+            <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
               Drop-off
             </Text>
             <Text className="mt-1 text-sm font-extrabold text-gray-100">{dropAddress}</Text>
             <View className="my-3 border-t" style={{ borderTopColor: 'rgba(255,255,255,0.06)' }} />
-            <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+            <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
               Start
             </Text>
             <Text className="mt-1 text-sm font-extrabold text-gray-100">{startAt.toLocaleString()}</Text>
@@ -213,7 +198,7 @@ export default function BookConfirmScreen() {
 
           <Text
             className="mt-6 text-[13px] font-extrabold"
-            style={{ letterSpacing: 2, color: '#9CA3AF' }}>
+            style={{ letterSpacing: 2, color: colors.textSecondary }}>
             DURATION
           </Text>
           <Text className="mt-1 text-sm font-semibold text-gray-300">
@@ -259,11 +244,11 @@ export default function BookConfirmScreen() {
           </View>
           <Text className="mt-2 text-[11px] font-semibold text-gray-400">Ends {endAt.toLocaleString()}</Text>
 
-          <View className="mt-6 rounded-2xl px-4 py-4" style={CARD_SHADOW}>
-            <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+          <View className="mt-6 rounded-2xl px-4 py-4" style={listCardShadow}>
+            <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
               Estimated price
             </Text>
-            <Text className="mt-1 text-2xl font-extrabold" style={{ color: AUTH_GOLD }}>
+            <Text className="mt-1 text-2xl font-extrabold" style={{ color: colors.gold }}>
               {estimated != null ? `Rs ${estimated}` : '—'}
             </Text>
             {rate != null ? (
@@ -277,7 +262,7 @@ export default function BookConfirmScreen() {
         <View
           className="absolute bottom-0 left-0 right-0 border-t px-5 py-4"
           style={{
-            backgroundColor: AUTH_CARD,
+            backgroundColor: colors.card,
             borderTopColor: 'rgba(255,255,255,0.08)',
             shadowColor: '#000',
             shadowOpacity: 0.35,
@@ -290,12 +275,12 @@ export default function BookConfirmScreen() {
             onPress={pay}
             className="items-center justify-center rounded-2xl py-4"
             style={{
-              backgroundColor: busy || estimated == null ? 'rgba(255,255,255,0.08)' : AUTH_GOLD,
+              backgroundColor: busy || estimated == null ? colors.disabled : colors.gold,
               opacity: busy || estimated == null ? 0.7 : 1,
             }}>
             <Text
               className="text-sm font-extrabold"
-              style={{ color: busy || estimated == null ? '#9CA3AF' : '#0B0F14' }}>
+              style={{ color: busy || estimated == null ? colors.textSecondary : colors.textOnGold }}>
               {busy ? 'Please wait…' : estimated != null ? `Continue to payment · Rs ${estimated}` : 'Continue to payment'}
             </Text>
           </Pressable>

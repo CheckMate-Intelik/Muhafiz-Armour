@@ -5,26 +5,15 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { APP_GRADIENT, AUTH_CARD, AUTH_GOLD } from '@/components/AuthForm';
 import { BackButton } from '@/components/BackButton';
 import { confirmExistingBookingAfterPayment, createBookingAfterPayment } from '@/lib/confirmBooking';
 import { ensureUserSession } from '@/lib/api';
 import { paramString } from '@/lib/routeParams';
 import { useBookingsStore } from '@/store/bookingsStore';
 import { useTripDraftStore } from '@/store/tripDraft';
+import { colors, gradientProps, gradients, listCardShadow } from '@/constants/theme';
 
 type PaymentMethod = 'Digital' | 'Cash';
-
-const CARD_SHADOW: ViewStyle = {
-  backgroundColor: AUTH_CARD,
-  borderColor: 'rgba(255,255,255,0.06)',
-  borderWidth: 1,
-  shadowColor: '#000',
-  shadowOpacity: 0.28,
-  shadowRadius: 18,
-  shadowOffset: { width: 0, height: 14 },
-  elevation: 8,
-};
 
 function parseCoord(value: string | undefined) {
   if (value == null || value.trim() === '') return undefined;
@@ -145,10 +134,8 @@ export default function PaymentScreen() {
 
   return (
     <LinearGradient
-      colors={[...APP_GRADIENT]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      colors={[...gradients.screen]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
@@ -162,11 +149,11 @@ export default function PaymentScreen() {
         <ScrollView contentContainerStyle={{ paddingBottom: 140 }} className="px-5 pt-4">
           <Text
             className="text-[13px] font-extrabold"
-            style={{ letterSpacing: 2, color: '#9CA3AF' }}>
+            style={{ letterSpacing: 2, color: colors.textSecondary }}>
             TRIP SUMMARY
           </Text>
 
-          <View className="mt-3 overflow-hidden rounded-2xl" style={CARD_SHADOW}>
+          <View className="mt-3 overflow-hidden rounded-2xl" style={listCardShadow}>
             <LinearGradient
               colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
               start={{ x: 1, y: 0 }}
@@ -176,7 +163,7 @@ export default function PaymentScreen() {
                 style={{ borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                 <Text
                   className="text-[12px] font-extrabold"
-                  style={{ color: AUTH_GOLD, letterSpacing: 0.5 }}>
+                  style={{ color: colors.gold, letterSpacing: 0.5 }}>
                   CONFIRM & PAY
                 </Text>
               </View>
@@ -196,14 +183,14 @@ export default function PaymentScreen() {
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+                  <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
                     FROM
                   </Text>
                   <Text numberOfLines={2} className="mt-1 text-base font-extrabold text-gray-100">
                     {checkout.from || '—'}
                   </Text>
                   <View className="mt-3 border-t" style={{ borderTopColor: 'rgba(255,255,255,0.06)' }} />
-                  <Text className="mt-3 text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+                  <Text className="mt-3 text-[12px] font-bold" style={{ color: colors.textSecondary }}>
                     TO
                   </Text>
                   <Text numberOfLines={2} className="mt-1 text-base font-extrabold text-gray-100">
@@ -214,7 +201,7 @@ export default function PaymentScreen() {
 
               <View className="mt-4 flex-row gap-3">
                 <View className="flex-1 rounded-xl px-3 py-2" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
-                  <Text className="text-[10px] font-bold" style={{ color: '#9CA3AF' }}>
+                  <Text className="text-[10px] font-bold" style={{ color: colors.textSecondary }}>
                     Start
                   </Text>
                   <Text className="mt-0.5 text-xs font-semibold text-gray-200">
@@ -222,7 +209,7 @@ export default function PaymentScreen() {
                   </Text>
                 </View>
                 <View className="flex-1 rounded-xl px-3 py-2" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
-                  <Text className="text-[10px] font-bold" style={{ color: '#9CA3AF' }}>
+                  <Text className="text-[10px] font-bold" style={{ color: colors.textSecondary }}>
                     End
                   </Text>
                   <Text className="mt-0.5 text-xs font-semibold text-gray-200">
@@ -235,7 +222,7 @@ export default function PaymentScreen() {
 
           <Text
             className="mt-6 text-[13px] font-extrabold"
-            style={{ letterSpacing: 2, color: '#9CA3AF' }}>
+            style={{ letterSpacing: 2, color: colors.textSecondary }}>
             PAYMENT METHOD
           </Text>
           <Text className="mt-1 text-sm font-semibold text-gray-300">
@@ -257,12 +244,12 @@ export default function PaymentScreen() {
             />
           </View>
 
-          <View className="mt-4 rounded-2xl px-4 py-4" style={CARD_SHADOW}>
+          <View className="mt-4 rounded-2xl px-4 py-4" style={listCardShadow}>
             <View className="flex-row items-center justify-between">
-              <Text className="text-sm font-bold" style={{ color: '#9CA3AF' }}>
+              <Text className="text-sm font-bold" style={{ color: colors.textSecondary }}>
                 Total amount
               </Text>
-              <Text className="text-2xl font-extrabold" style={{ color: AUTH_GOLD }}>
+              <Text className="text-2xl font-extrabold" style={{ color: colors.gold }}>
                 Rs {amount.toFixed(2)}
               </Text>
             </View>
@@ -275,7 +262,7 @@ export default function PaymentScreen() {
         <View
           className="absolute bottom-0 left-0 right-0 border-t px-5 py-4"
           style={{
-            backgroundColor: AUTH_CARD,
+            backgroundColor: colors.card,
             borderTopColor: 'rgba(255,255,255,0.08)',
             shadowColor: '#000',
             shadowOpacity: 0.35,
@@ -288,15 +275,15 @@ export default function PaymentScreen() {
             onPress={() => void payNow()}
             className="items-center justify-center rounded-2xl py-4"
             style={{
-              backgroundColor: submitting || !canPay ? 'rgba(255,255,255,0.08)' : AUTH_GOLD,
+              backgroundColor: submitting || !canPay ? colors.disabled : colors.gold,
               opacity: submitting || !canPay ? 0.7 : 1,
             }}>
             {submitting ? (
-              <ActivityIndicator color="#0B0F14" />
+              <ActivityIndicator color={colors.textOnGold} />
             ) : (
               <Text
                 className="text-sm font-extrabold"
-                style={{ color: submitting || !canPay ? '#9CA3AF' : '#0B0F14' }}>
+                style={{ color: submitting || !canPay ? colors.textSecondary : colors.textOnGold }}>
                 Pay now · Rs {amount.toFixed(2)}
               </Text>
             )}
@@ -331,14 +318,14 @@ function MethodRow({
         <View
           className="h-10 w-10 items-center justify-center rounded-2xl"
           style={{ backgroundColor: active ? 'rgba(201,179,122,0.2)' : 'rgba(255,255,255,0.06)' }}>
-          <FontAwesome name={icon} size={16} color={active ? AUTH_GOLD : '#9CA3AF'} />
+          <FontAwesome name={icon} size={16} color={active ? colors.gold : colors.textSecondary} />
         </View>
         <Text className="text-sm font-extrabold text-gray-100">{title}</Text>
       </View>
       <View
         className="h-5 w-5 items-center justify-center rounded-full border-2"
-        style={{ borderColor: active ? AUTH_GOLD : 'rgba(255,255,255,0.25)' }}>
-        {active ? <View className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: AUTH_GOLD }} /> : null}
+        style={{ borderColor: active ? colors.gold : 'rgba(255,255,255,0.25)' }}>
+        {active ? <View className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colors.gold }} /> : null}
       </View>
     </Pressable>
   );

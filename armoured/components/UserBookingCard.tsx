@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, Text, View } from 'react-native';
 
 import { PendingExpiryCountdown } from '@/components/PendingExpiryCountdown';
+import { colors, gradientProps, gradients } from '@/constants/theme';
 
 export type UserBookingListItem = {
   id: string;
@@ -112,21 +113,20 @@ export function UserBookingCard({
         shadowOffset: { width: 0, height: 14 },
         // elevation: 8,
       }}>
-      <View className="flex-row items-center justify-between py-3">
-        {/* style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }} */}
+      {/* <View className="flex-row items-center justify-between py-3">
         <Text className="text-[12px] font-bold" style={{ color: '#D8DADF', letterSpacing: 0.5 }}>
           {title}
         </Text>
         {rightActionLabel ? (
           <Pressable onPress={onRightActionPress} hitSlop={8}>
-            <Text className="text-[14px] font-extrabold" style={{ color: '#B8BBC0' }}>
+            <Text className="text-[14px] font-extrabold" style={{ color: colors.textMuted }}>
               {rightActionLabel}
             </Text>
           </Pressable>
         ) : (
           <View />
         )}
-      </View>
+      </View> */}
 
       {booking && (booking.status ?? '').trim().toUpperCase() === 'PENDING_DISPATCHER' ? (
         <PendingExpiryCountdown
@@ -139,8 +139,24 @@ export function UserBookingCard({
       ) : null}
 
       {!booking ? (
-        <View className="rounded-2xl bg-[#222222] px-4 py-5">
-          <Text className="text-base font-semibold text-gray-100">{emptyLabel}</Text>
+        <View className="mt-4 rounded-lg px-4 pb-2" style={{ backgroundColor: colors.surface }}>
+          <View className="flex-row justify-between border-b border-[#4d4d4d] pb-1 pt-2">
+            <Text
+              className=" text-[12px] font-extrabold"
+              style={{ color: colors.gold, letterSpacing: 0.5 }}>
+              {title}
+            </Text>
+            {rightActionLabel ? (
+              <Pressable onPress={onRightActionPress} hitSlop={8}>
+                <Text className="text-[14px] font-extrabold" style={{ color: colors.textMuted }}>
+                  {rightActionLabel}
+                </Text>
+              </Pressable>
+            ) : (
+              <View />
+            )}
+          </View>
+          <Text className="py-4 text-base font-semibold text-gray-100">{emptyLabel}</Text>
         </View>
       ) : (
         <Pressable
@@ -149,9 +165,8 @@ export function UserBookingCard({
           className="w-full flex-row gap-2">
           {showDateBox ? (
             <LinearGradient
-              colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
-              start={{ x: 1, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              colors={[...gradients.cardDark]}
+              {...gradientProps.cardVertical}
               className="items-center justify-center"
               style={{
                 borderColor: 'rgba(255,255,255,0.06)',
@@ -163,13 +178,15 @@ export function UserBookingCard({
               <View className="items-center justify-center rounded-2xl py-2">
                 <Text
                   className="text-[11px] font-extrabold"
-                  style={{ color: '#C9B37A', letterSpacing: 0.6 }}>
+                  style={{ color: colors.gold, letterSpacing: 0.6 }}>
                   {start ? formatMonth(start) : '—'}
                 </Text>
                 <Text className="mt-0.5 text-[20px] font-extrabold text-gray-100">
                   {start ? String(start.getDate()).padStart(2, '0') : '—'}
                 </Text>
-                <Text className="mt-0.5 text-[11px] font-semibold" style={{ color: '#B8BBC0' }}>
+                <Text
+                  className="mt-0.5 text-[11px] font-semibold"
+                  style={{ color: colors.textMuted }}>
                   {start ? formatTime(start) : '—'}
                 </Text>
               </View>
@@ -177,9 +194,8 @@ export function UserBookingCard({
           ) : null}
           <View className="min-w-0 flex-1">
             <LinearGradient
-              colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
-              start={{ x: 1, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              colors={[...gradients.cardDark]}
+              {...gradientProps.cardVertical}
               className="w-full px-4 py-4"
               style={{ borderRadius: 10, flex: 1 }}>
               <View className="flex-1">
@@ -196,7 +212,7 @@ export function UserBookingCard({
                         ACTIVE NOW
                       </Text>
                     </View>
-                    <Text className="text-[12px] font-semibold" style={{ color: '#B8BBC0' }}>
+                    <Text className="text-[12px] font-semibold" style={{ color: colors.textMuted }}>
                       Booking ID: #{String(booking.id)}
                     </Text>
                   </View>
@@ -208,18 +224,20 @@ export function UserBookingCard({
                 <View className="mt-1 flex-row items-center">
                   <View
                     className="mr-2 h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: '#B8BBC0' }}
+                    style={{ backgroundColor: colors.textMuted }}
                   />
                   <Text
                     numberOfLines={1}
                     className="flex-1 text-[14px] font-semibold"
-                    style={{ color: '#B8BBC0' }}>
+                    style={{ color: colors.textMuted }}>
                     {(booking.dropLocation ?? '').trim() || '—'}
                   </Text>
                 </View>
 
                 <View className="flex-row items-end justify-between">
-                  <Text className="mt-2 text-[14px] font-semibold" style={{ color: '#B8BBC0' }}>
+                  <Text
+                    className="mt-2 text-[14px] font-semibold"
+                    style={{ color: colors.textMuted }}>
                     {durationLabel(booking.startTime, booking.endTime)}
                   </Text>
                   <View className="ml-3 items-end">
@@ -240,7 +258,9 @@ export function UserBookingCard({
                       className="mx-2 my-3 flex-1 items-center justify-center rounded-2xl"
                       style={{ backgroundColor: 'rgb(25,95,235)' }}>
                       <FontAwesome name="car" size={18} color="#B8BBC0" />
-                      <Text className="mt-1 text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                      <Text
+                        className="mt-1 text-[11px] font-bold"
+                        style={{ color: colors.textMuted }}>
                         Vehicle Type
                       </Text>
                       <Text
@@ -254,7 +274,9 @@ export function UserBookingCard({
                       className="flex-1 items-center justify-center rounded-2xl px-2 py-3"
                       style={{ backgroundColor: '#2F3135' }}>
                       <FontAwesome name="shield" size={18} color="#B8BBC0" />
-                      <Text className="mt-1 text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                      <Text
+                        className="mt-1 text-[11px] font-bold"
+                        style={{ color: colors.textMuted }}>
                         Armour Level
                       </Text>
                       <Text
@@ -268,7 +290,9 @@ export function UserBookingCard({
                       className="flex-1 items-center justify-center rounded-2xl px-2 py-3"
                       style={{ backgroundColor: '#2F3135' }}>
                       <FontAwesome name="users" size={18} color="#B8BBC0" />
-                      <Text className="mt-1 text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                      <Text
+                        className="mt-1 text-[11px] font-bold"
+                        style={{ color: colors.textMuted }}>
                         Seating
                       </Text>
                       <Text
@@ -284,7 +308,9 @@ export function UserBookingCard({
                       className="flex-1 items-center justify-center rounded-2xl px-2 py-3"
                       style={{ backgroundColor: '#2F3135' }}>
                       <FontAwesome name="clock-o" size={18} color="#B8BBC0" />
-                      <Text className="mt-1 text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+                      <Text
+                        className="mt-1 text-[11px] font-bold"
+                        style={{ color: colors.textMuted }}>
                         Remaining
                       </Text>
                       <Text

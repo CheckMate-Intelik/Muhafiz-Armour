@@ -7,9 +7,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { BackButton } from '@/components/BackButton';
 import { PUBLIC_API_BASE_URL, dispatcherGet, ensureDispatcherSession } from '@/lib/api';
+import { cardShadow, colors, gradientProps, gradients, listCardShadow } from '@/constants/theme';
 
-const GOLD = '#C9B37A';
-const CARD_BG = '#0B0F14';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const H_PADDING = 20;
 const GALLERY_WIDTH = SCREEN_WIDTH;
@@ -34,14 +33,6 @@ type VehicleDetails = {
   seatingCapacity?: number;
   features?: string[];
   owner: { id: string; name: string; rating: number };
-};
-
-const cardShadow = {
-  shadowColor: '#000',
-  shadowOpacity: 0.22,
-  shadowRadius: 14,
-  shadowOffset: { width: 0, height: 10 },
-  elevation: 6,
 };
 
 export default function CarDetailsScreen() {
@@ -136,10 +127,8 @@ export default function CarDetailsScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      colors={[...gradients.screen]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <ScrollView
@@ -150,7 +139,7 @@ export default function CarDetailsScreen() {
               <BackButton />
               <Text
                 className="flex-1 px-3 text-center text-lg font-extrabold"
-                style={{ color: GOLD }}
+                style={{ color: colors.gold }}
                 numberOfLines={1}>
                 {loading ? '…' : title}
               </Text>
@@ -198,7 +187,7 @@ export default function CarDetailsScreen() {
                       <View
                         key={`${img}-${index}`}
                         className="mx-1 h-2 w-2 rounded-full"
-                        style={{ backgroundColor: active ? GOLD : 'rgba(255,255,255,0.25)' }}
+                        style={{ backgroundColor: active ? colors.gold : 'rgba(255,255,255,0.25)' }}
                       />
                     );
                   })}
@@ -209,14 +198,13 @@ export default function CarDetailsScreen() {
                 <View
                   className="overflow-hidden rounded-2xl border"
                   style={{
-                    backgroundColor: CARD_BG,
+                    backgroundColor: colors.card,
                     borderColor: 'rgba(255,255,255,0.06)',
                     ...cardShadow,
                   }}>
                   <LinearGradient
-                    colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
-                    start={{ x: 1, y: 0 }}
-                    end={{ x: 1, y: 1 }}></LinearGradient>
+                    colors={[...gradients.cardDark]}
+                    {...gradientProps.cardVertical}></LinearGradient>
                   <View
                     className="border-b px-4 pb-3 pt-3.5"
                     style={{
@@ -226,12 +214,12 @@ export default function CarDetailsScreen() {
                     <Text
                       className="mt-1 text-center text-xl font-extrabold text-gray-100"
                       numberOfLines={2}
-                      style={{ color: GOLD, letterSpacing: 0.5 }}>
+                      style={{ color: colors.gold, letterSpacing: 0.5 }}>
                       {vehicle.carModel ?? 'Vehicle'}
                     </Text>
                     <Text
                       className="text-md mt-0.5 text-center font-semibold"
-                      style={{ color: '#9CA3AF' }}
+                      style={{ color: colors.textSecondary }}
                       numberOfLines={1}>
                       {vehicle.generation?.trim() || vehicle.manufacturer || '—'}
                     </Text>
@@ -275,12 +263,11 @@ export default function CarDetailsScreen() {
                   {specificationCards.map((item) => (
                     <LinearGradient
                       key={item.key}
-                      colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
-                      start={{ x: 1, y: 0 }}
-                      end={{ x: 1, y: 1 }}
+                      colors={[...gradients.cardDark]}
+                      {...gradientProps.cardVertical}
                       className="mr-3 w-[118px] rounded-2xl px-3 py-3"
                       style={{
-                        backgroundColor: CARD_BG,
+                        backgroundColor: colors.card,
                         borderRadius: 15,
                         borderWidth: 1,
                         borderColor: 'rgba(255,255,255,0.06)',
@@ -290,9 +277,9 @@ export default function CarDetailsScreen() {
                         <View
                           className="h-8 w-8 items-center justify-center rounded-full"
                           style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-                          <FontAwesome name={item.icon} size={16} color={GOLD} />
+                          <FontAwesome name={item.icon} size={16} color={colors.gold} />
                         </View>
-                        <Text className="text-md mt-3 font-bold" style={{ color: '#9CA3AF' }}>
+                        <Text className="text-md mt-3 font-bold" style={{ color: colors.textSecondary }}>
                           {item.label}
                         </Text>
                         <Text
@@ -309,7 +296,7 @@ export default function CarDetailsScreen() {
                   <>
                     <Text
                       className="text-md mt-4 font-extrabold"
-                      style={{ color: GOLD, letterSpacing: 0.5 }}>
+                  style={{ color: colors.gold, letterSpacing: 0.5 }}>
                       FEATURES
                     </Text>
                     <View className="mt-2 flex-row flex-wrap gap-2">
@@ -331,18 +318,18 @@ export default function CarDetailsScreen() {
                 <View
                   className="mt-5 rounded-2xl border px-4 py-3"
                   style={{
-                    backgroundColor: CARD_BG,
+                    backgroundColor: colors.card,
                     borderColor: 'rgba(255,255,255,0.06)',
                     ...cardShadow,
                   }}>
                   <Text
                     className="text-md border-b border-[#4d4d4d] pb-2 font-extrabold"
-                    style={{ color: GOLD, letterSpacing: 0.5 }}>
+                    style={{ color: colors.gold, letterSpacing: 0.5 }}>
                     RATES
                   </Text>
                   <View className="mt-3 flex-row">
                     <View className="flex-1 pr-2">
-                      <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+                      <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
                         Base rate
                       </Text>
                       <Text className="mt-1 text-lg font-extrabold text-gray-100">
@@ -350,7 +337,7 @@ export default function CarDetailsScreen() {
                       </Text>
                     </View>
                     <View className="flex-1 pl-2">
-                      <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+                      <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
                         Extension rate
                       </Text>
                       <Text className="mt-1 text-lg font-extrabold text-gray-100">
@@ -363,12 +350,12 @@ export default function CarDetailsScreen() {
                 <View
                   className="mt-4 flex-row items-center justify-between rounded-2xl border px-4 py-3"
                   style={{
-                    backgroundColor: CARD_BG,
+                    backgroundColor: colors.card,
                     borderColor: 'rgba(255,255,255,0.06)',
                     ...cardShadow,
                   }}>
                   <View className="flex-1 pr-2">
-                    <Text className="text-md font-bold" style={{ color: '#9CA3AF' }}>
+                    <Text className="text-md font-bold" style={{ color: colors.textSecondary }}>
                       Owner
                     </Text>
                     <Text className="mt-1 text-lg font-bold text-gray-100" numberOfLines={1}>
@@ -378,8 +365,8 @@ export default function CarDetailsScreen() {
                   <View
                     className="flex-row items-center rounded-full px-3 py-1.5"
                     style={{ backgroundColor: 'rgba(201,179,122,0.15)' }}>
-                    <FontAwesome name="star" size={12} color={GOLD} />
-                    <Text className="text-md ml-1 font-bold" style={{ color: GOLD }}>
+                    <FontAwesome name="star" size={12} color={colors.gold} />
+                    <Text className="text-md ml-1 font-bold" style={{ color: colors.gold }}>
                       {ownerRating.toFixed(1)}
                     </Text>
                   </View>
@@ -393,7 +380,7 @@ export default function CarDetailsScreen() {
           <View
             className="absolute bottom-0 left-0 right-0 border-t px-5 py-4"
             style={{
-              backgroundColor: CARD_BG,
+              backgroundColor: colors.card,
               borderTopColor: 'rgba(255,255,255,0.08)',
               shadowColor: '#000',
               shadowOpacity: 0.35,
@@ -403,13 +390,13 @@ export default function CarDetailsScreen() {
             }}>
             <View className="flex-row items-center justify-between">
               <View className="flex-1 pr-3">
-                <Text className="text-[11px] font-bold" style={{ color: '#9CA3AF' }}>
+                <Text className="text-[11px] font-bold" style={{ color: colors.textSecondary }}>
                   Base rate
                 </Text>
-                <Text className="mt-0.5 text-lg font-extrabold" style={{ color: GOLD }}>
+                <Text className="mt-0.5 text-lg font-extrabold" style={{ color: colors.gold }}>
                   Rs {vehicle.baseRatePerHour}/hr
                 </Text>
-                <Text className="mt-1 text-[10px] font-semibold" style={{ color: '#9CA3AF' }}>
+                <Text className="mt-1 text-[10px] font-semibold" style={{ color: colors.textSecondary }}>
                   Extension Rs {vehicle.extensionRatePerHour ?? vehicle.baseRatePerHour}/hr
                 </Text>
               </View>
@@ -421,8 +408,8 @@ export default function CarDetailsScreen() {
                   })
                 }
                 className="rounded-2xl px-6 py-3.5"
-                style={{ backgroundColor: GOLD }}>
-                <Text className="text-sm font-extrabold" style={{ color: '#0B0F14' }}>
+                style={{ backgroundColor: colors.gold }}>
+                <Text className="text-sm font-extrabold" style={{ color: colors.textOnGold }}>
                   Book now
                 </Text>
               </Pressable>
@@ -437,7 +424,7 @@ export default function CarDetailsScreen() {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <View>
-      <Text className="text-lg font-bold" style={{ color: '#9CA3AF' }}>
+      <Text className="text-lg font-bold" style={{ color: colors.textSecondary }}>
         {label}
       </Text>
       <Text className="text-md mt-1 font-bold text-gray-100" numberOfLines={2}>

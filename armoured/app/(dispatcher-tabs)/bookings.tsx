@@ -13,6 +13,8 @@ import { redirectToLogin } from '@/lib/safeRouter';
 import { useNavigationReady } from '@/hooks/useNavigationReady';
 import { useBookingsStore } from '@/store/bookingsStore';
 import { dispatcherAvatarUrl, useStore } from '@/store/store';
+import DropdownSelector from '@/components/DropdownSelector';
+import { colors, gradientProps, gradients } from '@/constants/theme';
 
 type BookingTab = 'Booking Requests' | 'Booking History';
 
@@ -111,18 +113,15 @@ export default function DispatcherBookingsScreen() {
   }, [loading, list.length]);
 
   return (
-    <LinearGradient
-      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
-      style={{ flex: 1 }}>
+    <LinearGradient colors={[...gradients.screen]} {...gradientProps.screen} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-[20px] font-semibold text-[#C9B37A]">Bookings</Text>
-              <Text className="text-lg font-semibold text-[#C9B37A]">My missions</Text>
+              <Text className="text-xl font-semibold" style={{ color: colors.gold }}>
+                Bookings
+              </Text>
+              {/* <Text className="text-lg font-semibold text-[#C9B37A]">My missions</Text> */}
             </View>
             <View className="flex-row items-center gap-2">
               <NotificationBellButton />
@@ -132,28 +131,22 @@ export default function DispatcherBookingsScreen() {
               />
             </View>
           </View>
-
-          <SubTabSelector
-            tabs={[
-              { key: 'Booking Requests', label: 'REQUESTS', icon: 'inbox' },
-              { key: 'Booking History', label: 'HISTORY', icon: 'history' },
-            ]}
-            activeKey={tab}
-            onChange={(key) => setTab(key as BookingTab)}
-          />
+          <View className="mb-2 mt-4">
+            <DropdownSelector
+              tabs={[
+                { key: 'Booking Requests', label: 'Requests', icon: 'inbox' },
+                { key: 'Booking History', label: 'History', icon: 'history' },
+              ]}
+              activeKey={tab}
+              label="History"
+              onChange={(key) => setTab(key as BookingTab)}
+            />
+          </View>
         </View>
 
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-4 pt-4">
           {approvedVehicles.length > 0 ? (
-            <View
-              className="mb-4 overflow-hidden rounded-xl"
-              style={
-                {
-                  // backgroundColor: 'rgba(0, 0, 0, 0.32)',
-                  // borderWidth: 1,
-                  // borderColor: 'rgba(255,255,255,0.06)',
-                }
-              }>
+            <View className="mb-4 overflow-hidden rounded-xl">
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -163,15 +156,18 @@ export default function DispatcherBookingsScreen() {
                   className="mr-1"
                   style={{
                     borderWidth: selectedVehicleId === 'ALL' ? 2 : 0,
-                    borderColor: '#C9B37A',
+                    borderColor: colors.gold,
                     borderRadius: 10,
                     margin: 4,
                   }}>
                   <View
                     className="h-[74px] w-[96px] items-center justify-center rounded-lg"
-                    style={{ backgroundColor: '#222222' }}>
+                    style={{ backgroundColor: colors.surface }}>
                     <Text
-                      className={`text-xs font-extrabold ${selectedVehicleId === 'ALL' ? 'text-[#C9B37A]' : 'text-[#B8BBC0]'}`}>
+                      className="text-xs font-extrabold"
+                      style={{
+                        color: selectedVehicleId === 'ALL' ? colors.gold : colors.textMuted,
+                      }}>
                       All
                     </Text>
                   </View>
@@ -195,13 +191,13 @@ export default function DispatcherBookingsScreen() {
                       className="mr-1"
                       style={{
                         borderWidth: activeCar ? 2 : 0,
-                        borderColor: '#C9B37A',
+                        borderColor: colors.gold,
                         borderRadius: 10,
                         margin: 4,
                       }}>
                       <View
                         className="h-[74px] w-[140px] flex-row items-center overflow-hidden rounded-lg"
-                        style={{ backgroundColor: '#222222' }}>
+                        style={{ backgroundColor: colors.surface }}>
                         <View className="h-[74px] w-[74px] items-center justify-center bg-black/20">
                           {firstImg ? (
                             <Image
@@ -213,20 +209,21 @@ export default function DispatcherBookingsScreen() {
                             <FontAwesome
                               name="car"
                               size={18}
-                              color={activeCar ? '#C9B37A' : '#B8BBC0'}
+                              color={activeCar ? colors.gold : colors.textMuted}
                             />
                           )}
                         </View>
                         <View className="flex-1 px-2">
                           <Text
                             numberOfLines={2}
-                            className={`text-[11px] font-extrabold ${activeCar ? 'text-[#C9B37A]' : 'text-gray-100'}`}>
+                            className="text-[11px] font-extrabold"
+                            style={{ color: activeCar ? colors.gold : colors.textPrimary }}>
                             {label}
                           </Text>
                           <Text
                             numberOfLines={1}
                             className="mt-0.5 text-[12px] font-bold"
-                            style={{ color: '#9CA3AF' }}>
+                            style={{ color: colors.textSecondary }}>
                             {v.numberPlate ?? v.registrationNumber ?? v.armourLevel}
                           </Text>
                         </View>
@@ -249,7 +246,7 @@ export default function DispatcherBookingsScreen() {
               <View
                 className="h-14 w-14 items-center justify-center rounded-3xl"
                 style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
-                <FontAwesome name="calendar" size={20} color="#9CA3AF" />
+                <FontAwesome name="calendar" size={20} color={colors.textSecondary} />
               </View>
               <Text className="mt-4 text-lg font-extrabold text-gray-200">No bookings</Text>
               <Text className="mt-1 text-sm font-semibold text-gray-300">

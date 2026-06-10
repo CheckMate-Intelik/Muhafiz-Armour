@@ -8,6 +8,7 @@ import { TripSchedulePanel } from '@/components/TripSchedulePanel';
 import { BackButton } from '@/components/BackButton';
 import { useTripDraftStore } from '@/store/tripDraft';
 import { LinearGradient } from 'expo-linear-gradient';
+import { gradientProps, gradients } from '@/constants/theme';
 
 export default function TripScheduleScreen() {
   const draft = useTripDraftStore();
@@ -29,10 +30,8 @@ export default function TripScheduleScreen() {
   if (!ready) {
     return (
       <LinearGradient
-        colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        locations={[0, 0.5, 1]}
+        colors={[...gradients.screen]}
+        {...gradientProps.screen}
         style={{ flex: 1 }}>
         <SafeAreaView className="flex-1" />
       </LinearGradient>
@@ -41,10 +40,8 @@ export default function TripScheduleScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      colors={[...gradients.screen]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">

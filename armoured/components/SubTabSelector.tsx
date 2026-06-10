@@ -2,10 +2,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ComponentProps } from 'react';
 import { Pressable, Text, View } from 'react-native';
-
-const GOLD_GRADIENT = ['rgb(204, 155, 31)', 'rgb(201, 179, 122)'] as const;
-const INACTIVE_GRADIENT = ['transparent', 'transparent'] as const;
-const GRADIENT_PROPS = { start: { x: 1, y: 0 } as const, end: { x: 1, y: 1 } as const };
+import { colors, gradientProps, gradients } from '@/constants/theme';
 
 export type SubTabItem = {
   key: string;
@@ -25,7 +22,7 @@ export function SubTabSelector({ tabs, activeKey, onChange, className }: Props) 
   return (
     <View
       className={`mb-2 flex-row overflow-hidden rounded-xl ${className ?? 'mt-4'}`}
-      style={{ backgroundColor: '#222222' }}>
+      style={{ backgroundColor: colors.surface }}>
       {tabs.map((t, idx) => {
         const active = activeKey === t.key;
         return (
@@ -34,12 +31,12 @@ export function SubTabSelector({ tabs, activeKey, onChange, className }: Props) 
             onPress={() => onChange(t.key)}
             className="flex-1"
             style={{
-              backgroundColor: '#222222',
+              backgroundColor: colors.surface,
               padding: 5,
             }}>
             <LinearGradient
-              colors={active ? [...GOLD_GRADIENT] : [...INACTIVE_GRADIENT]}
-              {...GRADIENT_PROPS}
+              colors={active ? [...gradients.gold] : [...gradients.inactive]}
+              {...gradientProps.cardVertical}
               style={{ borderRadius: 5 }}>
               <View
                 className="flex-row items-center justify-center gap-2 rounded-xl px-1"
@@ -48,7 +45,7 @@ export function SubTabSelector({ tabs, activeKey, onChange, className }: Props) 
                 <Text
                   numberOfLines={1}
                   className="text-sm font-extrabold"
-                  style={{ color: active ? '#0B0F14' : '#B8BBC0' }}>
+                  style={{ color: active ? colors.textOnGold : colors.textMuted }}>
                   {t.label}
                 </Text>
               </View>

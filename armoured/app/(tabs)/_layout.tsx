@@ -9,6 +9,7 @@ import { useNavigationReady } from '@/hooks/useNavigationReady';
 import { safeReplace } from '@/lib/safeRouter';
 import { useStore } from '@/store/store';
 import { useBookingsStore } from '@/store/bookingsStore';
+import { colors } from '@/constants/theme';
 
 const SNOOZE_KEY = 'armoured:ongoing-trip-snooze:v1';
 const IN_MEMORY_SNOOZE_KEY = '__armouredOngoingTripSnoozeUntilMs';
@@ -68,7 +69,8 @@ export default function TabLayout() {
     async function checkOngoing() {
       if (!navigationReady) return;
       if (activeRole !== 'USER') return;
-      if (pathname === '/login' || pathname === '/signup' || pathname === '/booking-details') return;
+      if (pathname === '/login' || pathname === '/signup' || pathname === '/booking-details')
+        return;
       try {
         // Re-read snooze each time because this layout stays mounted
         // when the user dismisses the ongoing trip screen.
@@ -77,7 +79,9 @@ export default function TabLayout() {
 
         await useBookingsStore.getState().refreshUserBookings();
         const rows = useBookingsStore.getState().userBookings;
-        const ongoing = Array.isArray(rows) ? rows.find((b) => b.status === 'IN_PROGRESS') : undefined;
+        const ongoing = Array.isArray(rows)
+          ? rows.find((b) => b.status === 'IN_PROGRESS')
+          : undefined;
         if (cancelled) return;
         if (!ongoing?.id) {
           if (snooze) {
@@ -122,20 +126,21 @@ export default function TabLayout() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarActiveTintColor: '#1D2DD9',
-        tabBarInactiveTintColor: '#111827',
+        tabBarInactiveTintColor: colors.tabInactive,
         tabBarStyle: {
           position: 'absolute',
           // left: 16,
           // right: 16,
           width: '90%',
           marginLeft: '5%',
-          bottom: tabBarBottom,
+          // bottom: tabBarBottom,
+          bottom: 12,
           // paddingHorizontal: 10,
           // paddingVertical: 10,
           borderRadius: 28,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgb(193, 155, 59)',
+          backgroundColor: colors.tabBar,
           borderTopWidth: 0,
           shadowColor: '#000',
           shadowOpacity: 0.08,
@@ -169,18 +174,21 @@ export default function TabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
-                width: focused ? '350%' : 52,
+                width: focused ? '320%' : 52,
               }}>
-              <FontAwesome name="home" size={focused ? 24 : 28} color={focused ? '#C9B37A' : 'black'} />
+              <FontAwesome
+                name="home"
+                size={focused ? 24 : 28}
+                color={focused ? colors.gold : colors.black}
+              />
               {focused && (
                 <Text
                   style={{
-                    color: '#C9B37A',
+                    color: colors.gold,
                     marginLeft: 8,
                     fontSize: 15,
                     fontWeight: '600',
-                  }}
-                >
+                  }}>
                   Home
                 </Text>
               )}
@@ -204,16 +212,19 @@ export default function TabLayout() {
                 height: 46,
                 width: focused ? '350%' : 52,
               }}>
-              <FontAwesome name="history" size={focused ? 24 : 28} color={focused ? '#C9B37A' : 'black'} />
+              <FontAwesome
+                name="history"
+                size={focused ? 24 : 28}
+                color={focused ? colors.gold : colors.black}
+              />
               {focused && (
                 <Text
                   style={{
-                    color: '#C9B37A',
+                    color: colors.gold,
                     marginLeft: 8,
                     fontSize: 15,
                     fontWeight: '600',
-                  }}
-                >
+                  }}>
                   History
                 </Text>
               )}
@@ -237,18 +248,21 @@ export default function TabLayout() {
                 borderRadius: 100,
                 backgroundColor: focused ? 'black' : 'transparent',
                 height: 46,
-                width: focused ? '350%' : 52,
+                width: focused ? '320%' : 52,
               }}>
-              <FontAwesome name="user" size={focused ? 24 : 28} color={focused ? '#C9B37A' : 'black'}/>
+              <FontAwesome
+                name="user"
+                size={focused ? 24 : 28}
+                color={focused ? colors.gold : colors.black}
+              />
               {focused && (
                 <Text
                   style={{
-                    color: '#C9B37A',
+                    color: colors.gold,
                     marginLeft: 8,
                     fontSize: 15,
                     fontWeight: '600',
-                  }}
-                >
+                  }}>
                   Profile
                 </Text>
               )}

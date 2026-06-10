@@ -8,6 +8,7 @@ import { BackButton } from '@/components/BackButton';
 import type { NotificationNavData } from '@/lib/notifications';
 import { useSessionNotificationsStore, type SessionNotification } from '@/store/sessionNotificationsStore';
 import { safePush } from '@/lib/safeRouter';
+import { colors, gradientProps, gradients } from '@/constants/theme';
 
 function formatReceivedAt(ms: number) {
   const d = new Date(ms);
@@ -49,20 +50,22 @@ function NotificationRow({ item }: { item: SessionNotification }) {
       disabled={!hasBooking}
       className="mb-3 rounded-2xl p-4"
       style={{
-        backgroundColor: '#0B0F14',
+        backgroundColor: colors.card,
         borderWidth: 1,
-        borderColor: 'rgba(201, 179, 122, 0.25)',
+        borderColor: colors.borderGold,
       }}>
       <View className="flex-row items-start gap-3">
         <View
           className="mt-0.5 h-9 w-9 items-center justify-center rounded-full"
           style={{ backgroundColor: 'rgba(201, 179, 122, 0.15)' }}>
-          <FontAwesome name="bell" size={14} color="#C9B37A" />
+          <FontAwesome name="bell" size={14} color={colors.gold} />
         </View>
         <View className="flex-1">
-          <Text className="text-sm font-extrabold text-[#C9B37A]">{item.title}</Text>
+          <Text className="text-sm font-extrabold" style={{ color: colors.gold }}>
+            {item.title}
+          </Text>
           {item.body.length > 0 ? (
-            <Text className="mt-1 text-xs font-semibold leading-5" style={{ color: '#9CA3AF' }}>
+            <Text className="mt-1 text-xs font-semibold leading-5" style={{ color: colors.textSecondary }}>
               {item.body}
             </Text>
           ) : null}
@@ -81,10 +84,8 @@ export default function NotificationsScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      colors={[...gradients.screen]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="flex-row items-center justify-between px-5 pt-4">
@@ -100,8 +101,10 @@ export default function NotificationsScreen() {
               style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
               <FontAwesome name="bell-o" size={28} color="#6B7280" />
             </View>
-            <Text className="mt-4 text-center text-sm font-extrabold text-[#C9B37A]">No recent notifications</Text>
-            <Text className="mt-2 text-center text-xs font-semibold leading-5" style={{ color: '#9CA3AF' }}>
+            <Text className="mt-4 text-center text-sm font-extrabold" style={{ color: colors.gold }}>
+              No recent notifications
+            </Text>
+            <Text className="mt-2 text-center text-xs font-semibold leading-5" style={{ color: colors.textSecondary }}>
               Alerts you receive while this app is open will appear here for the current session.
             </Text>
           </View>

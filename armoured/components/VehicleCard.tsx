@@ -2,6 +2,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, Pressable, Text, View } from 'react-native';
 
+import { colors } from '@/constants/theme';
+
 export type VehicleCardData = {
   id: string;
   imageUrls?: string[];
@@ -57,11 +59,12 @@ export function VehicleCard({
   const defaultClass = isDark
     ? 'mb-3 w-[100%] rounded-2xl p-2.5'
     : 'mb-3 w-[100%] rounded-2xl bg-white p-2.5';
-  const metaIcon = isDark ? '#B8BBC0' : 'rgb(126, 126, 126)';
+  const metaIcon = isDark ? colors.textMuted : 'rgb(126, 126, 126)';
   const titleClass = isDark
     ? 'mt-0.5 text-lg font-bold text-gray-100'
     : 'mt-0.5 text-lg font-bold text-gray-800';
-  const rateClass = isDark ? 'text-lg font-bold text-[#C9B37A]' : 'text-lg font-bold text-gray-600';
+  const rateClass = isDark ? 'text-lg font-bold' : 'text-lg font-bold text-gray-600';
+  const rateStyle = isDark ? { color: colors.gold } : undefined;
   const footerBorder = isDark ? 'border-[#4d4d4d]' : 'border-gray-200';
   const footerText = isDark
     ? 'ml-1 flex-1 text-md font-bold text-gray-300'
@@ -77,7 +80,7 @@ export function VehicleCard({
         isDark
           ? {
               ...missionCardShadow,
-              backgroundColor: '#0B0F14',
+              backgroundColor: colors.card,
               borderColor: 'rgba(255,255,255,0.06)',
               borderWidth: 1,
               borderRadius: 15,
@@ -110,7 +113,9 @@ export function VehicleCard({
           </View>
 
           <View className="items-end">
-            <Text className={rateClass}>Rs {vehicle.baseRatePerHour.toFixed(0)} /hr</Text>
+            <Text className={rateClass} style={rateStyle}>
+              Rs {vehicle.baseRatePerHour.toFixed(0)} /hr
+            </Text>
           </View>
         </View>
 

@@ -17,9 +17,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { BackButton } from '@/components/BackButton';
 import { PUBLIC_API_BASE_URL, dispatcherPost, dispatcherUploadVehicleImage, ensureDispatcherSession } from '@/lib/api';
+import { colors, gradientProps, gradients } from '@/constants/theme';
 
-const GOLD = '#C9B37A';
-const CARD = '#0B0F14';
 const STEPS = 3;
 
 export default function RegisterVehicleScreen() {
@@ -207,10 +206,8 @@ export default function RegisterVehicleScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      colors={[...gradients.screen]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-2">
@@ -220,7 +217,7 @@ export default function RegisterVehicleScreen() {
               accessibilityLabel={step === 0 ? 'Close' : 'Previous step'}
             />
             <View className="flex-1 items-center px-2">
-              <Text className="text-center text-xs font-extrabold" style={{ color: GOLD, letterSpacing: 0.4 }}>
+              <Text className="text-center text-xs font-extrabold" style={{ color: colors.gold, letterSpacing: 0.4 }}>
                 STEP {step + 1} OF {STEPS}
               </Text>
               <Text className="mt-0.5 text-center text-base font-extrabold text-gray-100" numberOfLines={1}>
@@ -235,11 +232,11 @@ export default function RegisterVehicleScreen() {
               <View
                 key={i}
                 className="h-1.5 flex-1 rounded-full"
-                style={{ backgroundColor: i <= step ? GOLD : 'rgba(255,255,255,0.12)' }}
+                style={{ backgroundColor: i <= step ? colors.gold : 'rgba(255,255,255,0.12)' }}
               />
             ))}
           </View>
-          <Text className="mt-2 text-center text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+          <Text className="mt-2 text-center text-xs font-semibold" style={{ color: colors.textSecondary }}>
             {stepMeta[step]?.subtitle ?? ''}
           </Text>
         </View>
@@ -251,7 +248,7 @@ export default function RegisterVehicleScreen() {
           <View
             className="rounded-2xl border p-4"
             style={{
-              backgroundColor: CARD,
+              backgroundColor: colors.card,
               borderColor: 'rgba(255,255,255,0.06)',
               shadowColor: '#000',
               shadowOpacity: 0.22,
@@ -265,24 +262,24 @@ export default function RegisterVehicleScreen() {
                   onPress={() => setArmourPickerOpen(true)}
                   className="mb-3 rounded-2xl border px-4 py-3"
                   style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
-                  <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
+                  <Text className="text-xs font-bold" style={{ color: colors.textSecondary }}>
                     Armour level
                   </Text>
                   <View className="mt-1 flex-row items-center justify-between">
                     <Text className="text-sm font-extrabold text-gray-100">{armourLabel || '-'}</Text>
-                    <FontAwesome name="angle-down" size={18} color={GOLD} />
+                    <FontAwesome name="angle-down" size={18} color={colors.gold} />
                   </View>
                 </Pressable>
                 <Pressable
                   onPress={() => setVehicleTypePickerOpen(true)}
                   className="mb-3 rounded-2xl border px-4 py-3"
                   style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
-                  <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
+                  <Text className="text-xs font-bold" style={{ color: colors.textSecondary }}>
                     Vehicle type
                   </Text>
                   <View className="mt-1 flex-row items-center justify-between">
                     <Text className="text-sm font-extrabold text-gray-100">{vehicleTypeLabel || '-'}</Text>
-                    <FontAwesome name="angle-down" size={18} color={GOLD} />
+                    <FontAwesome name="angle-down" size={18} color={colors.gold} />
                   </View>
                 </Pressable>
                 <Field label="Manufacturer" value={manufacturer} onChangeText={setManufacturer} placeholder="Toyota" />
@@ -330,7 +327,7 @@ export default function RegisterVehicleScreen() {
             {step === 2 ? (
               <>
                 <View className="mb-3 rounded-2xl border px-4 py-3" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
-                  <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
+                  <Text className="text-xs font-bold" style={{ color: colors.textSecondary }}>
                     Vehicle photos
                   </Text>
                   <Text className="mt-1 text-xs font-semibold" style={{ color: '#6B7280' }}>
@@ -339,9 +336,9 @@ export default function RegisterVehicleScreen() {
                   <Pressable
                     onPress={pickImages}
                     className="mt-3 flex-row items-center justify-center rounded-xl border py-3"
-                    style={{ borderColor: GOLD, backgroundColor: 'rgba(201,179,122,0.12)' }}>
-                    <FontAwesome name="image" size={14} color={GOLD} />
-                    <Text className="ml-2 text-xs font-extrabold" style={{ color: GOLD }}>
+                    style={{ borderColor: colors.gold, backgroundColor: 'rgba(201,179,122,0.12)' }}>
+                    <FontAwesome name="image" size={14} color={colors.gold} />
+                    <Text className="ml-2 text-xs font-extrabold" style={{ color: colors.gold }}>
                       Choose images
                     </Text>
                   </Pressable>
@@ -388,7 +385,7 @@ export default function RegisterVehicleScreen() {
         <View
           className="absolute bottom-0 left-0 right-0 border-t px-5 py-4"
           style={{
-            backgroundColor: CARD,
+            backgroundColor: colors.card,
             borderTopColor: 'rgba(255,255,255,0.08)',
             paddingBottom: 8,
             shadowColor: '#000',
@@ -401,8 +398,8 @@ export default function RegisterVehicleScreen() {
             onPress={goNext}
             disabled={primaryDisabled}
             className="items-center justify-center rounded-2xl py-3.5"
-            style={{ backgroundColor: primaryDisabled ? 'rgba(255,255,255,0.12)' : GOLD, opacity: primaryDisabled ? 0.7 : 1 }}>
-            <Text className="text-sm font-extrabold" style={{ color: primaryDisabled ? '#9CA3AF' : '#0B0F14' }}>
+            style={{ backgroundColor: primaryDisabled ? 'rgba(255,255,255,0.12)' : colors.gold, opacity: primaryDisabled ? 0.7 : 1 }}>
+            <Text className="text-sm font-extrabold" style={{ color: primaryDisabled ? colors.textSecondary : colors.textOnGold }}>
               {submitting ? 'Saving…' : step === STEPS - 1 ? 'Add vehicle' : 'Next'}
             </Text>
           </Pressable>
@@ -410,11 +407,11 @@ export default function RegisterVehicleScreen() {
 
         <Modal transparent visible={armourPickerOpen} animationType="fade" onRequestClose={() => setArmourPickerOpen(false)}>
           <Pressable className="flex-1 items-center justify-center px-5" style={{ backgroundColor: 'rgba(0,0,0,0.55)' }} onPress={() => setArmourPickerOpen(false)}>
-            <View onStartShouldSetResponder={() => true} className="w-full rounded-2xl border p-4" style={{ backgroundColor: CARD, borderColor: 'rgba(255,255,255,0.1)', maxWidth: 420 }}>
+            <View onStartShouldSetResponder={() => true} className="w-full rounded-2xl border p-4" style={{ backgroundColor: colors.card, borderColor: 'rgba(255,255,255,0.1)', maxWidth: 420 }}>
               <View className="flex-row items-center justify-between">
                 <Text className="text-base font-extrabold text-gray-100">Armour level</Text>
                 <Pressable onPress={() => setArmourPickerOpen(false)}>
-                  <Text className="text-sm font-extrabold" style={{ color: GOLD }}>
+                  <Text className="text-sm font-extrabold" style={{ color: colors.gold }}>
                     Done
                   </Text>
                 </Pressable>
@@ -431,17 +428,17 @@ export default function RegisterVehicleScreen() {
                       }}
                       className="mb-2 flex-row items-center justify-between rounded-2xl border px-4 py-3"
                       style={{
-                        borderColor: active ? GOLD : 'rgba(255,255,255,0.08)',
+                        borderColor: active ? colors.gold : 'rgba(255,255,255,0.08)',
                         backgroundColor: active ? 'rgba(201,179,122,0.12)' : 'rgba(255,255,255,0.04)',
                       }}>
                       <View className="flex-row items-center gap-3">
                         <View
                           className="h-9 w-9 items-center justify-center rounded-xl border"
                           style={{
-                            borderColor: active ? GOLD : 'rgba(255,255,255,0.12)',
+                            borderColor: active ? colors.gold : 'rgba(255,255,255,0.12)',
                             backgroundColor: active ? 'rgba(201,179,122,0.2)' : 'rgba(0,0,0,0.3)',
                           }}>
-                          <FontAwesome name="shield" size={16} color={active ? GOLD : '#9CA3AF'} />
+                          <FontAwesome name="shield" size={16} color={active ? colors.gold : '#9CA3AF'} />
                         </View>
                         <View>
                           <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
@@ -453,7 +450,7 @@ export default function RegisterVehicleScreen() {
                           </Text>
                         </View>
                       </View>
-                      {active ? <FontAwesome name="check" size={16} color={GOLD} /> : <View className="h-4 w-4" />}
+                      {active ? <FontAwesome name="check" size={16} color={colors.gold} /> : <View className="h-4 w-4" />}
                     </Pressable>
                   );
                 })}
@@ -464,11 +461,11 @@ export default function RegisterVehicleScreen() {
 
         <Modal transparent visible={vehicleTypePickerOpen} animationType="fade" onRequestClose={() => setVehicleTypePickerOpen(false)}>
           <Pressable className="flex-1 items-center justify-center px-5" style={{ backgroundColor: 'rgba(0,0,0,0.55)' }} onPress={() => setVehicleTypePickerOpen(false)}>
-            <View onStartShouldSetResponder={() => true} className="w-full rounded-2xl border p-4" style={{ backgroundColor: CARD, borderColor: 'rgba(255,255,255,0.1)', maxWidth: 420 }}>
+            <View onStartShouldSetResponder={() => true} className="w-full rounded-2xl border p-4" style={{ backgroundColor: colors.card, borderColor: 'rgba(255,255,255,0.1)', maxWidth: 420 }}>
               <View className="flex-row items-center justify-between">
                 <Text className="text-base font-extrabold text-gray-100">Vehicle type</Text>
                 <Pressable onPress={() => setVehicleTypePickerOpen(false)}>
-                  <Text className="text-sm font-extrabold" style={{ color: GOLD }}>
+                  <Text className="text-sm font-extrabold" style={{ color: colors.gold }}>
                     Done
                   </Text>
                 </Pressable>
@@ -485,17 +482,17 @@ export default function RegisterVehicleScreen() {
                       }}
                       className="mb-2 flex-row items-center justify-between rounded-2xl border px-4 py-3"
                       style={{
-                        borderColor: active ? GOLD : 'rgba(255,255,255,0.08)',
+                        borderColor: active ? colors.gold : 'rgba(255,255,255,0.08)',
                         backgroundColor: active ? 'rgba(201,179,122,0.12)' : 'rgba(255,255,255,0.04)',
                       }}>
                       <View className="flex-row items-center gap-3">
                         <View
                           className="h-9 w-9 items-center justify-center rounded-xl border"
                           style={{
-                            borderColor: active ? GOLD : 'rgba(255,255,255,0.12)',
+                            borderColor: active ? colors.gold : 'rgba(255,255,255,0.12)',
                             backgroundColor: active ? 'rgba(201,179,122,0.2)' : 'rgba(0,0,0,0.3)',
                           }}>
-                          <FontAwesome name="car" size={16} color={active ? GOLD : '#9CA3AF'} />
+                          <FontAwesome name="car" size={16} color={active ? colors.gold : '#9CA3AF'} />
                         </View>
                         <View>
                           <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
@@ -507,7 +504,7 @@ export default function RegisterVehicleScreen() {
                           </Text>
                         </View>
                       </View>
-                      {active ? <FontAwesome name="check" size={16} color={GOLD} /> : <View className="h-4 w-4" />}
+                      {active ? <FontAwesome name="check" size={16} color={colors.gold} /> : <View className="h-4 w-4" />}
                     </Pressable>
                   );
                 })}
@@ -537,7 +534,7 @@ function Field({
 }) {
   return (
     <View className="mb-3 rounded-2xl border px-4 py-3" style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
-      <Text className="text-xs font-bold" style={{ color: '#9CA3AF' }}>
+      <Text className="text-xs font-bold" style={{ color: colors.textSecondary }}>
         {label}
       </Text>
       <TextInput

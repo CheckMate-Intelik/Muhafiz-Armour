@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { apiPost, ensureUserSession } from '@/lib/api';
+import { colors } from '@/constants/theme';
 import { useTripDraftStore } from '@/store/tripDraft';
 
 const MAX_HOURS = 5 * 24;
@@ -148,7 +149,7 @@ export function TripSchedulePanel() {
   if (loadingMeta || !meta) {
     return (
       <View className="items-center py-10">
-        <ActivityIndicator color="#C9B37A" />
+        <ActivityIndicator color={colors.gold} />
         <Text className="mt-3 text-sm font-semibold text-gray-300">Calculating route…</Text>
       </View>
     );
@@ -159,7 +160,7 @@ export function TripSchedulePanel() {
       <View
         className="mt-4 overflow-hidden rounded-2xl"
         style={{
-          backgroundColor: '#0B0F14',
+          backgroundColor: colors.card,
           borderWidth: 1,
           borderColor: 'rgba(255,255,255,0.06)',
         }}>
@@ -168,22 +169,22 @@ export function TripSchedulePanel() {
           style={{ backgroundColor: '#000000', borderBottomColor: 'rgba(255,255,255,0.06)' }}>
           <Text
             className="text-[12px] font-extrabold"
-            style={{ color: '#C9B37A', letterSpacing: 0.5 }}>
+            style={{ color: colors.gold, letterSpacing: 0.5 }}>
             ROUTE
           </Text>
         </View>
         <View className="px-4 py-3">
           <Text className="text-base font-semibold text-gray-100">
             ~{meta.distanceKm.toFixed(1)} km
-            <Text className="font-semibold" style={{ color: '#9CA3AF' }}>{`  •  min drive estimate ${meta.distanceMinHours}h`}</Text>
+            <Text className="font-semibold" style={{ color: colors.textSecondary }}>{`  •  min drive estimate ${meta.distanceMinHours}h`}</Text>
           </Text>
-          <Text className="mt-2 text-sm font-semibold" style={{ color: '#9CA3AF' }}>
+          <Text className="mt-2 text-sm font-semibold" style={{ color: colors.textSecondary }}>
             Minimum booking duration for this route: {meta.effectiveMinDurationHours} hours (up to {MAX_HOURS} hours / 5 days).
           </Text>
-          <Text className="mt-2 text-sm font-extrabold" style={{ color: '#C9B37A' }}>
+          <Text className="mt-2 text-sm font-extrabold" style={{ color: colors.gold }}>
             {bufferLabel}
           </Text>
-          <Text className="mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+          <Text className="mt-1 text-xs font-semibold" style={{ color: colors.textSecondary }}>
             Buffer time is added automatically when checking vehicle availability.
           </Text>
         </View>
@@ -194,61 +195,61 @@ export function TripSchedulePanel() {
           onPress={openDatePicker}
           className="flex-row items-center justify-between rounded-2xl px-4 py-3"
           style={{
-            backgroundColor: '#0B0F14',
+            backgroundColor: colors.card,
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.08)',
           }}>
           <View
             className="h-10 w-10 items-center justify-center rounded-2xl"
             style={{ backgroundColor: 'rgba(201,179,122,0.12)' }}>
-            <FontAwesome name="calendar" size={16} color="#C9B37A" />
+            <FontAwesome name="calendar" size={16} color={colors.gold} />
           </View>
           <View className="ml-3 flex-1">
-            <Text className="text-[11px] font-extrabold" style={{ color: '#9CA3AF', letterSpacing: 0.6 }}>
+            <Text className="text-[11px] font-extrabold" style={{ color: colors.textSecondary, letterSpacing: 0.6 }}>
               PICKUP DATE
             </Text>
             <Text className="mt-1 text-base font-extrabold text-gray-100">
               {startAt.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
             </Text>
           </View>
-          <FontAwesome name="chevron-down" size={14} color="#9CA3AF" />
+          <FontAwesome name="chevron-down" size={14} color={colors.textSecondary} />
         </Pressable>
 
         <Pressable
           onPress={openTimePicker}
           className="flex-row items-center justify-between rounded-2xl px-4 py-3"
           style={{
-            backgroundColor: '#0B0F14',
+            backgroundColor: colors.card,
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.08)',
           }}>
           <View
             className="h-10 w-10 items-center justify-center rounded-2xl"
             style={{ backgroundColor: 'rgba(201,179,122,0.12)' }}>
-            <FontAwesome name="clock-o" size={16} color="#C9B37A" />
+            <FontAwesome name="clock-o" size={16} color={colors.gold} />
           </View>
           <View className="ml-3 flex-1">
-            <Text className="text-[11px] font-extrabold" style={{ color: '#9CA3AF', letterSpacing: 0.6 }}>
+            <Text className="text-[11px] font-extrabold" style={{ color: colors.textSecondary, letterSpacing: 0.6 }}>
               PICKUP TIME
             </Text>
             <Text className="mt-1 text-base font-extrabold text-gray-100">
               {formatHourLabel(startAt.getHours())}
             </Text>
           </View>
-          <FontAwesome name="chevron-down" size={14} color="#9CA3AF" />
+          <FontAwesome name="chevron-down" size={14} color={colors.textSecondary} />
         </Pressable>
       </View>
 
-      <Text className="mt-5 text-[13px] font-extrabold" style={{ letterSpacing: 2, color: '#9CA3AF' }}>
+      <Text className="mt-5 text-[13px] font-extrabold" style={{ letterSpacing: 2, color: colors.textSecondary }}>
         DURATION (HOURS)
       </Text>
-      <Text className="mt-1 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+      <Text className="mt-1 text-xs font-semibold" style={{ color: colors.textSecondary }}>
         Between {minHours} and {MAX_HOURS} hours
       </Text>
       <View
         className="mt-3 flex-row items-center justify-between rounded-2xl px-3 py-2"
         style={{
-          backgroundColor: '#0B0F14',
+          backgroundColor: colors.card,
           borderWidth: 1,
           borderColor: 'rgba(255,255,255,0.08)',
         }}>
@@ -256,13 +257,13 @@ export function TripSchedulePanel() {
           onPress={() => adjustDuration(-1)}
           className="h-10 w-10 items-center justify-center rounded-xl"
           style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-          <FontAwesome name="minus" size={14} color="#C9B37A" />
+          <FontAwesome name="minus" size={14} color={colors.gold} />
         </Pressable>
         <TextInput
           value={String(durationHours)}
           onChangeText={onDurationText}
           keyboardType="number-pad"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textSecondary}
           className="min-w-[80px] text-center text-lg font-extrabold"
           style={{ color: '#F3F4F6' }}
         />
@@ -270,15 +271,15 @@ export function TripSchedulePanel() {
           onPress={() => adjustDuration(1)}
           className="h-10 w-10 items-center justify-center rounded-xl"
           style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-          <FontAwesome name="plus" size={14} color="#C9B37A" />
+          <FontAwesome name="plus" size={14} color={colors.gold} />
         </Pressable>
       </View>
 
       <Pressable
         onPress={continueNext}
         className="mt-6 items-center rounded-2xl py-4"
-        style={{ backgroundColor: '#C9B37A' }}>
-        <Text className="text-sm font-extrabold" style={{ color: '#0B0F14' }}>
+        style={{ backgroundColor: colors.gold }}>
+        <Text className="text-sm font-extrabold" style={{ color: colors.textOnGold }}>
           Next — see available vehicles
         </Text>
       </Pressable>
@@ -296,7 +297,7 @@ export function TripSchedulePanel() {
             className="mt-auto rounded-3xl p-4"
             onStartShouldSetResponder={() => true}
             style={{
-              backgroundColor: '#0B0F14',
+              backgroundColor: colors.card,
               borderWidth: 1,
               borderColor: 'rgba(255,255,255,0.08)',
             }}>
@@ -305,7 +306,7 @@ export function TripSchedulePanel() {
                 {picker === 'date' ? 'Pickup date' : 'Pickup time'}
               </Text>
               <Pressable onPress={() => setPicker(null)}>
-                <Text className="text-sm font-extrabold" style={{ color: '#C9B37A' }}>
+                <Text className="text-sm font-extrabold" style={{ color: colors.gold }}>
                   Done
                 </Text>
               </Pressable>
@@ -333,10 +334,10 @@ export function TripSchedulePanel() {
                         }}>
                         <Text
                           className="text-base font-extrabold"
-                          style={{ color: selected ? '#C9B37A' : '#F3F4F6' }}>
+                          style={{ color: selected ? colors.gold : '#F3F4F6' }}>
                           {formatHourLabel(hour)}
                         </Text>
-                        {selected ? <FontAwesome name="check" size={14} color="#C9B37A" /> : null}
+                        {selected ? <FontAwesome name="check" size={14} color={colors.gold} /> : null}
                       </Pressable>
                     );
                   })}

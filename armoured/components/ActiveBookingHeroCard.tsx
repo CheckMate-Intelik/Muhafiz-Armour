@@ -2,6 +2,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, Pressable, Text, View } from 'react-native';
 
+import { colors, gradientProps, gradients } from '@/constants/theme';
+
 export type ActiveBookingHeroData = {
   id: string;
   pickupLocation?: string | null;
@@ -60,8 +62,8 @@ function InfoBox({
     label == 'Armour Level' ? 'Armour' : label == 'Time Remaining' ? 'Time Left' : label;
   return (
     <View className="flex-1 items-center justify-center px-2" style={{ minHeight: 70 }}>
-      <FontAwesome name={icon} size={15} color="#C9B37A" />
-      <Text className="text-center text-[11px] font-bold" style={{ color: '#B8BBC0' }}>
+      <FontAwesome name={icon} size={15} color={colors.gold} />
+      <Text className="text-center text-[11px] font-bold" style={{ color: colors.textMuted }}>
         {label2}
       </Text>
       <Text numberOfLines={1} className="mt-0.5 text-[12px] font-extrabold text-gray-100">
@@ -83,9 +85,9 @@ export function ActiveBookingHeroCard({
   if (!booking) {
     return (
       <View
-        className="overflow-hidden rounded-2xl p-4"
+        className="overflow-hidden rounded-lg px-4 pb-2"
         style={{
-          backgroundColor: '#222222',
+          backgroundColor: colors.surface,
           shadowColor: '#000',
           shadowOpacity: 0.22,
           shadowRadius: 14,
@@ -94,12 +96,12 @@ export function ActiveBookingHeroCard({
         }}>
         {/* <View className="bg-black px-4 py-3"> */}
         <Text
-          className=" border-b border-[#4d4d4d] pb-2 text-[12px] font-extrabold"
-          style={{ color: '#D8DADF', letterSpacing: 0.5 }}>
+          className=" border-b border-[#4d4d4d] pb-1 pt-2 text-[12px] font-extrabold"
+          style={{ color: colors.gold, letterSpacing: 0.5 }}>
           ACTIVE BOOKING
         </Text>
         {/* </View> */}
-        <View className=" pt-4">
+        <View className=" py-4">
           <Text className="text-base font-semibold text-gray-100">{emptyLabel}</Text>
         </View>
       </View>
@@ -119,7 +121,7 @@ export function ActiveBookingHeroCard({
 
   return (
     <LinearGradient
-      colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
+      colors={[...gradients.cardDark]}
       start={{ x: 1, y: 1 }}
       end={{ x: 1, y: 0 }}
       style={{ borderRadius: 10 }}>
@@ -153,13 +155,15 @@ export function ActiveBookingHeroCard({
             </View>
 
             <View className="flex-row items-center">
-              <Text className="mr-2 text-[12px] font-semibold" style={{ color: '#9CA3AF' }}>
+              <Text
+                className="mr-2 text-[12px] font-semibold"
+                style={{ color: colors.textSecondary }}>
                 Booking ID: #{String(booking.id)}
               </Text>
               <View
                 className="h-7 w-7 items-center justify-center rounded-lg"
                 style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-                <FontAwesome name="copy" size={16} color="#9CA3AF" />
+                <FontAwesome name="copy" size={16} color={colors.textSecondary} />
               </View>
             </View>
           </View>
@@ -188,24 +192,28 @@ export function ActiveBookingHeroCard({
                 </View>
 
                 <View className="flex-1">
-                  <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+                  <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
                     Pickup
                   </Text>
                   <Text numberOfLines={1} className="text-md mt-0 font-extrabold text-gray-100">
                     {(booking.pickupLocation ?? '').trim() || '—'}
                   </Text>
-                  <Text className="mt-0.5 text-[12px] font-semibold" style={{ color: '#9CA3AF' }}>
+                  <Text
+                    className="mt-0.5 text-[12px] font-semibold"
+                    style={{ color: colors.textSecondary }}>
                     {start ? `${formatDayLabel(start)}, ${formatTimeLabel(start)}` : '—'}
                   </Text>
 
                   <View className="mt-2">
-                    <Text className="text-[12px] font-bold" style={{ color: '#9CA3AF' }}>
+                    <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
                       Drop-off
                     </Text>
                     <Text numberOfLines={1} className="text-md mt-0 font-extrabold text-gray-100">
                       {(booking.dropLocation ?? '').trim() || '—'}
                     </Text>
-                    <Text className="mt-0.5 text-[12px] font-semibold" style={{ color: '#9CA3AF' }}>
+                    <Text
+                      className="mt-0.5 text-[12px] font-semibold"
+                      style={{ color: colors.textSecondary }}>
                       {end ? `${formatDayLabel(end)}, ${formatTimeLabel(end)}` : '—'}
                     </Text>
                   </View>
@@ -244,9 +252,8 @@ export function ActiveBookingHeroCard({
             borderRadius: 10,
           }}>
           {/* <LinearGradient
-            colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
-            start={{ x: 1, y: 0 }}
-            end={{ x: 1, y: 1 }}
+      colors={[...gradients.cardDark]}
+      {...gradientProps.cardVertical}
             style={{ borderRadius: 10 }}> */}
           <View
             className="flex-row"

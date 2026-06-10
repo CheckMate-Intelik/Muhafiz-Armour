@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BackButton } from '@/components/BackButton';
 import { findPakistanCityByName, PAKISTAN_CITIES, type PakistanCity } from '@/constants/pakistanCities';
 import { useTripDraftStore } from '@/store/tripDraft';
+import { colors, gradientProps, gradients } from '@/constants/theme';
 
 type Mode = 'pickup' | 'drop';
 
@@ -281,10 +282,8 @@ export default function PickLocationScreen() {
   if (!apiKey) {
     return (
       <LinearGradient
-        colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        locations={[0, 0.5, 1]}
+        colors={[...gradients.screen]}
+        {...gradientProps.screen}
         style={{ flex: 1 }}>
         <SafeAreaView className="flex-1 px-5 pt-4">
           <View className="flex-row items-center justify-between">
@@ -294,11 +293,11 @@ export default function PickLocationScreen() {
           </View>
           <View
             className="mt-6 rounded-2xl p-4"
-            style={{ backgroundColor: '#0B0F14', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
-            <Text className="text-sm font-extrabold" style={{ color: '#C9B37A' }}>
+            style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+            <Text className="text-sm font-extrabold" style={{ color: colors.gold }}>
               Google Maps API key missing
             </Text>
-            <Text className="mt-2 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+            <Text className="mt-2 text-xs font-semibold" style={{ color: colors.textSecondary }}>
               Add your key in `armoured/app.json` under `expo.extra.googleMapsApiKey` (and the iOS/Android config keys),
               then rebuild the dev client.
             </Text>
@@ -311,10 +310,8 @@ export default function PickLocationScreen() {
   if (!maps) {
     return (
       <LinearGradient
-        colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        locations={[0, 0.5, 1]}
+        colors={[...gradients.screen]}
+        {...gradientProps.screen}
         style={{ flex: 1 }}>
         <SafeAreaView className="flex-1 px-5 pt-4">
           <View className="flex-row items-center justify-between">
@@ -324,11 +321,11 @@ export default function PickLocationScreen() {
           </View>
           <View
             className="mt-6 rounded-2xl p-4"
-            style={{ backgroundColor: '#0B0F14', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
-            <Text className="text-sm font-extrabold" style={{ color: '#C9B37A' }}>
+            style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+            <Text className="text-sm font-extrabold" style={{ color: colors.gold }}>
               Maps module not available in this build
             </Text>
-            <Text className="mt-2 text-xs font-semibold" style={{ color: '#9CA3AF' }}>
+            <Text className="mt-2 text-xs font-semibold" style={{ color: colors.textSecondary }}>
               Your current dev client was built without `react-native-maps`. Add the `react-native-maps` plugin in `armoured/app.json` and rebuild
               the dev client.
             </Text>
@@ -340,10 +337,8 @@ export default function PickLocationScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      colors={[...gradients.screen]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
@@ -393,7 +388,7 @@ export default function PickLocationScreen() {
                   if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
                   typingTimerRef.current = setTimeout(() => setIsTyping(false), 900);
                 },
-                placeholderTextColor: '#9CA3AF',
+                placeholderTextColor: colors.textSecondary,
               }}
               styles={{
                 container: {
@@ -403,7 +398,7 @@ export default function PickLocationScreen() {
                   flexDirection: 'row',
                 },
                 textInput: {
-                  backgroundColor: '#0B0F14',
+                  backgroundColor: colors.card,
                   borderRadius: 16,
                   paddingHorizontal: 14,
                   paddingVertical: 12,
@@ -421,7 +416,7 @@ export default function PickLocationScreen() {
                   borderRadius: 16,
                   marginTop: 6,
                   overflow: 'hidden',
-                  backgroundColor: '#0B0F14',
+                  backgroundColor: colors.card,
                   borderWidth: 1,
                   borderColor: 'rgba(255,255,255,0.08)',
                   maxHeight: 260,
@@ -431,7 +426,7 @@ export default function PickLocationScreen() {
                 row: {
                   paddingVertical: 12,
                   paddingHorizontal: 12,
-                  backgroundColor: '#0B0F14',
+                  backgroundColor: colors.card,
                 },
                 separator: {
                   height: 1,
@@ -442,7 +437,7 @@ export default function PickLocationScreen() {
                   fontWeight: '600',
                 },
                 predefinedPlacesDescription: {
-                  color: '#9CA3AF',
+                  color: colors.textSecondary,
                 },
               }}
             />
@@ -455,7 +450,7 @@ export default function PickLocationScreen() {
               zIndex: 0,
               borderWidth: 1,
               borderColor: 'rgba(255,255,255,0.08)',
-              backgroundColor: '#0B0F14',
+              backgroundColor: colors.card,
             }}>
             <maps.MapView
               ref={(r: any) => {
@@ -495,7 +490,7 @@ export default function PickLocationScreen() {
             }}
           >
             <View style={{ transform: [{ translateY: -18 }] }}>
-              <FontAwesome name="map-marker" size={34} color="#C9B37A" />
+              <FontAwesome name="map-marker" size={34} color={colors.gold} />
             </View>
           </View>
 
@@ -504,12 +499,12 @@ export default function PickLocationScreen() {
             onPress={confirm}
             className="mt-4 items-center rounded-2xl py-4"
             style={{
-              backgroundColor: ready ? '#C9B37A' : 'rgba(255,255,255,0.08)',
+              backgroundColor: ready ? colors.gold : colors.disabled,
               opacity: ready ? 1 : 0.7,
             }}>
             <Text
               className="text-sm font-extrabold"
-              style={{ color: ready ? '#0B0F14' : '#9CA3AF' }}>
+              style={{ color: ready ? colors.textOnGold : colors.textSecondary }}>
               {ready ? 'Confirm location' : 'Loading…'}
             </Text>
           </Pressable>

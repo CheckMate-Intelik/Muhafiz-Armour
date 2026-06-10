@@ -13,6 +13,7 @@ import { useStore, userAvatarUrl } from '@/store/store';
 import { UserBookingCard, type UserBookingListItem } from '../../components/UserBookingCard';
 import { ActiveBookingHeroCard } from '../../components/ActiveBookingHeroCard';
 import { NotificationBellButton } from '@/components/NotificationBellButton';
+import { colors, gradientProps, gradients, quickActionCard } from '@/constants/theme';
 
 function normalizeStatus(status: string | null | undefined) {
   return (status ?? '').trim().toUpperCase();
@@ -38,16 +39,6 @@ function pickSoonestUpcoming(rows: UserBookingListItem[]) {
   });
   return sorted[0] ?? null;
 }
-
-const QUICK_ACTION_CARD = {
-  radius: 14,
-  bg: '#0B0F14',
-  border: '#C9B37A',
-  height: 100,
-} as const;
-
-const NEW_BOOKING_GOLD = '#D4AF37';
-const SUPPORT_MUTED = '#E0E0E0';
 
 async function openSupport() {
   const mail = 'mailto:support@muhafizarmour.com?subject=Support%20request';
@@ -107,18 +98,17 @@ export default function Home() {
   );
 
   return (
-    <LinearGradient
-      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
-      style={{ flex: 1 }}>
+    <LinearGradient colors={[...gradients.screen]} {...gradientProps.screen} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-[22px] font-semibold text-[#C9B37A]">Welcome!</Text>
-              <Text className="text-2xl font-semibold text-[#C9B37A]">{userName}</Text>
+              <Text className="text-xl font-semibold" style={{ color: colors.gold }}>
+                Welcome!
+              </Text>
+              <Text className="text-lg font-semibold" style={{ color: colors.gold }}>
+                {userName}
+              </Text>
             </View>
             <View className="flex-row items-center gap-2">
               <NotificationBellButton />
@@ -179,58 +169,54 @@ export default function Home() {
             <View className="mt-5">
               <Text
                 className="text-[13px] font-extrabold"
-                style={{ letterSpacing: 2, color: '#9CA3AF' }}>
+                style={{ letterSpacing: 2, color: colors.textSecondary }}>
                 QUICK ACTIONS
               </Text>
               <View className="mt-3 flex-row gap-3">
-                <LinearGradient
-                  colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
-                  start={{ x: 1, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                {/* <LinearGradient
+                  colors={[...gradients.cardDark]}
+                  {...gradientProps.cardVertical}
                   className="flex-1"
-                  style={{ borderRadius: 10 }}>
-                  <Pressable
-                    onPress={() => router.push('/new-booking' as any)}
-                    className="flex-1 items-center justify-center"
-                    style={{
-                      height: QUICK_ACTION_CARD.height,
-                      borderRadius: QUICK_ACTION_CARD.radius,
-                      // backgroundColor: QUICK_ACTION_CARD.bg,
-                      borderWidth: 1,
-                      borderColor: QUICK_ACTION_CARD.border,
-                    }}>
-                    <FontAwesome name="shield" size={32} color={NEW_BOOKING_GOLD} />
-                    <Text
-                      className="mt-2 text-center text-sm font-semibold"
-                      style={{ color: NEW_BOOKING_GOLD }}>
-                      New Booking
-                    </Text>
-                  </Pressable>
-                </LinearGradient>
-                <LinearGradient
-                  colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
-                  start={{ x: 1, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                  style={{ borderRadius: 10 }}> */}
+                <Pressable
+                  onPress={() => router.push('/new-booking' as any)}
+                  className={`flex-1 items-center justify-center bg-[#222222]`}
+                  style={{
+                    height: quickActionCard.height,
+                    borderRadius: quickActionCard.radius,
+                    borderWidth: 1,
+                    borderColor: quickActionCard.border,
+                  }}>
+                  <FontAwesome name="shield" size={32} color={colors.gold} />
+                  <Text
+                    className="mt-2 text-center text-sm font-semibold"
+                    style={{ color: colors.gold }}>
+                    New Booking
+                  </Text>
+                </Pressable>
+                {/* </LinearGradient> */}
+                {/* <LinearGradient
+                  colors={[...gradients.cardDark]}
+                  {...gradientProps.cardVertical}
                   className="flex-1"
-                  style={{ borderRadius: 10 }}>
-                  <Pressable
-                    onPress={() => void openSupport()}
-                    className="flex-1 items-center justify-center"
-                    style={{
-                      height: QUICK_ACTION_CARD.height,
-                      borderRadius: QUICK_ACTION_CARD.radius,
-                      // backgroundColor: QUICK_ACTION_CARD.bg,
-                      borderWidth: 1,
-                      borderColor: QUICK_ACTION_CARD.border,
-                    }}>
-                    <FontAwesome name="headphones" size={30} color={SUPPORT_MUTED} />
-                    <Text
-                      className="mt-2 text-center text-sm font-semibold"
-                      style={{ color: SUPPORT_MUTED }}>
-                      Support
-                    </Text>
-                  </Pressable>
-                </LinearGradient>
+                  style={{ borderRadius: 10 }}> */}
+                <Pressable
+                  onPress={() => void openSupport()}
+                  className={`flex-1 items-center justify-center bg-[#222222]`}
+                  style={{
+                    height: quickActionCard.height,
+                    borderRadius: quickActionCard.radius,
+                    borderWidth: 1,
+                    borderColor: quickActionCard.border,
+                  }}>
+                  <FontAwesome name="headphones" size={30} color={colors.textSupport} />
+                  <Text
+                    className="mt-2 text-center text-sm font-semibold"
+                    style={{ color: colors.textSupport }}>
+                    Support
+                  </Text>
+                </Pressable>
+                {/* </LinearGradient> */}
               </View>
             </View>
           </View>

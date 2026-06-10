@@ -13,6 +13,8 @@ import { useNavigationReady } from '@/hooks/useNavigationReady';
 import { useBookingsStore } from '@/store/bookingsStore';
 import { NotificationBellButton } from '@/components/NotificationBellButton';
 import { useStore, userAvatarUrl } from '@/store/store';
+import DropdownSelector from '@/components/DropdownSelector';
+import { colors, gradientProps, gradients } from '@/constants/theme';
 
 type RideStatus = 'Upcoming' | 'Completed' | 'Canceled';
 
@@ -109,17 +111,17 @@ export default function ActivitiesScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      colors={[...gradients.screen]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-[18px] font-semibold text-[#C9B37A]">History</Text>
-              <Text className="text-lg font-semibold text-[#C9B37A]">Your bookings</Text>
+              {/* <Text className="text-[18px] font-semibold text-[#C9B37A]">History</Text> */}
+              <Text className="text-lg font-semibold" style={{ color: colors.gold }}>
+                Bookings
+              </Text>
             </View>
             <View className="flex-row items-center gap-2">
               <NotificationBellButton />
@@ -130,7 +132,7 @@ export default function ActivitiesScreen() {
             </View>
           </View>
 
-          <SubTabSelector
+          {/* <SubTabSelector
             tabs={[
               { key: 'Upcoming', label: 'UPCOMING', icon: 'calendar' },
               { key: 'Completed', label: 'COMPLETED', icon: 'check' },
@@ -138,7 +140,18 @@ export default function ActivitiesScreen() {
             ]}
             activeKey={status}
             onChange={(key) => setStatus(key as RideStatus)}
-          />
+          /> */}
+          <View className="mt-4">
+            <DropdownSelector
+              tabs={[
+                { key: 'Upcoming', label: 'Upcoming', icon: 'calendar' },
+                { key: 'Completed', label: 'Completed', icon: 'check' },
+                { key: 'Canceled', label: 'Canceled', icon: 'times' },
+              ]}
+              activeKey={status}
+              onChange={(key) => setStatus(key as RideStatus)}
+            />
+          </View>
 
           {loading ? (
             <View className="mt-10 items-center">
@@ -151,7 +164,7 @@ export default function ActivitiesScreen() {
               <View
                 className="h-14 w-14 items-center justify-center rounded-3xl"
                 style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
-                <FontAwesome name="calendar" size={20} color="#9CA3AF" />
+                <FontAwesome name="calendar" size={20} color={colors.textSecondary} />
               </View>
               <Text className="mt-4 text-lg font-extrabold text-gray-200">No history</Text>
               <Text className="mt-1 text-center text-sm font-semibold text-gray-300">

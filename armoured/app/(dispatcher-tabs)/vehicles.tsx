@@ -10,6 +10,8 @@ import { SubTabSelector } from '@/components/SubTabSelector';
 import { VehicleCard } from '@/components/VehicleCard';
 import { dispatcherGet, ensureDispatcherSession, isNotAuthenticatedError } from '@/lib/api';
 import { redirectToLogin } from '@/lib/safeRouter';
+import DropdownSelector from '@/components/DropdownSelector';
+import { colors, gradientProps, gradients } from '@/constants/theme';
 
 type VehicleTab = 'Approved' | 'Pending';
 
@@ -68,58 +70,63 @@ export default function DispatcherVehiclesScreen() {
 
   return (
     <LinearGradient
-      colors={['rgb(31, 68, 149)', 'rgb(24, 49, 97)', '#020617']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      locations={[0, 0.5, 1]}
+      colors={[...gradients.screen]}
+      {...gradientProps.screen}
       style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-[20px] font-bold text-[#C9B37A]">My Vehicles</Text>
+              <Text className="text-[20px] font-bold" style={{ color: colors.gold }}>
+                My Vehicles
+              </Text>
               {/* <Text className="text-lg font-semibold text-gray-200">Your fleet</Text> */}
             </View>
           </View>
 
-          <SubTabSelector
-            tabs={[
-              { key: 'Approved', label: 'APPROVED', icon: 'check' },
-              { key: 'Pending', label: 'PENDING', icon: 'clock-o' },
-            ]}
-            activeKey={tab}
-            onChange={(key) => setTab(key as VehicleTab)}
-          />
-        </View>
-
-        <Pressable
-          onPress={() => router.push('/register-vehicle')}
-          className="absolute bottom-[120px] left-1/2 z-10 -translate-x-1/2"
-          style={{
-            shadowColor: '#000',
-            shadowOpacity: 0.25,
-            shadowRadius: 14,
-            shadowOffset: { width: 0, height: 8 },
-            elevation: 10,
-          }}>
-          <View
-            className="bg-[#222222]"
-            style={{
-              minWidth: 170,
-              borderRadius: 9999,
-              borderWidth: 1,
-              borderColor: '#C9B37A',
-              paddingVertical: 16,
-              paddingHorizontal: 20,
-            }}>
-            <View className="flex-row items-center justify-center">
-              <FontAwesome name="plus" size={14} color="#C9B37A" />
-              <Text className="ml-2 text-sm font-bold" style={{ color: '#C9B37A' }}>
-                Add vehicle
-              </Text>
+          <View className="mt-4 flex-row items-center justify-between gap-2">
+            <View className="flex-1">
+              <DropdownSelector
+                tabs={[
+                  { key: 'Approved', label: 'Approved', icon: 'check' },
+                  { key: 'Pending', label: 'Pending', icon: 'clock-o' },
+                ]}
+                activeKey={tab}
+                onChange={(key) => setTab(key as VehicleTab)}
+              />
             </View>
+            <Pressable
+              onPress={() => router.push('/register-vehicle')}
+              // className="absolute bottom-[120px] left-1/2 z-10 -translate-x-1/2"
+              className="z-10"
+              style={{
+                shadowColor: '#000',
+                shadowOpacity: 0.25,
+                shadowRadius: 14,
+                shadowOffset: { width: 0, height: 8 },
+                elevation: 10,
+              }}>
+              <View
+                className="bg-[#222222]"
+                style={{
+                  // minWidth: 170,
+                  borderRadius: 8,
+                  // borderWidth: 1,
+                  // borderColor: '#C9B37A',
+                  paddingVertical: 16,
+                  paddingHorizontal: 20,
+                  backgroundColor: colors.surface,
+                }}>
+                <View className="flex-row items-center justify-center">
+                  <FontAwesome name="plus" size={14} color={colors.gold} />
+                  <Text className="ml-2 text-sm font-bold" style={{ color: colors.gold }}>
+                    Add vehicle
+                  </Text>
+                </View>
+              </View>
+            </Pressable>
           </View>
-        </Pressable>
+        </View>
 
         <ScrollView contentContainerStyle={{ paddingBottom: 180 }} className="px-5 pt-4">
           {loading ? (
@@ -133,7 +140,7 @@ export default function DispatcherVehiclesScreen() {
               <View
                 className="h-14 w-14 items-center justify-center rounded-3xl"
                 style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
-                <FontAwesome name="car" size={20} color="#9CA3AF" />
+                <FontAwesome name="car" size={20} color={colors.textSecondary} />
               </View>
               <Text className="mt-4 text-lg font-extrabold text-gray-200">No vehicles</Text>
               <Text className="mt-1 text-sm font-semibold text-gray-300">
