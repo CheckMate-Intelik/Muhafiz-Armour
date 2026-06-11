@@ -173,7 +173,9 @@ export function TripRouteCard({
                 <View className="flex-1">
                   <View className="flex-row">
                     <View className="flex-1 pr-3">
-                      <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
+                      <Text
+                        className="text-[12px] font-bold"
+                        style={{ color: colors.textSecondary }}>
                         FROM:
                       </Text>
                       <Text numberOfLines={2} className="text-md mt-1 font-semibold text-gray-100">
@@ -183,7 +185,9 @@ export function TripRouteCard({
 
                     {missionCostLabel ? (
                       <View className="w-[90px] items-end">
-                        <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
+                        <Text
+                          className="text-[12px] font-bold"
+                          style={{ color: colors.textSecondary }}>
                           COST:
                         </Text>
                         <Text
@@ -202,7 +206,9 @@ export function TripRouteCard({
 
                   <View className="mt-3 flex-row items-start justify-between">
                     <View className="min-w-0 flex-1 pr-2">
-                      <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
+                      <Text
+                        className="text-[12px] font-bold"
+                        style={{ color: colors.textSecondary }}>
                         TO:
                       </Text>
                       <Text numberOfLines={2} className="text-md mt-1 font-extrabold text-gray-100">
@@ -299,4 +305,3 @@ const cardShadow = {
   shadowOffset: { width: 0, height: 10 },
   elevation: 4,
 };
-

@@ -126,10 +126,7 @@ export default function CarDetailsScreen() {
       : 0;
 
   return (
-    <LinearGradient
-      colors={[...gradients.screen]}
-      {...gradientProps.screen}
-      style={{ flex: 1 }}>
+    <LinearGradient colors={[...gradients.screen]} {...gradientProps.screen} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <ScrollView
           contentContainerStyle={{ paddingBottom: isReadonly ? 120 : 140 }}
@@ -256,7 +253,7 @@ export default function CarDetailsScreen() {
 
                 <Text
                   className="text-md mt-5 font-extrabold"
-                  style={{ color: GOLD, letterSpacing: 0.5 }}>
+                  style={{ color: colors.gold, letterSpacing: 0.5 }}>
                   SPECIFICATION
                 </Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2 pb-1">
@@ -279,7 +276,9 @@ export default function CarDetailsScreen() {
                           style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
                           <FontAwesome name={item.icon} size={16} color={colors.gold} />
                         </View>
-                        <Text className="text-md mt-3 font-bold" style={{ color: colors.textSecondary }}>
+                        <Text
+                          className="text-md mt-3 font-bold"
+                          style={{ color: colors.textSecondary }}>
                           {item.label}
                         </Text>
                         <Text
@@ -329,7 +328,9 @@ export default function CarDetailsScreen() {
                   </Text>
                   <View className="mt-3 flex-row">
                     <View className="flex-1 pr-2">
-                      <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
+                      <Text
+                        className="text-[12px] font-bold"
+                        style={{ color: colors.textSecondary }}>
                         Base rate
                       </Text>
                       <Text className="mt-1 text-lg font-extrabold text-gray-100">
@@ -337,7 +338,9 @@ export default function CarDetailsScreen() {
                       </Text>
                     </View>
                     <View className="flex-1 pl-2">
-                      <Text className="text-[12px] font-bold" style={{ color: colors.textSecondary }}>
+                      <Text
+                        className="text-[12px] font-bold"
+                        style={{ color: colors.textSecondary }}>
                         Extension rate
                       </Text>
                       <Text className="mt-1 text-lg font-extrabold text-gray-100">
@@ -396,7 +399,9 @@ export default function CarDetailsScreen() {
                 <Text className="mt-0.5 text-lg font-extrabold" style={{ color: colors.gold }}>
                   Rs {vehicle.baseRatePerHour}/hr
                 </Text>
-                <Text className="mt-1 text-[10px] font-semibold" style={{ color: colors.textSecondary }}>
+                <Text
+                  className="mt-1 text-[10px] font-semibold"
+                  style={{ color: colors.textSecondary }}>
                   Extension Rs {vehicle.extensionRatePerHour ?? vehicle.baseRatePerHour}/hr
                 </Text>
               </View>

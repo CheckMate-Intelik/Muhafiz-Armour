@@ -142,19 +142,19 @@ export function ActiveBookingHeroCard({
         {/* Top section */}
         <View className="px-4 pt-2">
           <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center">
+            <View className="mb-1 w-full flex-row items-center border-b border-[#4d4d4d] pb-1">
               <View
                 className="mr-2 h-2 w-2 rounded-full"
                 // style={{ backgroundColor: '#22C55E' }}
               />
               <Text
-                className="mr-4 text-[13px] font-extrabold"
-                style={{ color: '#22C55E', letterSpacing: 0.5 }}>
+                className=" text-[13px] font-extrabold"
+                style={{ color: colors.gold, letterSpacing: 0.5 }}>
                 ACTIVE
               </Text>
             </View>
 
-            <View className="flex-row items-center">
+            {/* <View className="flex-row items-center">
               <Text
                 className="mr-2 text-[12px] font-semibold"
                 style={{ color: colors.textSecondary }}>
@@ -165,7 +165,7 @@ export function ActiveBookingHeroCard({
                 style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
                 <FontAwesome name="copy" size={16} color={colors.textSecondary} />
               </View>
-            </View>
+            </View> */}
           </View>
 
           <View className="mt-2 flex-row">

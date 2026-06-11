@@ -95,28 +95,28 @@ export const cardShadow: ViewStyle = {
   shadowOpacity: 0.22,
   shadowRadius: 14,
   shadowOffset: { width: 0, height: 10 },
-  elevation: 6,
+  // elevation: 6,
 };
 
 export const listCardShadow: ViewStyle = {
-  backgroundColor: 'rgba(255, 255, 255, 0.13)',
+  backgroundColor: 'rgba(22, 22, 22, 0.8)',
   borderColor: colors.border,
   borderWidth: 1,
   shadowColor: colors.black,
   shadowOpacity: 0.28,
   shadowRadius: 18,
   shadowOffset: { width: 0, height: 14 },
-  elevation: 8,
+  // elevation: 8,
 };
 
 export const missionCardOuter: ViewStyle = {
   borderColor: colors.border,
-  borderWidth: 1,
+  // borderWidth: 1,
   shadowColor: colors.black,
   shadowOpacity: 0.22,
   shadowRadius: 12,
   shadowOffset: { width: 0, height: 8 },
-  elevation: 6,
+  // elevation: 6,
 };
 
 export const quickActionCard = {
