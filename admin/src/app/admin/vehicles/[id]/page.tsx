@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError } from '@/lib/api';
+import { ThrottledButton } from '@/components/ThrottledButton';
 import { segmentParam } from '@/lib/route-params';
 import { clearSession, getSession } from '@/lib/session';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -207,21 +208,21 @@ export default function AdminVehicleDetailPage() {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {editing ? (
               <>
-                <button type="button" className="button button-secondary" disabled={busy} onClick={cancelEdit}>
+                <ThrottledButton type="button" className="button button-secondary" disabled={busy} onClick={cancelEdit}>
                   Cancel
-                </button>
-                <button type="button" className="button" disabled={busy} onClick={() => void saveEdit()}>
+                </ThrottledButton>
+                <ThrottledButton type="button" className="button" disabled={busy} onClick={() => void saveEdit()}>
                   {busy ? 'Saving…' : 'Save changes'}
-                </button>
+                </ThrottledButton>
               </>
             ) : (
               <>
-                <button type="button" className="button button-secondary" disabled={busy} onClick={startEdit}>
+                <ThrottledButton type="button" className="button button-secondary" disabled={busy} onClick={startEdit}>
                   Edit details
-                </button>
-                <button type="button" className="button button-secondary" disabled={busy} onClick={() => void toggleApprove()}>
+                </ThrottledButton>
+                <ThrottledButton type="button" className="button button-secondary" disabled={busy} onClick={() => void toggleApprove()}>
                   {row.isApproved ? 'Unapprove' : 'Approve'}
-                </button>
+                </ThrottledButton>
               </>
             )}
           </div>

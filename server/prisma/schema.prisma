@@ -31,6 +31,92 @@ enum ExtensionRequestStatus {
   REJECTED
 }
 
+enum AuthEventType {
+  LOGIN_SUCCESS
+  LOGIN_FAILURE
+  SIGNUP_SUCCESS
+  SIGNUP_FAILURE
+}
+
+enum AdminActionType {
+  APPROVE_DISPATCHER
+  BLOCK_DISPATCHER
+  BLOCK_USER
+  APPROVE_VEHICLE
+  UPDATE_VEHICLE
+  CREATE_CATALOG_OPTION
+  UPDATE_CATALOG_OPTION
+  DELETE_CATALOG_OPTION
+}
+
+enum BookingAuditAction {
+  CREATED
+  SCHEDULE_UPDATED
+  VEHICLE_SELECTED
+  STATUS_CHANGED
+  EXTENSION_REQUESTED
+  EXTENSION_RESOLVED
+  CANCELLED
+}
+
+model Admin {
+  id           String   @id @default(uuid()) @db.Uuid
+  username     String   @unique
+  passwordHash String
+  displayName  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  adminAuditLogs AdminAuditLog[]
+}
+
+model AuthAuditLog {
+  id        String        @id @default(uuid()) @db.Uuid
+  eventType AuthEventType
+  role      String?
+  email     String?
+  username  String?
+  ipAddress String?
+  userAgent String?
+  message   String?
+  createdAt DateTime      @default(now())
+
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model AdminAuditLog {
+  id         String          @id @default(uuid()) @db.Uuid
+  adminId    String          @db.Uuid
+  admin      Admin           @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  actionType AdminActionType
+  targetType String?
+  targetId   String?         @db.Uuid
+  details    Json?
+  ipAddress  String?
+  createdAt  DateTime        @default(now())
+
+  @@index([adminId])
+  @@index([actionType])
+  @@index([createdAt])
+}
+
+model BookingAuditLog {
+  id           String             @id @default(uuid()) @db.Uuid
+  bookingId    String             @db.Uuid
+  actorRole    String
+  actorId      String?            @db.Uuid
+  action       BookingAuditAction
+  fromStatus   BookingStatus?
+  toStatus     BookingStatus?
+  details      Json?
+  createdAt    DateTime           @default(now())
+
+  @@index([bookingId])
+  @@index([createdAt])
+}
+
 model User {
   id               String    @id @default(uuid()) @db.Uuid
   name             String

@@ -2,6 +2,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useThrottledAsyncPress } from '@/hooks/useThrottledPress';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -131,6 +132,8 @@ export default function PaymentScreen() {
       setSubmitting(false);
     }
   }
+
+  const throttledPayNow = useThrottledAsyncPress(() => void payNow());
 
   return (
     <LinearGradient
@@ -272,7 +275,7 @@ export default function PaymentScreen() {
           }}>
           <Pressable
             disabled={submitting || !canPay}
-            onPress={() => void payNow()}
+            onPress={throttledPayNow}
             className="items-center justify-center rounded-2xl py-4"
             style={{
               backgroundColor: submitting || !canPay ? colors.disabled : colors.gold,

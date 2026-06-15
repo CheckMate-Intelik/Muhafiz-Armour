@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
+import { ThrottledButton } from '@/components/ThrottledButton';
 import { clearSession, getSession } from '@/lib/session';
 
 export default function AdminUsersPage() {
@@ -96,9 +97,9 @@ export default function AdminUsersPage() {
                   <td className="mono">{u.phone}</td>
                   <td>{u.isBlocked ? 'Yes' : 'No'}</td>
                   <td className="right row-actions" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-                    <button className="button button-secondary" disabled={busyId === u.id} onClick={() => toggleBlock(u.id, !u.isBlocked)}>
+                    <ThrottledButton className="button button-secondary" disabled={busyId === u.id} onClick={() => toggleBlock(u.id, !u.isBlocked)}>
                       {u.isBlocked ? 'Unblock' : 'Block'}
-                    </button>
+                    </ThrottledButton>
                   </td>
                 </tr>
               ))}

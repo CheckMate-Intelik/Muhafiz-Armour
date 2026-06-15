@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError } from '@/lib/api';
+import { ThrottledButton } from '@/components/ThrottledButton';
 import { segmentParam } from '@/lib/route-params';
 import { clearSession, getSession } from '@/lib/session';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -73,9 +74,9 @@ export default function AdminUserDetailPage() {
           <div className="muted mono">{id || '—'}</div>
         </div>
         {row ? (
-          <button type="button" className="button button-secondary" disabled={busy} onClick={() => void toggleBlock()}>
+          <ThrottledButton type="button" className="button button-secondary" disabled={busy} onClick={() => void toggleBlock()}>
             {row.isBlocked ? 'Unblock' : 'Block'}
-          </button>
+          </ThrottledButton>
         ) : null}
       </div>
       {error ? <div className="error">{error}</div> : null}

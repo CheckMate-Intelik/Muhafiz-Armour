@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { api, ApiError } from '@/lib/api';
+import { useThrottledAction } from '@/hooks/useThrottledAction';
 import { setSession } from '@/lib/session';
 
 export default function LoginPage() {
@@ -12,8 +13,9 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
+  const onSubmit = useThrottledAction(async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setError(null);
     setLoading(true);
     try {
@@ -26,7 +28,7 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  }
+  });
 
   return (
     <div className="container">
@@ -47,13 +49,15 @@ export default function LoginPage() {
             />
           </label>
           {error ? <div className="error">{error}</div> : null}
-          <button className="button" disabled={loading}>
+          <button className="button" type="submit" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
-          <div className="muted">Default credentials are controlled by `ADMIN_USERNAME` and `ADMIN_PASSWORD`.</div>
+          <div className="muted">
+            Admin accounts are stored in the database. The first admin is seeded from ADMIN_USERNAME and
+            ADMIN_PASSWORD when the Admin table is empty.
+          </div>
         </form>
       </div>
     </div>
   );
 }
-

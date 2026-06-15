@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
+import { ThrottledButton } from '@/components/ThrottledButton';
 import { clearSession, getSession } from '@/lib/session';
 
 export default function AdminDispatchersPage() {
@@ -108,12 +109,12 @@ export default function AdminDispatchersPage() {
                   <td>{d.isApproved ? 'Yes' : 'No'}</td>
                   <td>{d.isBlocked ? 'Yes' : 'No'}</td>
                   <td className="right row-actions" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-                    <button className="button button-secondary" disabled={busyId === d.id} onClick={() => toggleApprove(d.id, !d.isApproved)}>
+                    <ThrottledButton className="button button-secondary" disabled={busyId === d.id} onClick={() => toggleApprove(d.id, !d.isApproved)}>
                       {d.isApproved ? 'Unapprove' : 'Approve'}
-                    </button>{' '}
-                    <button className="button button-secondary" disabled={busyId === d.id} onClick={() => toggleBlock(d.id, !d.isBlocked)}>
+                    </ThrottledButton>{' '}
+                    <ThrottledButton className="button button-secondary" disabled={busyId === d.id} onClick={() => toggleBlock(d.id, !d.isBlocked)}>
                       {d.isBlocked ? 'Unblock' : 'Block'}
-                    </button>
+                    </ThrottledButton>
                   </td>
                 </tr>
               ))}

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
+import { ThrottledButton } from '@/components/ThrottledButton';
 import { clearSession, getSession } from '@/lib/session';
 
 const CODE_HINT = /^[A-Z0-9][A-Z0-9._-]{0,31}$/;
@@ -98,7 +99,7 @@ function OptionTable({
                 </label>
               </td>
               <td className="right">
-                <button
+                <ThrottledButton
                   type="button"
                   className="button button-secondary"
                   disabled={busyId === r.id || removeBusyId === r.id || !r.label.trim()}
@@ -110,10 +111,10 @@ function OptionTable({
                     })
                   }>
                   Save
-                </button>
+                </ThrottledButton>
               </td>
               <td className="right">
-                <button
+                <ThrottledButton
                   type="button"
                   className="button button-secondary"
                   disabled={busyId === r.id || removeBusyId === r.id}
@@ -128,7 +129,7 @@ function OptionTable({
                     void onRemoveRow(r.id);
                   }}>
                   {removeBusyId === r.id ? '…' : 'Remove'}
-                </button>
+                </ThrottledButton>
               </td>
             </tr>
           ))}
@@ -220,9 +221,9 @@ function AddOptionForm({
         </label>
       </div>
       <div>
-        <button type="submit" className="button" disabled={busy}>
+        <ThrottledButton type="submit" className="button" disabled={busy}>
           {busy ? 'Adding…' : 'Add'}
-        </button>
+        </ThrottledButton>
       </div>
     </form>
   );

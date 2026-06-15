@@ -4,16 +4,21 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { AdminActionType } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../prisma/prisma.service';
 import { VehicleStatus } from '@prisma/client';
+import { AuditService } from '../audit/audit.service';
 import { CreateCatalogOptionDto } from './dto/create-catalog-option.dto';
 import { UpdateCatalogOptionDto } from './dto/update-catalog-option.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   async metrics() {
     const [
@@ -79,7 +84,19 @@ export class AdminService {
   }
 
   async listDispatchers() {
-    return this.prisma.dispatcher.findMany({ orderBy: { createdAt: 'desc' } });
+    return this.prisma.dispatcher.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        email: true,
+        profileImageUrl: true,
+        isApproved: true,
+        isBlocked: true,
+        createdAt: true,
+      },
+    });
   }
 
   async getDispatcher(id: string) {
@@ -117,14 +134,30 @@ export class AdminService {
     return dispatcher;
   }
 
-  async setDispatcherApproval(dispatcherId: string, isApproved: boolean) {
+  async setDispatcherApproval(adminId: string, dispatcherId: string, isApproved: boolean) {
     await this.requireDispatcher(dispatcherId);
-    return this.prisma.dispatcher.update({ where: { id: dispatcherId }, data: { isApproved } });
+    const updated = await this.prisma.dispatcher.update({ where: { id: dispatcherId }, data: { isApproved } });
+    await this.audit.logAdminAction({
+      adminId,
+      actionType: AdminActionType.APPROVE_DISPATCHER,
+      targetType: 'dispatcher',
+      targetId: dispatcherId,
+      details: { isApproved },
+    });
+    return updated;
   }
 
-  async setDispatcherBlock(dispatcherId: string, isBlocked: boolean) {
+  async setDispatcherBlock(adminId: string, dispatcherId: string, isBlocked: boolean) {
     await this.requireDispatcher(dispatcherId);
-    return this.prisma.dispatcher.update({ where: { id: dispatcherId }, data: { isBlocked } });
+    const updated = await this.prisma.dispatcher.update({ where: { id: dispatcherId }, data: { isBlocked } });
+    await this.audit.logAdminAction({
+      adminId,
+      actionType: AdminActionType.BLOCK_DISPATCHER,
+      targetType: 'dispatcher',
+      targetId: dispatcherId,
+      details: { isBlocked },
+    });
+    return updated;
   }
 
   async listVehicles() {
@@ -156,16 +189,31 @@ export class AdminService {
     return vehicle;
   }
 
-  async setVehicleApproval(vehicleId: string, isApproved: boolean) {
+  async setVehicleApproval(adminId: string, vehicleId: string, isApproved: boolean) {
     await this.requireVehicle(vehicleId);
-    return this.prisma.vehicle.update({ where: { id: vehicleId }, data: { isApproved } });
+    const updated = await this.prisma.vehicle.update({ where: { id: vehicleId }, data: { isApproved } });
+    await this.audit.logAdminAction({
+      adminId,
+      actionType: AdminActionType.APPROVE_VEHICLE,
+      targetType: 'vehicle',
+      targetId: vehicleId,
+      details: { isApproved },
+    });
+    return updated;
   }
 
-  async updateVehicle(vehicleId: string, dto: UpdateVehicleDto) {
+  async updateVehicle(adminId: string, vehicleId: string, dto: UpdateVehicleDto) {
     await this.requireVehicle(vehicleId);
     const data = await this.buildVehicleUpdateData(dto);
     if (Object.keys(data).length > 0) {
       await this.prisma.vehicle.update({ where: { id: vehicleId }, data });
+      await this.audit.logAdminAction({
+        adminId,
+        actionType: AdminActionType.UPDATE_VEHICLE,
+        targetType: 'vehicle',
+        targetId: vehicleId,
+        details: data,
+      });
     }
     return this.getVehicle(vehicleId);
   }
@@ -223,7 +271,18 @@ export class AdminService {
   }
 
   async listUsers() {
-    return this.prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
+    return this.prisma.user.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        email: true,
+        profileImageUrl: true,
+        isBlocked: true,
+        createdAt: true,
+      },
+    });
   }
 
   async getUser(id: string) {
@@ -264,12 +323,12 @@ export class AdminService {
     return this.prisma.vehicleTypeOption.findMany({ orderBy: { sortOrder: 'asc' } });
   }
 
-  async updateArmourLevelOption(id: string, dto: UpdateCatalogOptionDto) {
+  async updateArmourLevelOption(adminId: string, id: string, dto: UpdateCatalogOptionDto) {
     await this.requireArmourLevelOption(id);
     if (dto.label === undefined && dto.sortOrder === undefined && dto.isActive === undefined) {
       throw new BadRequestException('No fields to update');
     }
-    return this.prisma.armourLevelOption.update({
+    const updated = await this.prisma.armourLevelOption.update({
       where: { id },
       data: {
         ...(dto.label !== undefined ? { label: dto.label } : {}),
@@ -277,14 +336,22 @@ export class AdminService {
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
     });
+    await this.audit.logAdminAction({
+      adminId,
+      actionType: AdminActionType.UPDATE_CATALOG_OPTION,
+      targetType: 'armour_level_option',
+      targetId: id,
+      details: { ...dto },
+    });
+    return updated;
   }
 
-  async updateVehicleTypeOption(id: string, dto: UpdateCatalogOptionDto) {
+  async updateVehicleTypeOption(adminId: string, id: string, dto: UpdateCatalogOptionDto) {
     await this.requireVehicleTypeOption(id);
     if (dto.label === undefined && dto.sortOrder === undefined && dto.isActive === undefined) {
       throw new BadRequestException('No fields to update');
     }
-    return this.prisma.vehicleTypeOption.update({
+    const updated = await this.prisma.vehicleTypeOption.update({
       where: { id },
       data: {
         ...(dto.label !== undefined ? { label: dto.label } : {}),
@@ -292,13 +359,21 @@ export class AdminService {
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
     });
+    await this.audit.logAdminAction({
+      adminId,
+      actionType: AdminActionType.UPDATE_CATALOG_OPTION,
+      targetType: 'vehicle_type_option',
+      targetId: id,
+      details: { ...dto },
+    });
+    return updated;
   }
 
-  async createArmourLevelOption(dto: CreateCatalogOptionDto) {
+  async createArmourLevelOption(adminId: string, dto: CreateCatalogOptionDto) {
     const code = dto.code.trim().toUpperCase();
     const label = dto.label.trim();
     try {
-      return await this.prisma.armourLevelOption.create({
+      const created = await this.prisma.armourLevelOption.create({
         data: {
           code,
           label,
@@ -306,6 +381,14 @@ export class AdminService {
           isActive: dto.isActive ?? true,
         },
       });
+      await this.audit.logAdminAction({
+        adminId,
+        actionType: AdminActionType.CREATE_CATALOG_OPTION,
+        targetType: 'armour_level_option',
+        targetId: created.id,
+        details: { code, label },
+      });
+      return created;
     } catch (e: unknown) {
       if (e instanceof PrismaClientKnownRequestError && e.code === 'P2002') {
         throw new ConflictException('This code is already in use');
@@ -314,11 +397,11 @@ export class AdminService {
     }
   }
 
-  async createVehicleTypeOption(dto: CreateCatalogOptionDto) {
+  async createVehicleTypeOption(adminId: string, dto: CreateCatalogOptionDto) {
     const code = dto.code.trim().toUpperCase();
     const label = dto.label.trim();
     try {
-      return await this.prisma.vehicleTypeOption.create({
+      const created = await this.prisma.vehicleTypeOption.create({
         data: {
           code,
           label,
@@ -326,6 +409,14 @@ export class AdminService {
           isActive: dto.isActive ?? true,
         },
       });
+      await this.audit.logAdminAction({
+        adminId,
+        actionType: AdminActionType.CREATE_CATALOG_OPTION,
+        targetType: 'vehicle_type_option',
+        targetId: created.id,
+        details: { code, label },
+      });
+      return created;
     } catch (e: unknown) {
       if (e instanceof PrismaClientKnownRequestError && e.code === 'P2002') {
         throw new ConflictException('This code is already in use');
@@ -334,7 +425,7 @@ export class AdminService {
     }
   }
 
-  async deleteArmourLevelOption(id: string) {
+  async deleteArmourLevelOption(adminId: string, id: string) {
     const row = await this.requireArmourLevelOption(id);
     const inUse = await this.prisma.vehicle.count({ where: { armourLevel: row.code } });
     if (inUse > 0) {
@@ -343,10 +434,17 @@ export class AdminService {
       );
     }
     await this.prisma.armourLevelOption.delete({ where: { id } });
+    await this.audit.logAdminAction({
+      adminId,
+      actionType: AdminActionType.DELETE_CATALOG_OPTION,
+      targetType: 'armour_level_option',
+      targetId: id,
+      details: { code: row.code },
+    });
     return { ok: true as const, id: row.id, code: row.code };
   }
 
-  async deleteVehicleTypeOption(id: string) {
+  async deleteVehicleTypeOption(adminId: string, id: string) {
     const row = await this.requireVehicleTypeOption(id);
     const inUse = await this.prisma.vehicle.count({ where: { vehicleType: row.code } });
     if (inUse > 0) {
@@ -355,12 +453,27 @@ export class AdminService {
       );
     }
     await this.prisma.vehicleTypeOption.delete({ where: { id } });
+    await this.audit.logAdminAction({
+      adminId,
+      actionType: AdminActionType.DELETE_CATALOG_OPTION,
+      targetType: 'vehicle_type_option',
+      targetId: id,
+      details: { code: row.code },
+    });
     return { ok: true as const, id: row.id, code: row.code };
   }
 
-  async setUserBlock(userId: string, isBlocked: boolean) {
+  async setUserBlock(adminId: string, userId: string, isBlocked: boolean) {
     await this.requireUser(userId);
-    return this.prisma.user.update({ where: { id: userId }, data: { isBlocked } });
+    const updated = await this.prisma.user.update({ where: { id: userId }, data: { isBlocked } });
+    await this.audit.logAdminAction({
+      adminId,
+      actionType: AdminActionType.BLOCK_USER,
+      targetType: 'user',
+      targetId: userId,
+      details: { isBlocked },
+    });
+    return updated;
   }
 
   private async requireDispatcher(id: string) {

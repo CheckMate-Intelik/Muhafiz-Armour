@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
+import { ThrottledButton } from '@/components/ThrottledButton';
 import { clearSession, getSession } from '@/lib/session';
 
 export default function AdminVehiclesPage() {
@@ -106,9 +107,9 @@ export default function AdminVehiclesPage() {
                   <td>{v.dispatcher?.name ?? '—'}</td>
                   <td>{v.isApproved ? 'Yes' : 'No'}</td>
                   <td className="right row-actions" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-                    <button className="button button-secondary" disabled={busyId === v.id} onClick={() => toggleApprove(v.id, !v.isApproved)}>
+                    <ThrottledButton className="button button-secondary" disabled={busyId === v.id} onClick={() => toggleApprove(v.id, !v.isApproved)}>
                       {v.isApproved ? 'Unapprove' : 'Approve'}
-                    </button>
+                    </ThrottledButton>
                   </td>
                 </tr>
               ))}

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError } from '@/lib/api';
+import { ThrottledButton } from '@/components/ThrottledButton';
 import { segmentParam } from '@/lib/route-params';
 import { clearSession, getSession } from '@/lib/session';
 
@@ -84,12 +85,12 @@ export default function AdminDispatcherDetailPage() {
         </div>
         {row ? (
           <div className="stack-inline">
-            <button type="button" className="button button-secondary" disabled={busy} onClick={() => void toggleApprove()}>
+            <ThrottledButton type="button" className="button button-secondary" disabled={busy} onClick={() => void toggleApprove()}>
               {row.isApproved ? 'Unapprove' : 'Approve'}
-            </button>
-            <button type="button" className="button button-secondary" disabled={busy} onClick={() => void toggleBlock()}>
+            </ThrottledButton>
+            <ThrottledButton type="button" className="button button-secondary" disabled={busy} onClick={() => void toggleBlock()}>
               {row.isBlocked ? 'Unblock' : 'Block'}
-            </button>
+            </ThrottledButton>
           </div>
         ) : null}
       </div>

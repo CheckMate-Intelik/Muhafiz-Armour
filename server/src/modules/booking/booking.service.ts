@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { BookingAuditAction, BookingStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   bufferMinutesForTrip,
@@ -8,6 +8,7 @@ import {
   effectiveMinDurationHours,
 } from '../../common/trip-planning';
 import { MatchingService } from '../matching/matching.service';
+import { AuditService } from '../audit/audit.service';
 import { BookingNotificationsService } from '../notifications/booking-notifications.service';
 import { RequestBookingDto } from './dto/request-booking.dto';
 import { UpdateBookingScheduleDto } from './dto/update-booking-schedule.dto';
@@ -31,6 +32,7 @@ export class BookingService {
     private readonly prisma: PrismaService,
     private readonly matching: MatchingService,
     private readonly bookingNotifications: BookingNotificationsService,
+    private readonly audit: AuditService,
   ) {}
 
   planTripMeta(dto: { pickupLat: number; pickupLng: number; dropLat: number; dropLng: number; pickupCity?: string; dropCity?: string }) {
@@ -159,6 +161,14 @@ export class BookingService {
       },
     });
 
+    await this.audit.logBookingAction({
+      bookingId: booking.id,
+      actorRole: 'USER',
+      actorId: userId,
+      action: BookingAuditAction.CREATED,
+      toStatus: BookingStatus.REQUESTED,
+    });
+
     const options = await this.optionsForBooking(userId, booking.id);
 
     return { booking, options };
@@ -221,11 +231,21 @@ export class BookingService {
       if (!ok) throw new BadRequestException('Vehicle is not available for the selected window');
     }
 
-    return this.prisma.booking.update({
+    const updated = await this.prisma.booking.update({
       where: { id: bookingId },
       data: { endTime: nextEnd },
       include: { user: true, dispatcher: true, vehicle: true },
     });
+    await this.audit.logBookingAction({
+      bookingId,
+      actorRole: 'USER',
+      actorId: userId,
+      action: BookingAuditAction.SCHEDULE_UPDATED,
+      fromStatus: booking.status,
+      toStatus: booking.status,
+      details: { endTime: nextEnd.toISOString() },
+    });
+    return updated;
   }
 
   async selectVehicle(userId: string, bookingId: string, vehicleId: string) {
@@ -272,6 +292,23 @@ export class BookingService {
       return row;
     });
     this.bookingNotifications.notifyStatusChange(updated, 'REQUESTED', 'USER');
+    await this.audit.logBookingAction({
+      bookingId,
+      actorRole: 'USER',
+      actorId: userId,
+      action: BookingAuditAction.VEHICLE_SELECTED,
+      fromStatus: BookingStatus.REQUESTED,
+      toStatus: BookingStatus.PENDING_DISPATCHER,
+      details: { vehicleId },
+    });
+    await this.audit.logBookingAction({
+      bookingId,
+      actorRole: 'USER',
+      actorId: userId,
+      action: BookingAuditAction.STATUS_CHANGED,
+      fromStatus: BookingStatus.REQUESTED,
+      toStatus: BookingStatus.PENDING_DISPATCHER,
+    });
     return updated;
   }
 
@@ -492,6 +529,14 @@ export class BookingService {
       previousStatus,
       'USER',
     );
+    await this.audit.logBookingAction({
+      bookingId,
+      actorRole: 'USER',
+      actorId: userId,
+      action: BookingAuditAction.CANCELLED,
+      fromStatus: previousStatus as BookingStatus,
+      toStatus: BookingStatus.REJECTED,
+    });
     return updated;
   }
 

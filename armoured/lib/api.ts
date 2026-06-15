@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 
 const DEPLOYED_API_URL = 'https://muhafiz-armour.vercel.app';
@@ -7,6 +8,7 @@ export const PUBLIC_API_BASE_URL = API_BASE_URL;
 
 type UserSession = {
   userId: string;
+  token: string;
   phone?: string;
   name?: string;
   email?: string;
@@ -14,6 +16,7 @@ type UserSession = {
 
 type DispatcherSession = {
   dispatcherId: string;
+  token: string;
   phone?: string;
   name?: string;
   email?: string;
@@ -26,18 +29,20 @@ let sessionPromise: Promise<UserSession> | null = null;
 let dispatcherSession: DispatcherSession | null = null;
 let dispatcherSessionPromise: Promise<DispatcherSession> | null = null;
 
-const STORAGE_KEY = 'armoured:user-session:v1';
-const DISPATCHER_STORAGE_KEY = 'armoured:dispatcher-session:v1';
+const USER_SECURE_KEY = 'armoured:user-session:v2';
+const DISPATCHER_SECURE_KEY = 'armoured:dispatcher-session:v2';
 const ACTIVE_ROLE_KEY = 'armoured:active-role:v1';
 
 export async function getStoredUserSession(): Promise<UserSession | null> {
-  const raw = await safeGetItem(STORAGE_KEY);
+  const raw = await secureGetItem(USER_SECURE_KEY);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Partial<UserSession>;
     if (typeof parsed.userId !== 'string' || parsed.userId.trim().length === 0) return null;
+    if (typeof parsed.token !== 'string' || parsed.token.trim().length === 0) return null;
     return {
       userId: parsed.userId,
+      token: parsed.token,
       phone: typeof parsed.phone === 'string' ? parsed.phone : undefined,
       name: typeof parsed.name === 'string' ? parsed.name : undefined,
       email: typeof parsed.email === 'string' ? parsed.email : undefined,
@@ -49,22 +54,24 @@ export async function getStoredUserSession(): Promise<UserSession | null> {
 
 export async function setStoredUserSession(next: UserSession | null) {
   if (!next) {
-    await safeRemoveItem(STORAGE_KEY);
+    await secureRemoveItem(USER_SECURE_KEY);
     session = null;
     return;
   }
-  await safeSetItem(STORAGE_KEY, JSON.stringify(next));
+  await secureSetItem(USER_SECURE_KEY, JSON.stringify(next));
   session = next;
 }
 
 export async function getStoredDispatcherSession(): Promise<DispatcherSession | null> {
-  const raw = await safeGetItem(DISPATCHER_STORAGE_KEY);
+  const raw = await secureGetItem(DISPATCHER_SECURE_KEY);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Partial<DispatcherSession>;
     if (typeof parsed.dispatcherId !== 'string' || parsed.dispatcherId.trim().length === 0) return null;
+    if (typeof parsed.token !== 'string' || parsed.token.trim().length === 0) return null;
     return {
       dispatcherId: parsed.dispatcherId,
+      token: parsed.token,
       phone: typeof parsed.phone === 'string' ? parsed.phone : undefined,
       name: typeof parsed.name === 'string' ? parsed.name : undefined,
       email: typeof parsed.email === 'string' ? parsed.email : undefined,
@@ -76,11 +83,11 @@ export async function getStoredDispatcherSession(): Promise<DispatcherSession | 
 
 export async function setStoredDispatcherSession(next: DispatcherSession | null) {
   if (!next) {
-    await safeRemoveItem(DISPATCHER_STORAGE_KEY);
+    await secureRemoveItem(DISPATCHER_SECURE_KEY);
     dispatcherSession = null;
     return;
   }
-  await safeSetItem(DISPATCHER_STORAGE_KEY, JSON.stringify(next));
+  await secureSetItem(DISPATCHER_SECURE_KEY, JSON.stringify(next));
   dispatcherSession = next;
 }
 
@@ -89,18 +96,19 @@ export async function clearAllStoredSessions() {
   await Promise.all([setStoredUserSession(null), setStoredDispatcherSession(null)]);
 }
 
-export async function loginUser(input: { phone?: string; name?: string; email?: string; password?: string }) {
+export async function loginUser(input: { phone?: string; name?: string; email?: string; password: string }) {
   const email = input.email?.trim();
   const phone = (input.phone?.trim() || email || '').trim();
   const name = (input.name?.trim() || 'User').trim();
-  if (!phone) throw new Error('Missing identifier');
+  if (!email) throw new Error('Email is required');
+  if (!input.password?.trim()) throw new Error('Password is required');
 
   const res = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       role: 'USER',
-      email: input.email,
+      email,
       password: input.password,
       phone,
       name,
@@ -110,10 +118,11 @@ export async function loginUser(input: { phone?: string; name?: string; email?: 
     const details = await safeReadError(res);
     throw new Error(details ?? 'Login failed');
   }
-  const data = (await res.json()) as { user?: { id?: string } };
+  const data = (await res.json()) as { token?: string; user?: { id?: string } };
   const userId = data.user?.id;
-  if (!userId) throw new Error('Missing user id');
-  const next: UserSession = { userId, phone, name, email: input.email };
+  const token = data.token;
+  if (!userId || !token) throw new Error('Invalid login response');
+  const next: UserSession = { userId, token, phone, name, email };
   await setStoredUserSession(next);
   return next;
 }
@@ -122,7 +131,9 @@ export async function signupUser(input: { phone?: string; name?: string; email?:
   const email = input.email?.trim();
   const phone = (input.phone?.trim() || email || '').trim();
   const name = (input.name?.trim() || 'User').trim();
-  if (!phone) throw new Error('Missing identifier');
+  if (!email) throw new Error('Email is required');
+  if (!phone) throw new Error('Phone is required');
+  if (!input.password?.trim()) throw new Error('Password is required');
 
   const res = await fetch(`${API_BASE_URL}/auth/signup`, {
     method: 'POST',
@@ -131,7 +142,7 @@ export async function signupUser(input: { phone?: string; name?: string; email?:
       role: 'USER',
       phone,
       name,
-      email: input.email,
+      email,
       password: input.password,
     }),
   });
@@ -142,26 +153,28 @@ export async function signupUser(input: { phone?: string; name?: string; email?:
     throw new Error(details ?? 'Account creation failed');
   }
 
-  const data = (await res.json()) as { user?: { id?: string } };
+  const data = (await res.json()) as { token?: string; user?: { id?: string } };
   const userId = data.user?.id;
-  if (!userId) throw new Error('Missing user id');
-  const next: UserSession = { userId, phone, name, email: input.email };
+  const token = data.token;
+  if (!userId || !token) throw new Error('Invalid signup response');
+  const next: UserSession = { userId, token, phone, name, email };
   await setStoredUserSession(next);
   return next;
 }
 
-export async function loginDispatcher(input: { phone?: string; name?: string; email?: string; password?: string }) {
+export async function loginDispatcher(input: { phone?: string; name?: string; email?: string; password: string }) {
   const email = input.email?.trim();
   const phone = (input.phone?.trim() || email || '').trim();
   const name = (input.name?.trim() || 'Dispatcher').trim();
-  if (!phone) throw new Error('Missing identifier');
+  if (!email) throw new Error('Email is required');
+  if (!input.password?.trim()) throw new Error('Password is required');
 
   const res = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       role: 'DISPATCHER',
-      email: input.email,
+      email,
       password: input.password,
       phone,
       name,
@@ -171,10 +184,11 @@ export async function loginDispatcher(input: { phone?: string; name?: string; em
     const details = await safeReadError(res);
     throw new Error(details ?? 'Login failed');
   }
-  const data = (await res.json()) as { dispatcher?: { id?: string } };
+  const data = (await res.json()) as { token?: string; dispatcher?: { id?: string } };
   const dispatcherId = data.dispatcher?.id;
-  if (!dispatcherId) throw new Error('Missing dispatcher id');
-  const next: DispatcherSession = { dispatcherId, phone, name, email: input.email };
+  const token = data.token;
+  if (!dispatcherId || !token) throw new Error('Invalid login response');
+  const next: DispatcherSession = { dispatcherId, token, phone, name, email };
   await setStoredDispatcherSession(next);
   return next;
 }
@@ -183,7 +197,9 @@ export async function signupDispatcher(input: { phone?: string; name?: string; e
   const email = input.email?.trim();
   const phone = (input.phone?.trim() || email || '').trim();
   const name = (input.name?.trim() || 'Dispatcher').trim();
-  if (!phone) throw new Error('Missing identifier');
+  if (!email) throw new Error('Email is required');
+  if (!phone) throw new Error('Phone is required');
+  if (!input.password?.trim()) throw new Error('Password is required');
 
   const res = await fetch(`${API_BASE_URL}/auth/signup`, {
     method: 'POST',
@@ -192,7 +208,7 @@ export async function signupDispatcher(input: { phone?: string; name?: string; e
       role: 'DISPATCHER',
       phone,
       name,
-      email: input.email,
+      email,
       password: input.password,
     }),
   });
@@ -203,21 +219,22 @@ export async function signupDispatcher(input: { phone?: string; name?: string; e
     throw new Error(details ?? 'Account creation failed');
   }
 
-  const data = (await res.json()) as { dispatcher?: { id?: string } };
+  const data = (await res.json()) as { token?: string; dispatcher?: { id?: string } };
   const dispatcherId = data.dispatcher?.id;
-  if (!dispatcherId) throw new Error('Missing dispatcher id');
-  const next: DispatcherSession = { dispatcherId, phone, name, email: input.email };
+  const token = data.token;
+  if (!dispatcherId || !token) throw new Error('Invalid signup response');
+  const next: DispatcherSession = { dispatcherId, token, phone, name, email };
   await setStoredDispatcherSession(next);
   return next;
 }
 
 export async function ensureUserSession(): Promise<UserSession> {
-  if (session) return session;
+  if (session?.token) return session;
   if (sessionPromise) return sessionPromise;
 
   sessionPromise = (async () => {
     const stored = await getStoredUserSession();
-    if (stored) {
+    if (stored?.token) {
       session = stored;
       return stored;
     }
@@ -232,12 +249,12 @@ export async function ensureUserSession(): Promise<UserSession> {
 }
 
 export async function ensureDispatcherSession(): Promise<DispatcherSession> {
-  if (dispatcherSession) return dispatcherSession;
+  if (dispatcherSession?.token) return dispatcherSession;
   if (dispatcherSessionPromise) return dispatcherSessionPromise;
 
   dispatcherSessionPromise = (async () => {
     const stored = await getStoredDispatcherSession();
-    if (stored) {
+    if (stored?.token) {
       dispatcherSession = stored;
       return stored;
     }
@@ -257,10 +274,23 @@ export function isNotAuthenticatedError(e: unknown): boolean {
   return false;
 }
 
+async function userAuthHeaders(userId: string) {
+  const s = await ensureUserSession();
+  if (s.userId !== userId) throw new Error('Not authenticated');
+  return { Authorization: `Bearer ${s.token}` };
+}
+
+async function dispatcherAuthHeaders(dispatcherId: string) {
+  const s = await ensureDispatcherSession();
+  if (s.dispatcherId !== dispatcherId) throw new Error('Not authenticated');
+  return { Authorization: `Bearer ${s.token}` };
+}
+
 export async function apiGet<T>(path: string, userId: string): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { 'x-user-id': userId },
+    headers: await userAuthHeaders(userId),
   });
+  if (res.status === 401) throw new Error('Not authenticated');
   if (!res.ok) throw new Error(`GET ${path} failed`);
   return (await res.json()) as T;
 }
@@ -268,9 +298,10 @@ export async function apiGet<T>(path: string, userId: string): Promise<T> {
 export async function apiPost<T>(path: string, userId: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-user-id': userId },
+    headers: { 'content-type': 'application/json', ...(await userAuthHeaders(userId)) },
     body: JSON.stringify(body),
   });
+  if (res.status === 401) throw new Error('Not authenticated');
   if (!res.ok) {
     const details = await safeReadError(res);
     throw new Error(details ?? `POST ${path} failed`);
@@ -281,9 +312,10 @@ export async function apiPost<T>(path: string, userId: string, body: unknown): P
 export async function apiDelete<T>(path: string, userId: string, body?: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: 'DELETE',
-    headers: { 'content-type': 'application/json', 'x-user-id': userId },
+    headers: { 'content-type': 'application/json', ...(await userAuthHeaders(userId)) },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+  if (res.status === 401) throw new Error('Not authenticated');
   if (!res.ok) {
     const details = await safeReadError(res);
     throw new Error(details ?? `DELETE ${path} failed`);
@@ -294,9 +326,10 @@ export async function apiDelete<T>(path: string, userId: string, body?: unknown)
 export async function apiPatch<T>(path: string, userId: string, body?: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: 'PATCH',
-    headers: { 'content-type': 'application/json', 'x-user-id': userId },
+    headers: { 'content-type': 'application/json', ...(await userAuthHeaders(userId)) },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+  if (res.status === 401) throw new Error('Not authenticated');
   if (!res.ok) {
     const details = await safeReadError(res);
     throw new Error(details ?? `PATCH ${path} failed`);
@@ -317,9 +350,10 @@ export async function apiUploadProfileImage(userId: string, fileUri: string): Pr
   form.append('file', { uri: fileUri, type: guessImageMime(fileUri), name: 'profile.jpg' } as unknown as Blob);
   const res = await fetch(`${API_BASE_URL}/media/upload/profile`, {
     method: 'POST',
-    headers: { 'x-user-id': userId },
+    headers: await userAuthHeaders(userId),
     body: form,
   });
+  if (res.status === 401) throw new Error('Not authenticated');
   if (!res.ok) {
     const details = await safeReadError(res);
     throw new Error(details ?? 'Profile image upload failed');
@@ -332,9 +366,10 @@ export async function dispatcherUploadVehicleImage(dispatcherId: string, fileUri
   form.append('file', { uri: fileUri, type: guessImageMime(fileUri), name: 'vehicle.jpg' } as unknown as Blob);
   const res = await fetch(`${API_BASE_URL}/media/upload/vehicle`, {
     method: 'POST',
-    headers: { 'x-dispatcher-id': dispatcherId },
+    headers: await dispatcherAuthHeaders(dispatcherId),
     body: form,
   });
+  if (res.status === 401) throw new Error('Not authenticated');
   if (!res.ok) {
     const details = await safeReadError(res);
     throw new Error(details ?? 'Vehicle image upload failed');
@@ -347,9 +382,10 @@ export async function dispatcherUploadProfileImage(dispatcherId: string, fileUri
   form.append('file', { uri: fileUri, type: guessImageMime(fileUri), name: 'profile.jpg' } as unknown as Blob);
   const res = await fetch(`${API_BASE_URL}/media/upload/profile`, {
     method: 'POST',
-    headers: { 'x-dispatcher-id': dispatcherId },
+    headers: await dispatcherAuthHeaders(dispatcherId),
     body: form,
   });
+  if (res.status === 401) throw new Error('Not authenticated');
   if (!res.ok) {
     const details = await safeReadError(res);
     throw new Error(details ?? 'Profile image upload failed');
@@ -359,8 +395,9 @@ export async function dispatcherUploadProfileImage(dispatcherId: string, fileUri
 
 export async function dispatcherGet<T>(path: string, dispatcherId: string): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { 'x-dispatcher-id': dispatcherId },
+    headers: await dispatcherAuthHeaders(dispatcherId),
   });
+  if (res.status === 401) throw new Error('Not authenticated');
   if (!res.ok) {
     const details = await safeReadError(res);
     throw new Error(details ?? `GET ${path} failed`);
@@ -371,9 +408,10 @@ export async function dispatcherGet<T>(path: string, dispatcherId: string): Prom
 export async function dispatcherPost<T>(path: string, dispatcherId: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-dispatcher-id': dispatcherId },
+    headers: { 'content-type': 'application/json', ...(await dispatcherAuthHeaders(dispatcherId)) },
     body: JSON.stringify(body),
   });
+  if (res.status === 401) throw new Error('Not authenticated');
   if (!res.ok) {
     const details = await safeReadError(res);
     throw new Error(details ?? `POST ${path} failed`);
@@ -384,9 +422,10 @@ export async function dispatcherPost<T>(path: string, dispatcherId: string, body
 export async function dispatcherDelete<T>(path: string, dispatcherId: string, body?: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: 'DELETE',
-    headers: { 'content-type': 'application/json', 'x-dispatcher-id': dispatcherId },
+    headers: { 'content-type': 'application/json', ...(await dispatcherAuthHeaders(dispatcherId)) },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+  if (res.status === 401) throw new Error('Not authenticated');
   if (!res.ok) {
     const details = await safeReadError(res);
     throw new Error(details ?? `DELETE ${path} failed`);
@@ -397,9 +436,10 @@ export async function dispatcherDelete<T>(path: string, dispatcherId: string, bo
 export async function dispatcherPatch<T>(path: string, dispatcherId: string, body?: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: 'PATCH',
-    headers: { 'content-type': 'application/json', 'x-dispatcher-id': dispatcherId },
+    headers: { 'content-type': 'application/json', ...(await dispatcherAuthHeaders(dispatcherId)) },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+  if (res.status === 401) throw new Error('Not authenticated');
   if (!res.ok) {
     const details = await safeReadError(res);
     throw new Error(details ?? `PATCH ${path} failed`);
@@ -414,6 +454,30 @@ export async function getActiveRole(): Promise<AppRole> {
 
 export async function setActiveRole(role: AppRole) {
   await safeSetItem(ACTIVE_ROLE_KEY, role);
+}
+
+async function secureGetItem(key: string) {
+  try {
+    return await SecureStore.getItemAsync(key);
+  } catch {
+    return safeGetItem(key);
+  }
+}
+
+async function secureSetItem(key: string, value: string) {
+  try {
+    await SecureStore.setItemAsync(key, value);
+  } catch {
+    await safeSetItem(key, value);
+  }
+}
+
+async function secureRemoveItem(key: string) {
+  try {
+    await SecureStore.deleteItemAsync(key);
+  } catch {
+    await safeRemoveItem(key);
+  }
 }
 
 async function safeGetItem(key: string) {
@@ -461,4 +525,3 @@ function resolveApiBaseUrl() {
   }
   return DEPLOYED_API_URL;
 }
-

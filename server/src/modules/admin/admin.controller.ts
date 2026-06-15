@@ -1,4 +1,6 @@
 import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { AuthUser } from '../auth/auth-user.decorator';
+import { JwtPayload } from '../auth/auth.types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -43,13 +45,13 @@ export class AdminController {
   }
 
   @Patch('dispatchers/:id/approve')
-  async approveDispatcher(@Param('id') id: string, @Body() dto: UpdateApprovalDto) {
-    return this.admin.setDispatcherApproval(id, dto.isApproved);
+  async approveDispatcher(@AuthUser() admin: JwtPayload, @Param('id') id: string, @Body() dto: UpdateApprovalDto) {
+    return this.admin.setDispatcherApproval(admin.sub, id, dto.isApproved);
   }
 
   @Patch('dispatchers/:id/block')
-  async blockDispatcher(@Param('id') id: string, @Body() dto: UpdateBlockDto) {
-    return this.admin.setDispatcherBlock(id, dto.isBlocked);
+  async blockDispatcher(@AuthUser() admin: JwtPayload, @Param('id') id: string, @Body() dto: UpdateBlockDto) {
+    return this.admin.setDispatcherBlock(admin.sub, id, dto.isBlocked);
   }
 
   @Get('vehicles/lookup')
@@ -64,13 +66,13 @@ export class AdminController {
   }
 
   @Patch('vehicles/:id/approve')
-  async approveVehicle(@Param('id') id: string, @Body() dto: UpdateApprovalDto) {
-    return this.admin.setVehicleApproval(id, dto.isApproved);
+  async approveVehicle(@AuthUser() admin: JwtPayload, @Param('id') id: string, @Body() dto: UpdateApprovalDto) {
+    return this.admin.setVehicleApproval(admin.sub, id, dto.isApproved);
   }
 
   @Patch('vehicles/:id')
-  async updateVehicle(@Param('id') id: string, @Body() dto: UpdateVehicleDto) {
-    return this.admin.updateVehicle(id, dto);
+  async updateVehicle(@AuthUser() admin: JwtPayload, @Param('id') id: string, @Body() dto: UpdateVehicleDto) {
+    return this.admin.updateVehicle(admin.sub, id, dto);
   }
 
   @Get('users/lookup')
@@ -85,8 +87,8 @@ export class AdminController {
   }
 
   @Patch('users/:id/block')
-  async blockUser(@Param('id') id: string, @Body() dto: UpdateBlockDto) {
-    return this.admin.setUserBlock(id, dto.isBlocked);
+  async blockUser(@AuthUser() admin: JwtPayload, @Param('id') id: string, @Body() dto: UpdateBlockDto) {
+    return this.admin.setUserBlock(admin.sub, id, dto.isBlocked);
   }
 
   @Get('armour-level-options')
@@ -95,18 +97,18 @@ export class AdminController {
   }
 
   @Post('armour-level-options')
-  async createArmourLevelOption(@Body() dto: CreateCatalogOptionDto) {
-    return this.admin.createArmourLevelOption(dto);
+  async createArmourLevelOption(@AuthUser() admin: JwtPayload, @Body() dto: CreateCatalogOptionDto) {
+    return this.admin.createArmourLevelOption(admin.sub, dto);
   }
 
   @Patch('armour-level-options/:id')
-  async updateArmourLevelOption(@Param('id') id: string, @Body() dto: UpdateCatalogOptionDto) {
-    return this.admin.updateArmourLevelOption(id, dto);
+  async updateArmourLevelOption(@AuthUser() admin: JwtPayload, @Param('id') id: string, @Body() dto: UpdateCatalogOptionDto) {
+    return this.admin.updateArmourLevelOption(admin.sub, id, dto);
   }
 
   @Delete('armour-level-options/:id')
-  async deleteArmourLevelOption(@Param('id') id: string) {
-    return this.admin.deleteArmourLevelOption(id);
+  async deleteArmourLevelOption(@AuthUser() admin: JwtPayload, @Param('id') id: string) {
+    return this.admin.deleteArmourLevelOption(admin.sub, id);
   }
 
   @Get('vehicle-type-options')
@@ -115,18 +117,17 @@ export class AdminController {
   }
 
   @Post('vehicle-type-options')
-  async createVehicleTypeOption(@Body() dto: CreateCatalogOptionDto) {
-    return this.admin.createVehicleTypeOption(dto);
+  async createVehicleTypeOption(@AuthUser() admin: JwtPayload, @Body() dto: CreateCatalogOptionDto) {
+    return this.admin.createVehicleTypeOption(admin.sub, dto);
   }
 
   @Patch('vehicle-type-options/:id')
-  async updateVehicleTypeOption(@Param('id') id: string, @Body() dto: UpdateCatalogOptionDto) {
-    return this.admin.updateVehicleTypeOption(id, dto);
+  async updateVehicleTypeOption(@AuthUser() admin: JwtPayload, @Param('id') id: string, @Body() dto: UpdateCatalogOptionDto) {
+    return this.admin.updateVehicleTypeOption(admin.sub, id, dto);
   }
 
   @Delete('vehicle-type-options/:id')
-  async deleteVehicleTypeOption(@Param('id') id: string) {
-    return this.admin.deleteVehicleTypeOption(id);
+  async deleteVehicleTypeOption(@AuthUser() admin: JwtPayload, @Param('id') id: string) {
+    return this.admin.deleteVehicleTypeOption(admin.sub, id);
   }
 }
-

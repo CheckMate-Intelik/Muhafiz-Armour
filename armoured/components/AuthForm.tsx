@@ -1,4 +1,5 @@
 import { BackButton } from '@/components/BackButton';
+import { useThrottledPress } from '@/hooks/useThrottledPress';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ReactNode } from 'react';
 import {
@@ -173,9 +174,10 @@ export function AuthPrimaryButton({
   onPress: () => void;
 }) {
   const inactive = disabled || busy;
+  const throttledPress = useThrottledPress(onPress);
   return (
     <Pressable
-      onPress={onPress}
+      onPress={throttledPress}
       disabled={inactive}
       className="mt-4 items-center justify-center rounded-2xl py-3.5"
       style={{ backgroundColor: inactive ? colors.disabledStrong : AUTH_GOLD }}>
@@ -195,8 +197,9 @@ export function AuthFooterLink({
   action: string;
   onPress: () => void;
 }) {
+  const throttledPress = useThrottledPress(onPress);
   return (
-    <Pressable onPress={onPress} className="items-center py-2">
+    <Pressable onPress={throttledPress} className="items-center py-2">
       <Text className="text-sm font-semibold" style={{ color: '#B8BBC0' }}>
         {prompt}{' '}
         <Text className="font-extrabold" style={{ color: AUTH_GOLD }}>

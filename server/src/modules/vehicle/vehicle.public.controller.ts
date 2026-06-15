@@ -2,7 +2,9 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { bufferMinutesForTrip } from '../../common/trip-planning';
 import { MatchingService } from '../matching/matching.service';
+import { Public } from '../auth/public.decorator';
 
+@Public()
 @Controller('vehicles')
 export class VehiclePublicController {
   constructor(
