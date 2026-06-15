@@ -10,7 +10,7 @@ import { SubTabSelector } from '@/components/SubTabSelector';
 import { VehicleCard } from '@/components/VehicleCard';
 import { dispatcherGet, ensureDispatcherSession, isNotAuthenticatedError } from '@/lib/api';
 import { redirectToLogin } from '@/lib/safeRouter';
-import DropdownSelector from '@/components/DropdownSelector';
+import ModalSelector from '@/components/ModalSelector';
 import { colors, gradientProps, gradients } from '@/constants/theme';
 
 type VehicleTab = 'Approved' | 'Pending';
@@ -86,7 +86,7 @@ export default function DispatcherVehiclesScreen() {
 
           <View className="mt-4 flex-row items-center justify-between gap-2">
             <View className="flex-1">
-              <DropdownSelector
+              <ModalSelector
                 tabs={[
                   { key: 'Approved', label: 'Approved', icon: 'check' },
                   { key: 'Pending', label: 'Pending', icon: 'clock-o' },

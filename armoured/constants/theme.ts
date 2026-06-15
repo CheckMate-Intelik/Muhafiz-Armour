@@ -99,7 +99,7 @@ export const cardShadow: ViewStyle = {
 };
 
 export const listCardShadow: ViewStyle = {
-  backgroundColor: 'rgba(22, 22, 22, 0.8)',
+  backgroundColor: 'rgba(22, 22, 22, 0.9)',
   borderColor: colors.border,
   borderWidth: 1,
   shadowColor: colors.black,

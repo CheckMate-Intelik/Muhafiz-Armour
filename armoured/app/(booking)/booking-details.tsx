@@ -884,7 +884,11 @@ export default function BookingDetailsScreen() {
 
           {showUserExtendActions ? (
             <View className="mt-4 gap-3">
-              <Text className="text-lg font-extrabold text-gray-100">Extend booking</Text>
+              <Text
+                className="border-b pb-2 text-lg font-extrabold text-gray-100"
+                style={{ borderBottomColor: colors.gold }}>
+                Extend booking
+              </Text>
               <Text className="text-md font-semibold" style={{ color: colors.textMuted }}>
                 Extension requires dispatcher approval after availability is checked.
               </Text>
@@ -905,7 +909,9 @@ export default function BookingDetailsScreen() {
                     <Text className="font-bold text-gray-100">Rs {extensionRatePerHour}/hr</Text>
                   </Text>
                   {estimatedExtensionCharge != null ? (
-                    <Text className="text-md mt-1 font-semibold" style={{ color: colors.textMuted }}>
+                    <Text
+                      className="text-md mt-1 font-semibold"
+                      style={{ color: colors.textMuted }}>
                       Estimated extension charge:{' '}
                       <Text className="font-bold text-gray-100">
                         Rs {estimatedExtensionCharge.toFixed(0)}

@@ -7,13 +7,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { BookingHistoryCard } from '@/components/BookingHistoryCard';
 import { NotificationBellButton } from '@/components/NotificationBellButton';
-import { SubTabSelector } from '@/components/SubTabSelector';
 import { dispatcherGet, ensureDispatcherSession, isNotAuthenticatedError } from '@/lib/api';
 import { redirectToLogin } from '@/lib/safeRouter';
 import { useNavigationReady } from '@/hooks/useNavigationReady';
 import { useBookingsStore } from '@/store/bookingsStore';
 import { dispatcherAvatarUrl, useStore } from '@/store/store';
-import DropdownSelector from '@/components/DropdownSelector';
+import ModalSelector from '@/components/ModalSelector';
 import { colors, gradientProps, gradients } from '@/constants/theme';
 
 type BookingTab = 'Booking Requests' | 'Booking History';
@@ -132,13 +131,14 @@ export default function DispatcherBookingsScreen() {
             </View>
           </View>
           <View className="mb-2 mt-4">
-            <DropdownSelector
+            <ModalSelector
               tabs={[
                 { key: 'Booking Requests', label: 'Requests', icon: 'inbox' },
                 { key: 'Booking History', label: 'History', icon: 'history' },
               ]}
               activeKey={tab}
               label="History"
+              title="Booking view"
               onChange={(key) => setTab(key as BookingTab)}
             />
           </View>

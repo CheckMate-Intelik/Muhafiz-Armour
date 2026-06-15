@@ -103,131 +103,155 @@ export function TripRouteCard({
 
   if (variant === 'mission') {
     return (
-      <Root
-        testID={testID}
-        className="mb-2 overflow-hidden rounded-xl"
-        style={{ backgroundColor: colors.surface }}>
-        <View className="flex-row">
-          <Pressable
-            className={`w-full ${isExpanded ? 'rounded-t-xl' : 'rounded-xl'} bg-['#222222'] px-4 pb-3 pt-3.5`}
-            style={{ borderBottomColor: 'rgba(255,255,255,0.06)' }}
-            onPress={handlePress}>
-            <View className="flex-row items-center justify-between">
-              <FontAwesome
-                name={isExpanded ? 'chevron-down' : 'chevron-right'}
-                size={14}
-                color={colors.gold}
-                style={{ width: '8%' }}
-              />
-              <View className="min-w-0 flex-1 pr-2">
-                <Text
-                  numberOfLines={2}
-                  className="text-[12px] font-extrabold"
-                  style={{ color: colors.textMuted, letterSpacing: 0.5 }}>
-                  {missionHeaderLine || meta?.label || '—'}
-                </Text>
-                {isPendingAwaitingDispatcher(status) ? (
-                  <PendingExpiryCountdown
-                    status={status}
-                    pendingExpiresAt={pendingExpiresAt}
-                    createdAt={createdAt}
-                    variant="mission"
-                    className="mt-1"
-                  />
-                ) : (
-                  <Text className="mt-1 text-sm font-bold" style={{ color: colors.textMuted }}>
-                    {formatTripDateShort(createdAt)}
+      <Root>
+        {/* <View className={`h-1 rounded-t-xl`} style={{ backgroundColor: colors.gold }} /> */}
+        <View
+          testID={testID}
+          className="mb-2 overflow-hidden rounded-xl"
+          style={{ backgroundColor: colors.surface }}>
+          <View className="flex-row ">
+            <Pressable
+              className={`w-full ${isExpanded ? 'rounded-t-xl' : 'rounded-xl'} bg-['#222222'] px-4 py-3`}
+              style={{ borderBottomColor: 'rgba(255,255,255,0.06)' }}
+              onPress={handlePress}>
+              <View className="flex-row items-center justify-between">
+                {/* <FontAwesome
+                  name={isExpanded ? 'chevron-down' : 'chevron-right'}
+                  size={14}
+                  color={colors.gold}
+                  style={{ width: '8%' }}
+                /> */}
+                <View
+                  className={`mr-3 h-full w-1 rounded-full`}
+                  style={{ backgroundColor: colors.gold }}
+                />
+                <View className="min-w-0 flex-1 pr-2">
+                  <Text
+                    numberOfLines={2}
+                    className="text-[12px] font-extrabold"
+                    style={{ color: colors.textMuted, letterSpacing: 0.5 }}>
+                    {missionHeaderLine || meta?.label || '—'}
                   </Text>
-                )}
-              </View>
-              {/* <FontAwesome name="car" size={22} color="#C9B37A" /> */}
-            </View>
-          </Pressable>
-          {/* </LinearGradient> */}
-        </View>
-        <View className={`mx-4 ${isExpanded ? 'border-t border-[#4d4d4d]' : ''}`}></View>
-
-        {isExpanded ? (
-          <Pressable onPress={onPress} className="rounded-b-xl px-4 py-2" style={missionCardOuter}>
-            <View className="px-4 py-4">
-              <View className="flex-row">
-                <View className="mr-3 w-5 items-center">
-                  <View
-                    className="h-3 w-3 rounded-full"
-                    style={{
-                      borderWidth: 2,
-                      borderColor: '#F59E0B',
-                      backgroundColor: 'transparent',
-                    }}
-                  />
-                  <View
-                    className="my-2 w-[2px] flex-1"
-                    style={{ backgroundColor: 'rgba(34,197,94,0.7)' }}
-                  />
-                  <View
-                    className="h-3 w-3 rounded-full"
-                    style={{ borderWidth: 2, borderColor: '#E5E7EB' }}
-                  />
+                  {isPendingAwaitingDispatcher(status) ? (
+                    <PendingExpiryCountdown
+                      status={status}
+                      pendingExpiresAt={pendingExpiresAt}
+                      createdAt={createdAt}
+                      variant="mission"
+                      className="mt-1"
+                    />
+                  ) : (
+                    <Text className="mt-1 text-sm font-bold" style={{ color: colors.textMuted }}>
+                      {formatTripDateShort(createdAt)}
+                    </Text>
+                  )}
                 </View>
+                {/* <FontAwesome name="car" size={22} color="#C9B37A" /> */}
+              </View>
+            </Pressable>
+            {/* </LinearGradient> */}
+          </View>
+          <View className={`mx-4 ${isExpanded ? 'border-t border-[#4d4d4d]' : ''}`}></View>
 
-                <View className="flex-1">
-                  <View className="flex-row">
-                    <View className="flex-1 pr-3">
-                      <Text
-                        className="text-[12px] font-bold"
-                        style={{ color: colors.textSecondary }}>
-                        FROM:
-                      </Text>
-                      <Text numberOfLines={2} className="text-md mt-1 font-semibold text-gray-100">
-                        {from || '—'}
-                      </Text>
-                    </View>
+          {isExpanded ? (
+            <Pressable
+              onPress={onPress}
+              disabled={!onPress}
+              className="rounded-b-xl px-4 py-2"
+              style={missionCardOuter}>
+              <View className="px-4 py-4">
+                <View className="flex-row">
+                  <View className="mr-3 w-5 items-center">
+                    <View
+                      className="h-3 w-3 rounded-full"
+                      style={{
+                        borderWidth: 2,
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'transparent',
+                      }}
+                    />
+                    <View
+                      className="my-2 w-[2px] flex-1"
+                      style={{ backgroundColor: 'rgba(34,197,94,0.7)' }}
+                    />
+                    <View
+                      className="h-3 w-3 rounded-full"
+                      style={{ borderWidth: 2, borderColor: '#E5E7EB' }}
+                    />
+                  </View>
 
-                    {missionCostLabel ? (
-                      <View className="w-[90px] items-end">
+                  <View className="flex-1">
+                    <View className="flex-row">
+                      <View className="flex-1 pr-3">
                         <Text
                           className="text-[12px] font-bold"
                           style={{ color: colors.textSecondary }}>
-                          COST:
+                          FROM:
                         </Text>
                         <Text
-                          numberOfLines={1}
+                          numberOfLines={2}
                           className="text-md mt-1 font-semibold text-gray-100">
-                          {missionCostLabel}
+                          {from || '—'}
                         </Text>
                       </View>
-                    ) : null}
-                  </View>
 
-                  <View
-                    className="mt-3 border-t"
-                    style={{ borderTopColor: 'rgba(255,255,255,0.06)' }}
-                  />
-
-                  <View className="mt-3 flex-row items-start justify-between">
-                    <View className="min-w-0 flex-1 pr-2">
-                      <Text
-                        className="text-[12px] font-bold"
-                        style={{ color: colors.textSecondary }}>
-                        TO:
-                      </Text>
-                      <Text numberOfLines={2} className="text-md mt-1 font-extrabold text-gray-100">
-                        {to || '—'}
-                      </Text>
+                      {missionCostLabel ? (
+                        <View className="w-[90px] items-end">
+                          <Text
+                            className="text-[12px] font-bold"
+                            style={{ color: colors.textSecondary }}>
+                            COST:
+                          </Text>
+                          <Text
+                            numberOfLines={1}
+                            className="text-md mt-1 font-semibold text-gray-100">
+                            {missionCostLabel}
+                          </Text>
+                        </View>
+                      ) : null}
                     </View>
-                    {rightMetaText && !missionCostLabel ? (
-                      <Text
-                        numberOfLines={2}
-                        className="max-w-[40%] text-[11px] font-semibold text-gray-300">
-                        {rightMetaText}
-                      </Text>
-                    ) : null}
+
+                    <View
+                      className="mt-3 border-t"
+                      style={{ borderTopColor: 'rgba(255,255,255,0.06)' }}
+                    />
+
+                    <View className="mt-3 flex-row items-start justify-between">
+                      <View className="min-w-0 flex-1 pr-2">
+                        <Text
+                          className="text-[12px] font-bold"
+                          style={{ color: colors.textSecondary }}>
+                          TO:
+                        </Text>
+                        <View className="mt-1 flex-row items-center">
+                          <Text
+                            numberOfLines={2}
+                            className="text-md min-w-0 flex-1 font-extrabold text-gray-100">
+                            {to || '—'}
+                          </Text>
+                          {onPress ? (
+                            <View
+                              className="ml-2 h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                              style={{ backgroundColor: 'rgba(201, 179, 122, 0.12)' }}>
+                              <FontAwesome name="external-link" size={13} color={colors.gold} />
+                            </View>
+                          ) : null}
+                        </View>
+                      </View>
+                      {rightMetaText && !missionCostLabel ? (
+                        <Text
+                          numberOfLines={2}
+                          className="max-w-[40%] text-[11px] font-semibold text-gray-300">
+                          {rightMetaText}
+                        </Text>
+                      ) : null}
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
-          </Pressable>
-        ) : null}
+            </Pressable>
+          ) : null}
+        </View>
       </Root>
     );
   }

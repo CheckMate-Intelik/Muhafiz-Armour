@@ -1,6 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { BookingHistoryCard } from '@/components/BookingHistoryCard';
-import { SubTabSelector } from '@/components/SubTabSelector';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
@@ -13,7 +12,7 @@ import { useNavigationReady } from '@/hooks/useNavigationReady';
 import { useBookingsStore } from '@/store/bookingsStore';
 import { NotificationBellButton } from '@/components/NotificationBellButton';
 import { useStore, userAvatarUrl } from '@/store/store';
-import DropdownSelector from '@/components/DropdownSelector';
+import ModalSelector from '@/components/ModalSelector';
 import { colors, gradientProps, gradients } from '@/constants/theme';
 
 type RideStatus = 'Upcoming' | 'Completed' | 'Canceled';
@@ -142,7 +141,7 @@ export default function ActivitiesScreen() {
             onChange={(key) => setStatus(key as RideStatus)}
           /> */}
           <View className="mt-4">
-            <DropdownSelector
+            <ModalSelector
               tabs={[
                 { key: 'Upcoming', label: 'Upcoming', icon: 'calendar' },
                 { key: 'Completed', label: 'Completed', icon: 'check' },

@@ -171,7 +171,11 @@ export function BookingDetailsBody({
         </View>
       </View>
 
-      <Text className="mt-6 text-xl font-bold text-gray-100">Trip info</Text>
+      <Text
+        className="mt-6 border-b pb-2 text-xl font-bold text-gray-100"
+        style={{ borderBottomColor: colors.gold }}>
+        Trip info
+      </Text>
 
       <View className="mt-5 flex-row items-center">
         <View className="relative h-11 w-11 items-center justify-center">
@@ -204,8 +208,8 @@ export function BookingDetailsBody({
         </View>
       </View>
 
-      <View className="mt-6 flex-row">
-        <View className="items-center" style={{ width: 36 }}>
+      <View className="mt-6 flex-row items-stretch">
+        <View className="items-center self-stretch" style={{ width: 36 }}>
           <View
             className="h-9 w-9 items-center justify-center rounded-full"
             style={{
@@ -217,11 +221,12 @@ export function BookingDetailsBody({
           </View>
           <View
             style={{
+              flex: 1,
+              width: 0,
               alignSelf: 'center',
-              height: 52,
               marginVertical: 4,
-              borderLeftWidth: 2,
-              borderLeftColor: 'rgba(255,255,255,0.06)',
+              borderLeftWidth: 1,
+              borderLeftColor: colors.gold,
               borderStyle: 'dashed',
             }}
           />
@@ -235,28 +240,30 @@ export function BookingDetailsBody({
             <FontAwesome name="map-marker" size={18} color="#E5E7EB" />
           </View>
         </View>
-        <View className="flex-1 pl-2">
-          <Text className="text-md font-semibold" style={{ color: colors.textMuted }}>
-            Pickup location
-          </Text>
-          <Text className="mt-0.5 text-lg font-bold text-gray-100" numberOfLines={4}>
-            {pickupLocation || '—'}
-          </Text>
-          <Text className="text-md mt-1 font-medium" style={{ color: colors.textSecondary }}>
-            {pickupAtText}
-          </Text>
+        <View className="flex-1 justify-between pl-2">
+          <View>
+            <Text className="text-md font-semibold" style={{ color: colors.textMuted }}>
+              Pickup location
+            </Text>
+            <Text className="mt-0.5 text-lg font-bold text-gray-100" numberOfLines={4}>
+              {pickupLocation || '—'}
+            </Text>
+            <Text className="text-md mt-1 font-medium" style={{ color: colors.textSecondary }}>
+              {pickupAtText}
+            </Text>
+          </View>
 
-          <View className="h-6" />
-
-          <Text className="text-md font-semibold" style={{ color: colors.textMuted }}>
-            Return location
-          </Text>
-          <Text className="mt-0.5 text-lg font-bold text-gray-100" numberOfLines={4}>
-            {dropLocation || '—'}
-          </Text>
-          <Text className="text-md mt-1 font-medium" style={{ color: colors.textSecondary }}>
-            {returnAtText}
-          </Text>
+          <View className="mt-6">
+            <Text className="text-md font-semibold" style={{ color: colors.textMuted }}>
+              Return location
+            </Text>
+            <Text className="mt-0.5 text-lg font-bold text-gray-100" numberOfLines={4}>
+              {dropLocation || '—'}
+            </Text>
+            <Text className="text-md mt-1 font-medium" style={{ color: colors.textSecondary }}>
+              {returnAtText}
+            </Text>
+          </View>
         </View>
       </View>
     </>

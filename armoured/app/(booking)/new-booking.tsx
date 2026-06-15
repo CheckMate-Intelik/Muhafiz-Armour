@@ -2,18 +2,11 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import {
-  FlatList,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/BackButton';
+import { BottomSheetModal } from '@/components/BottomSheetModal';
 import {
   filterPakistanCities,
   findPakistanCityByName,
@@ -86,10 +79,7 @@ export default function NewBookingScreen() {
   }
 
   return (
-    <LinearGradient
-      colors={[...gradients.screen]}
-      {...gradientProps.screen}
-      style={{ flex: 1 }}>
+    <LinearGradient colors={[...gradients.screen]} {...gradientProps.screen} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
@@ -148,117 +138,83 @@ export default function NewBookingScreen() {
           </Pressable>
         </ScrollView>
 
-        <Modal
-          transparent
+        <BottomSheetModal
           visible={cityPicker !== null}
-          animationType="slide"
-          onRequestClose={() => setCityPicker(null)}>
-          <Pressable
-            className="flex-1"
-            onPress={() => setCityPicker(null)}
-            style={{ backgroundColor: 'rgba(2,6,23,0.7)' }}>
-            <View
-              onStartShouldSetResponder={() => true}
-              className="mt-auto rounded-t-3xl px-5 pb-8 pt-4"
-              style={{
-                backgroundColor: colors.card,
-                borderTopWidth: 1,
-                borderTopColor: 'rgba(255,255,255,0.08)',
-                maxHeight: '85%',
-                minHeight: '60%',
-              }}>
-              <View className="items-center pb-3">
-                <View
-                  style={{
-                    height: 4,
-                    width: 48,
-                    borderRadius: 4,
-                    backgroundColor: 'rgba(255,255,255,0.18)',
-                  }}
-                />
-              </View>
+          onClose={() => setCityPicker(null)}
+          title={cityPicker === 'pickup' ? 'PICKUP CITY' : 'DROP-OFF CITY'}
+          subtitle="Pick a city in Pakistan"
+          sheetStyle={{ minHeight: '60%' }}>
+          <View
+            className="mt-3 flex-row items-center rounded-2xl px-3"
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.06)',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.08)',
+            }}>
+            <FontAwesome name="search" size={14} color={colors.textSecondary} />
+            <TextInput
+              value={cityQuery}
+              onChangeText={setCityQuery}
+              placeholder="Search city…"
+              placeholderTextColor={colors.textSecondary}
+              className="ml-2 flex-1 py-3 text-sm font-semibold"
+              style={{ color: '#F3F4F6' }}
+            />
+            {cityQuery.length > 0 ? (
+              <Pressable onPress={() => setCityQuery('')} hitSlop={8}>
+                <FontAwesome name="times-circle" size={14} color={colors.textSecondary} />
+              </Pressable>
+            ) : null}
+          </View>
 
-              <Text
-                className="text-[13px] font-extrabold"
-                style={{ letterSpacing: 2, color: colors.gold }}>
-                {cityPicker === 'pickup' ? 'PICKUP CITY' : 'DROP-OFF CITY'}
-              </Text>
-              <Text className="mt-1 text-sm font-semibold text-gray-300">
-                Pick a city in Pakistan
-              </Text>
-
-              <View
-                className="mt-3 flex-row items-center rounded-2xl px-3"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.06)',
-                  borderWidth: 1,
-                  borderColor: 'rgba(255,255,255,0.08)',
-                }}>
-                <FontAwesome name="search" size={14} color={colors.textSecondary} />
-                <TextInput
-                  value={cityQuery}
-                  onChangeText={setCityQuery}
-                  placeholder="Search city…"
-                  placeholderTextColor={colors.textSecondary}
-                  className="ml-2 flex-1 py-3 text-sm font-semibold"
-                  style={{ color: '#F3F4F6' }}
-                />
-                {cityQuery.length > 0 ? (
-                  <Pressable onPress={() => setCityQuery('')} hitSlop={8}>
-                    <FontAwesome name="times-circle" size={14} color={colors.textSecondary} />
-                  </Pressable>
-                ) : null}
-              </View>
-
-              <FlatList
-                data={filteredCities}
-                keyExtractor={(item) => item.name}
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={{ paddingTop: 8, paddingBottom: 16 }}
-                ItemSeparatorComponent={() => (
-                  <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.04)' }} />
-                )}
-                renderItem={({ item }) => {
-                  const selected =
-                    (cityPicker === 'pickup' ? pickupCityName : dropCityName).toLowerCase() ===
-                    item.name.toLowerCase();
-                  return (
-                    <Pressable
-                      onPress={() => chooseCity(item)}
-                      className="flex-row items-center justify-between px-1 py-3">
-                      <View className="flex-row items-center">
-                        <View
-                          className="h-9 w-9 items-center justify-center rounded-xl"
-                          style={{
-                            backgroundColor: selected ? 'rgba(201,179,122,0.12)' : 'rgba(255,255,255,0.04)',
-                          }}>
-                          <FontAwesome
-                            name="map-pin"
-                            size={14}
-                            color={selected ? colors.gold : colors.textSecondary}
-                          />
-                        </View>
-                        <Text
-                          className="ml-3 text-sm font-bold"
-                          style={{ color: selected ? colors.gold : undefined }}>
-                          {item.name}
-                        </Text>
-                      </View>
-                      {selected ? <FontAwesome name="check" size={14} color={colors.gold} /> : null}
-                    </Pressable>
-                  );
-                }}
-                ListEmptyComponent={
-                  <View className="items-center py-12">
-                    <Text className="text-sm font-semibold text-gray-300">
-                      No matching cities
+          <FlatList
+            style={{ flex: 1 }}
+            data={filteredCities}
+            keyExtractor={(item) => item.name}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingTop: 8, paddingBottom: 16 }}
+            ItemSeparatorComponent={() => (
+              <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.04)' }} />
+            )}
+            renderItem={({ item }) => {
+              const selected =
+                (cityPicker === 'pickup' ? pickupCityName : dropCityName).toLowerCase() ===
+                item.name.toLowerCase();
+              return (
+                <Pressable
+                  onPress={() => chooseCity(item)}
+                  className="flex-row items-center justify-between px-1 py-3">
+                  <View className="flex-row items-center">
+                    <View
+                      className="h-9 w-9 items-center justify-center rounded-xl"
+                      style={{
+                        backgroundColor: selected
+                          ? 'rgba(201,179,122,0.12)'
+                          : 'rgba(255,255,255,0.04)',
+                      }}>
+                      <FontAwesome
+                        name="map-pin"
+                        size={14}
+                        color={selected ? colors.gold : colors.textSecondary}
+                      />
+                    </View>
+                    <Text
+                      className="ml-3 text-sm font-bold"
+                      style={{ color: selected ? colors.gold : colors.textPrimary }}>
+                      {item.name}
                     </Text>
                   </View>
-                }
-              />
-            </View>
-          </Pressable>
-        </Modal>
+                  {selected ? <FontAwesome name="check" size={14} color={colors.gold} /> : null}
+                </Pressable>
+              );
+            }}
+            ListEmptyComponent={
+              <View className="items-center py-12">
+                <Text className="text-sm font-semibold text-gray-300">No matching cities</Text>
+              </View>
+            }
+          />
+        </BottomSheetModal>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -290,13 +246,11 @@ function LocationCard({
 
   return (
     <View className="mt-4 overflow-hidden rounded-2xl" style={listCardShadow}>
-      <View
-        className="border-b px-4 py-3"
-        style={{ backgroundColor: '#000000', borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+      <View className="px-4 py-3">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center">
             <View
-              className="h-9 w-9 items-center justify-center rounded-2xl"
+              className="h-6 w-6 items-center justify-center rounded-2xl"
               style={{ backgroundColor: 'rgba(201,179,122,0.12)' }}>
               <FontAwesome name={icon} size={14} color={accentColor} />
             </View>
@@ -317,6 +271,7 @@ function LocationCard({
           ) : null}
         </View>
       </View>
+      <View className="mx-4 border-b" style={{ borderBottomColor: colors.gold }} />
 
       <View className="px-4 py-4">
         <Pressable
@@ -328,7 +283,9 @@ function LocationCard({
             borderColor: 'rgba(255,255,255,0.08)',
           }}>
           <View className="flex-1 pr-2">
-            <Text className="text-[11px] font-bold" style={{ color: colors.textSecondary, letterSpacing: 0.6 }}>
+            <Text
+              className="text-[11px] font-bold"
+              style={{ color: colors.textSecondary, letterSpacing: 0.6 }}>
               CITY
             </Text>
             <Text
@@ -352,21 +309,23 @@ function LocationCard({
             opacity: mapDisabled ? 0.5 : 1,
           }}>
           <View className="flex-1 pr-2">
-            <Text className="text-[11px] font-bold" style={{ color: colors.textSecondary, letterSpacing: 0.6 }}>
+            <Text
+              className="text-[11px] font-bold"
+              style={{ color: colors.textSecondary, letterSpacing: 0.6 }}>
               EXACT LOCATION
             </Text>
             <Text
               numberOfLines={2}
               className="mt-1 text-[14px] font-bold"
               style={{ color: locationReady ? undefined : colors.textSecondary }}>
-              {locationReady
-                ? address
-                : hasCity
-                  ? 'Pick on map…'
-                  : 'Choose a city first'}
+              {locationReady ? address : hasCity ? 'Pick on map…' : 'Choose a city first'}
             </Text>
           </View>
-          <FontAwesome name="map" size={16} color={locationReady ? colors.gold : colors.textSecondary} />
+          <FontAwesome
+            name="map"
+            size={16}
+            color={locationReady ? colors.gold : colors.textSecondary}
+          />
         </Pressable>
       </View>
     </View>
