@@ -128,7 +128,7 @@ export function UserBookingCard({
         )}
       </View> */}
 
-      {booking && (booking.status ?? '').trim().toUpperCase() === 'PENDING_DISPATCHER' ? (
+      {/* {booking && (booking.status ?? '').trim().toUpperCase() === 'PENDING_DISPATCHER' ? (
         <PendingExpiryCountdown
           status={booking.status}
           pendingExpiresAt={booking.pendingExpiresAt}
@@ -136,7 +136,7 @@ export function UserBookingCard({
           variant="mission"
           className="mb-2 px-1"
         />
-      ) : null}
+      ) : null} */}
 
       {!booking ? (
         <View className="mt-4 rounded-lg px-4 pb-2" style={{ backgroundColor: colors.surface }}>
@@ -162,167 +162,193 @@ export function UserBookingCard({
         <Pressable
           disabled={!canPress}
           onPress={() => booking && onPress?.(booking)}
-          className="w-full flex-row gap-2">
+          className="mt-3 w-full flex-row gap-2">
           {showDateBox ? (
-            <LinearGradient
-              colors={[...gradients.cardDark]}
-              {...gradientProps.cardVertical}
-              className="items-center justify-center"
+            // <LinearGradient
+            //   colors={[...gradients.cardDark]}
+            //   {...gradientProps.cardVertical}
+            //   className="items-center justify-center"
+            //   style={{
+            //     borderColor: 'rgba(255,255,255,0.06)',
+            //     borderRadius: 10,
+            //     borderWidth: 1,
+            //     width: 76,
+            //     flexShrink: 0,
+            //   }}>
+            <View
+              className="items-center justify-center rounded-2xl py-2"
               style={{
-                borderColor: 'rgba(255,255,255,0.06)',
+                backgroundColor: colors.surface,
+                borderColor: colors.borderGold,
                 borderRadius: 10,
                 borderWidth: 1,
                 width: 76,
-                flexShrink: 0,
               }}>
-              <View className="items-center justify-center rounded-2xl py-2">
-                <Text
-                  className="text-[11px] font-extrabold"
-                  style={{ color: colors.gold, letterSpacing: 0.6 }}>
-                  {start ? formatMonth(start) : '—'}
-                </Text>
-                <Text className="mt-0.5 text-[20px] font-extrabold text-gray-100">
-                  {start ? String(start.getDate()).padStart(2, '0') : '—'}
-                </Text>
-                <Text
-                  className="mt-0.5 text-[11px] font-semibold"
-                  style={{ color: colors.textMuted }}>
-                  {start ? formatTime(start) : '—'}
-                </Text>
-              </View>
-            </LinearGradient>
-          ) : null}
+              <Text
+                className="text-[11px] font-extrabold"
+                style={{ color: colors.gold, letterSpacing: 0.6 }}>
+                {start ? formatMonth(start) : '—'}
+              </Text>
+              <Text className="mt-0.5 text-[20px] font-extrabold text-gray-100">
+                {start ? String(start.getDate()).padStart(2, '0') : '—'}
+              </Text>
+              <Text
+                className="mt-0.5 text-[11px] font-semibold"
+                style={{ color: colors.textMuted }}>
+                {start ? formatTime(start) : '—'}
+              </Text>
+            </View>
+          ) : // </LinearGradient>
+          null}
           <View className="min-w-0 flex-1">
-            <LinearGradient
+            {/* <LinearGradient
               colors={[...gradients.cardDark]}
               {...gradientProps.cardVertical}
               className="w-full px-4 py-4"
-              style={{ borderRadius: 10, flex: 1 }}>
-              <View className="flex-1">
-                {isActiveCard ? (
-                  <View className="mb-2 flex-row items-center justify-between">
-                    <View className="flex-row items-center">
-                      <View
-                        className="mr-2 h-2 w-2 rounded-full"
-                        style={{ backgroundColor: '#22C55E' }}
-                      />
-                      <Text
-                        className="text-[14px] font-extrabold"
-                        style={{ color: '#22C55E', letterSpacing: 0.5 }}>
-                        ACTIVE NOW
-                      </Text>
-                    </View>
-                    <Text className="text-[12px] font-semibold" style={{ color: colors.textMuted }}>
-                      Booking ID: #{String(booking.id)}
+              style={{ borderRadius: 10, flex: 1 }}> */}
+            <View
+              className="flex-1 p-4"
+              style={{ backgroundColor: colors.surface, borderRadius: 10 }}>
+              {isActiveCard ? (
+                <View className="mb-2 flex-row items-center justify-between">
+                  <View className="flex-row items-center">
+                    <View
+                      className="mr-2 h-2 w-2 rounded-full"
+                      style={{ backgroundColor: '#22C55E' }}
+                    />
+                    <Text
+                      className="text-[14px] font-extrabold"
+                      style={{ color: '#22C55E', letterSpacing: 0.5 }}>
+                      ACTIVE NOW
                     </Text>
                   </View>
-                ) : null}
+                  <Text className="text-[12px] font-semibold" style={{ color: colors.textMuted }}>
+                    Booking ID: #{String(booking.id)}
+                  </Text>
+                </View>
+              ) : null}
 
-                <Text numberOfLines={1} className="text-[16px] font-semibold text-gray-100">
+              <PendingExpiryCountdown
+                status={booking.status}
+                pendingExpiresAt={booking.pendingExpiresAt}
+                createdAt={booking.createdAt}
+                variant="mission"
+                className={`mb-1 border-b pb-1 border-[${colors.borderGold}] px-1`}
+              />
+              <View className="mt-1 flex-row items-center">
+                <View
+                  className="mr-2 h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: colors.textMuted }}
+                />
+                <Text
+                  numberOfLines={1}
+                  className="text-[14px] font-semibold"
+                  style={{ color: colors.textMuted }}>
                   {(booking.pickupLocation ?? '').trim() || '—'}
                 </Text>
-                <View className="mt-1 flex-row items-center">
-                  <View
-                    className="mr-2 h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: colors.textMuted }}
-                  />
-                  <Text
-                    numberOfLines={1}
-                    className="flex-1 text-[14px] font-semibold"
-                    style={{ color: colors.textMuted }}>
-                    {(booking.dropLocation ?? '').trim() || '—'}
-                  </Text>
-                </View>
-
-                <View className="flex-row items-end justify-between">
-                  <Text
-                    className="mt-2 text-[14px] font-semibold"
-                    style={{ color: colors.textMuted }}>
-                    {durationLabel(booking.startTime, booking.endTime)}
-                  </Text>
-                  <View className="ml-3 items-end">
-                    <View className="flex-row items-center">
-                      <View className="mr-2 rounded-full px-3" style={{ backgroundColor: pill.bg }}>
-                        <Text className="text-[14px] font-extrabold" style={{ color: pill.fg }}>
-                          {pill.label}
-                        </Text>
-                      </View>
-                      <FontAwesome name="angle-right" size={20} color="#B8BBC0" />
-                    </View>
-                  </View>
-                </View>
-
-                {isActiveCard ? (
-                  <View className="mt-4 flex-row justify-between gap-2">
-                    <View
-                      className="mx-2 my-3 flex-1 items-center justify-center rounded-2xl"
-                      style={{ backgroundColor: 'rgb(25,95,235)' }}>
-                      <FontAwesome name="car" size={18} color="#B8BBC0" />
-                      <Text
-                        className="mt-1 text-[11px] font-bold"
-                        style={{ color: colors.textMuted }}>
-                        Vehicle Type
-                      </Text>
-                      <Text
-                        numberOfLines={1}
-                        className="mt-0.5 text-[14px] font-extrabold text-gray-100">
-                        {(booking.vehicle?.vehicleType ?? '').trim() || '—'}
-                      </Text>
-                    </View>
-
-                    <View
-                      className="flex-1 items-center justify-center rounded-2xl px-2 py-3"
-                      style={{ backgroundColor: '#2F3135' }}>
-                      <FontAwesome name="shield" size={18} color="#B8BBC0" />
-                      <Text
-                        className="mt-1 text-[11px] font-bold"
-                        style={{ color: colors.textMuted }}>
-                        Armour Level
-                      </Text>
-                      <Text
-                        numberOfLines={1}
-                        className="mt-0.5 text-[14px] font-extrabold text-gray-100">
-                        {(booking.vehicle?.armourLevel ?? '').trim() || '—'}
-                      </Text>
-                    </View>
-
-                    <View
-                      className="flex-1 items-center justify-center rounded-2xl px-2 py-3"
-                      style={{ backgroundColor: '#2F3135' }}>
-                      <FontAwesome name="users" size={18} color="#B8BBC0" />
-                      <Text
-                        className="mt-1 text-[11px] font-bold"
-                        style={{ color: colors.textMuted }}>
-                        Seating
-                      </Text>
-                      <Text
-                        numberOfLines={1}
-                        className="mt-0.5 text-[14px] font-extrabold text-gray-100">
-                        {booking.vehicle?.seatingCapacity != null
-                          ? `${booking.vehicle.seatingCapacity}`
-                          : '—'}
-                      </Text>
-                    </View>
-
-                    <View
-                      className="flex-1 items-center justify-center rounded-2xl px-2 py-3"
-                      style={{ backgroundColor: '#2F3135' }}>
-                      <FontAwesome name="clock-o" size={18} color="#B8BBC0" />
-                      <Text
-                        className="mt-1 text-[11px] font-bold"
-                        style={{ color: colors.textMuted }}>
-                        Remaining
-                      </Text>
-                      <Text
-                        numberOfLines={1}
-                        className="mt-0.5 text-[14px] font-extrabold text-gray-100">
-                        {timeRemainingLabel(booking.endTime)}
-                      </Text>
-                    </View>
-                  </View>
-                ) : null}
               </View>
-            </LinearGradient>
+              <View className="mt-1 flex-row items-center">
+                <View
+                  className="mr-2 h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: colors.textMuted }}
+                />
+                <Text
+                  numberOfLines={1}
+                  className="flex-1 text-[14px] font-semibold"
+                  style={{ color: colors.textMuted }}>
+                  {(booking.dropLocation ?? '').trim() || '—'}
+                </Text>
+              </View>
+
+              <View className="flex-row items-end justify-between">
+                <Text
+                  className="mt-2 text-[14px] font-semibold"
+                  style={{ color: colors.textMuted }}>
+                  {durationLabel(booking.startTime, booking.endTime)}
+                </Text>
+                <View className="ml-3 items-end">
+                  <View className="flex-row items-center">
+                    <View className="mr-2 rounded-full px-3" style={{ backgroundColor: pill.bg }}>
+                      <Text className="text-[14px] font-extrabold" style={{ color: pill.fg }}>
+                        {pill.label}
+                      </Text>
+                    </View>
+                    <FontAwesome name="angle-right" size={20} color="#B8BBC0" />
+                  </View>
+                </View>
+              </View>
+
+              {isActiveCard ? (
+                <View className="mt-4 flex-row justify-between gap-2">
+                  <View
+                    className="mx-2 my-3 flex-1 items-center justify-center rounded-2xl"
+                    style={{ backgroundColor: 'rgb(25,95,235)' }}>
+                    <FontAwesome name="car" size={18} color="#B8BBC0" />
+                    <Text
+                      className="mt-1 text-[11px] font-bold"
+                      style={{ color: colors.textMuted }}>
+                      Vehicle Type
+                    </Text>
+                    <Text
+                      numberOfLines={1}
+                      className="mt-0.5 text-[14px] font-extrabold text-gray-100">
+                      {(booking.vehicle?.vehicleType ?? '').trim() || '—'}
+                    </Text>
+                  </View>
+
+                  <View
+                    className="flex-1 items-center justify-center rounded-2xl px-2 py-3"
+                    style={{ backgroundColor: '#2F3135' }}>
+                    <FontAwesome name="shield" size={18} color="#B8BBC0" />
+                    <Text
+                      className="mt-1 text-[11px] font-bold"
+                      style={{ color: colors.textMuted }}>
+                      Armour Level
+                    </Text>
+                    <Text
+                      numberOfLines={1}
+                      className="mt-0.5 text-[14px] font-extrabold text-gray-100">
+                      {(booking.vehicle?.armourLevel ?? '').trim() || '—'}
+                    </Text>
+                  </View>
+
+                  <View
+                    className="flex-1 items-center justify-center rounded-2xl px-2 py-3"
+                    style={{ backgroundColor: '#2F3135' }}>
+                    <FontAwesome name="users" size={18} color="#B8BBC0" />
+                    <Text
+                      className="mt-1 text-[11px] font-bold"
+                      style={{ color: colors.textMuted }}>
+                      Seating
+                    </Text>
+                    <Text
+                      numberOfLines={1}
+                      className="mt-0.5 text-[14px] font-extrabold text-gray-100">
+                      {booking.vehicle?.seatingCapacity != null
+                        ? `${booking.vehicle.seatingCapacity}`
+                        : '—'}
+                    </Text>
+                  </View>
+
+                  <View
+                    className="flex-1 items-center justify-center rounded-2xl px-2 py-3"
+                    style={{ backgroundColor: '#2F3135' }}>
+                    <FontAwesome name="clock-o" size={18} color="#B8BBC0" />
+                    <Text
+                      className="mt-1 text-[11px] font-bold"
+                      style={{ color: colors.textMuted }}>
+                      Remaining
+                    </Text>
+                    <Text
+                      numberOfLines={1}
+                      className="mt-0.5 text-[14px] font-extrabold text-gray-100">
+                      {timeRemainingLabel(booking.endTime)}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
+            </View>
+            {/* </LinearGradient> */}
           </View>
         </Pressable>
       )}

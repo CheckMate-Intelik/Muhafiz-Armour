@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { BackButton } from '@/components/BackButton';
-import { PUBLIC_API_BASE_URL } from '@/lib/api';
+import { publicGet } from '@/lib/api';
 import { VehicleCard, VehicleCardData } from '@/components/VehicleCard';
 import { useTripDraftStore } from '@/store/tripDraft';
 import { colors, gradientProps, gradients, listCardShadow } from '@/constants/theme';
@@ -48,12 +48,10 @@ export default function VehicleSelectScreen() {
     let cancelled = false;
     async function loadOptions() {
       try {
-        const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/options`);
-        if (!res.ok) return;
-        const data = (await res.json()) as {
+        const data = await publicGet<{
           armourLevels?: { code: string; label: string }[];
           vehicleTypes?: { code: string; label: string }[];
-        };
+        }>('/vehicles/options');
         if (cancelled) return;
         const nextArmours = Array.isArray(data.armourLevels)
           ? data.armourLevels.map((x) => x.code)
@@ -102,15 +100,13 @@ export default function VehicleSelectScreen() {
         if (minPrice.trim().length > 0) q.set('minPrice', minPrice.trim());
         if (maxPrice.trim().length > 0) q.set('maxPrice', maxPrice.trim());
         const suffix = `?${q.toString()}`;
-        const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/available${suffix}`);
-        if (!res.ok) return;
-        const data = (await res.json()) as {
+        const data = await publicGet<{
           vehicles?: Array<
             VehicleCardData & {
               owner?: { name?: string } | null;
             }
           >;
-        };
+        }>(`/vehicles/available${suffix}`);
         if (cancelled) return;
         setVehicles(
           Array.isArray(data.vehicles)

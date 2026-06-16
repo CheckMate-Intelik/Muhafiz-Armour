@@ -130,6 +130,9 @@ export function AuthField({
   keyboardType,
   secureTextEntry,
   autoCapitalize,
+  error,
+  onBlur,
+  editable = true,
 }: {
   label: string;
   value: string;
@@ -138,11 +141,17 @@ export function AuthField({
   keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'number-pad';
   secureTextEntry?: boolean;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  error?: string | null;
+  onBlur?: () => void;
+  editable?: boolean;
 }) {
   return (
     <View
       className="mt-6 rounded-2xl border px-4 py-3"
-      style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
+      style={{
+        backgroundColor: 'rgba(255,255,255,0.04)',
+        borderColor: error ? '#F87171' : 'rgba(255,255,255,0.08)',
+      }}>
       <Text className="text-md font-bold" style={{ color: '#9CA3AF' }}>
         {label}
       </Text>
@@ -154,8 +163,15 @@ export function AuthField({
         keyboardType={keyboardType}
         secureTextEntry={secureTextEntry}
         autoCapitalize={autoCapitalize ?? 'none'}
+        editable={editable}
+        onBlur={onBlur}
         className="mt-1 text-md font-extrabold text-gray-100"
       />
+      {error ? (
+        <Text className="mt-1 text-xs font-semibold" style={{ color: '#FCA5A5' }}>
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }

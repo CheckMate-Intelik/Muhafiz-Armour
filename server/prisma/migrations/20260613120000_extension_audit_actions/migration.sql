@@ -1,0 +1,4 @@
+-- Add granular extension audit actions (EXTENSION_RESOLVED left unused in DB enum)
+ALTER TYPE "BookingAuditAction" ADD VALUE IF NOT EXISTS 'EXTENSION_APPROVED';
+ALTER TYPE "BookingAuditAction" ADD VALUE IF NOT EXISTS 'EXTENSION_REJECTED';
+ALTER TYPE "BookingAuditAction" ADD VALUE IF NOT EXISTS 'EXTENSION_CANCELLED';

@@ -1,6 +1,4 @@
-import { getSession } from './session';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { clearSession } from './session';
 
 export class ApiError extends Error {
   status: number;
@@ -17,20 +15,12 @@ export type AdminMetrics = {
   bookings: { total: number; completed: number; active: number; pendingDispatcher: number };
 };
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const session = getSession();
-  const res = await fetch(`${API_URL}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}),
-      ...(init?.headers ?? {}),
-    },
-    cache: 'no-store',
-  });
-
+async function readResponse<T>(res: Response): Promise<T> {
   const text = await res.text().catch(() => '');
   if (!res.ok) {
+    if (res.status === 401) {
+      clearSession();
+    }
     throw new ApiError(text || res.statusText, res.status);
   }
   if (!text.trim()) return undefined as T;
@@ -41,12 +31,29 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const proxyPath = `/api/admin${path.replace(/^\/admin/, '')}`;
+  const res = await fetch(proxyPath, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(init?.headers ?? {}),
+    },
+    cache: 'no-store',
+  });
+  return readResponse<T>(res);
+}
+
 export const api = {
-  loginAdmin: (username: string, password: string) =>
-    request<{ token: string; role: 'ADMIN' }>('/auth/login', {
+  loginAdmin: async (username: string, password: string) => {
+    const res = await fetch('/api/auth/login', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
-    }),
+      cache: 'no-store',
+    });
+    return readResponse<{ role: 'ADMIN' }>(res);
+  },
 
   metrics: () => request<AdminMetrics>('/admin/metrics'),
 

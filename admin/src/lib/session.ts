@@ -1,5 +1,4 @@
 export type AdminSession = {
-  token: string;
   role: 'ADMIN';
 };
 
@@ -11,7 +10,7 @@ export function getSession(): AdminSession | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as AdminSession;
-    if (!parsed?.token || parsed.role !== 'ADMIN') return null;
+    if (parsed?.role !== 'ADMIN') return null;
     return parsed;
   } catch {
     return null;
@@ -24,5 +23,7 @@ export function setSession(session: AdminSession) {
 
 export function clearSession() {
   window.localStorage.removeItem(STORAGE_KEY);
+  if (typeof window !== 'undefined') {
+    void fetch('/api/auth/logout', { method: 'POST' });
+  }
 }
-

@@ -377,7 +377,7 @@ export default function PickLocationScreen() {
               }}
               query={{ key: apiKey, language: 'en' }}
               onFail={(e) => {
-                console.warn('places_autocomplete_failed', e);
+                if (__DEV__) console.warn('places_autocomplete_failed', e);
               }}
               textInputProps={{
                 onFocus: () => setIsTyping(true),

@@ -2,9 +2,35 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 
+import { emailValidationMessage, normalizeEmail } from '@/lib/emailValidation';
+
 const DEPLOYED_API_URL = 'https://muhafiz-armour.vercel.app';
 const API_BASE_URL = resolveApiBaseUrl();
 export const PUBLIC_API_BASE_URL = API_BASE_URL;
+
+/** Unauthenticated GET for public catalog endpoints. */
+export async function publicGet<T>(path: string): Promise<T> {
+  const res = await apiFetch(path);
+  if (!res.ok) throw new Error(`GET ${path} failed`);
+  return (await res.json()) as T;
+}
+
+async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  const res = await fetch(`${API_BASE_URL}${path}`, init);
+  if (res.status === 401 && requestHasAuthHeader(init?.headers)) {
+    session = null;
+    dispatcherSession = null;
+    await clearAllStoredSessions();
+  }
+  return res;
+}
+
+function requestHasAuthHeader(headers: HeadersInit | undefined): boolean {
+  if (!headers) return false;
+  if (headers instanceof Headers) return headers.has('Authorization');
+  if (Array.isArray(headers)) return headers.some(([k]) => k.toLowerCase() === 'authorization');
+  return 'Authorization' in headers || 'authorization' in headers;
+}
 
 type UserSession = {
   userId: string;
@@ -58,8 +84,19 @@ export async function setStoredUserSession(next: UserSession | null) {
     session = null;
     return;
   }
-  await secureSetItem(USER_SECURE_KEY, JSON.stringify(next));
-  session = next;
+  const existing = session ?? (await getStoredUserSession());
+  const merged: UserSession = {
+    userId: next.userId,
+    token: next.token ?? existing?.token ?? '',
+    phone: next.phone ?? existing?.phone,
+    name: next.name ?? existing?.name,
+    email: next.email ?? existing?.email,
+  };
+  if (!merged.token.trim()) {
+    throw new Error('Not authenticated');
+  }
+  await secureSetItem(USER_SECURE_KEY, JSON.stringify(merged));
+  session = merged;
 }
 
 export async function getStoredDispatcherSession(): Promise<DispatcherSession | null> {
@@ -87,8 +124,19 @@ export async function setStoredDispatcherSession(next: DispatcherSession | null)
     dispatcherSession = null;
     return;
   }
-  await secureSetItem(DISPATCHER_SECURE_KEY, JSON.stringify(next));
-  dispatcherSession = next;
+  const existing = dispatcherSession ?? (await getStoredDispatcherSession());
+  const merged: DispatcherSession = {
+    dispatcherId: next.dispatcherId,
+    token: next.token ?? existing?.token ?? '',
+    phone: next.phone ?? existing?.phone,
+    name: next.name ?? existing?.name,
+    email: next.email ?? existing?.email,
+  };
+  if (!merged.token.trim()) {
+    throw new Error('Not authenticated');
+  }
+  await secureSetItem(DISPATCHER_SECURE_KEY, JSON.stringify(merged));
+  dispatcherSession = merged;
 }
 
 /** Clears user and dispatcher sessions from storage and in-memory caches. */
@@ -96,14 +144,63 @@ export async function clearAllStoredSessions() {
   await Promise.all([setStoredUserSession(null), setStoredDispatcherSession(null)]);
 }
 
+function assertValidEmail(emailInput: string | undefined) {
+  const message = emailValidationMessage(emailInput ?? '');
+  if (message) throw new Error(message);
+  return normalizeEmail(emailInput ?? '');
+}
+
+export async function requestPasswordReset(input: { email: string; role: AppRole }) {
+  const email = assertValidEmail(input.email);
+  const res = await apiFetch('/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email, role: input.role }),
+  });
+  if (!res.ok) {
+    const details = await safeReadError(res);
+    throw new Error(details ?? 'Could not send verification code');
+  }
+  return (await res.json()) as { ok: boolean; message: string };
+}
+
+export async function resetPasswordWithCode(input: {
+  email: string;
+  role: AppRole;
+  code: string;
+  password: string;
+}) {
+  const email = assertValidEmail(input.email);
+  const code = input.code.trim();
+  if (code.length < 6) throw new Error('Enter the 6-digit verification code');
+  if (!input.password || input.password.length < 8) {
+    throw new Error('Password must be at least 8 characters');
+  }
+
+  const res = await apiFetch('/auth/reset-password', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      email,
+      role: input.role,
+      code,
+      password: input.password,
+    }),
+  });
+  if (!res.ok) {
+    const details = await safeReadError(res);
+    throw new Error(details ?? 'Could not reset password');
+  }
+  return (await res.json()) as { ok: boolean; message: string };
+}
+
 export async function loginUser(input: { phone?: string; name?: string; email?: string; password: string }) {
-  const email = input.email?.trim();
+  const email = assertValidEmail(input.email);
   const phone = (input.phone?.trim() || email || '').trim();
   const name = (input.name?.trim() || 'User').trim();
-  if (!email) throw new Error('Email is required');
   if (!input.password?.trim()) throw new Error('Password is required');
 
-  const res = await fetch(`${API_BASE_URL}/auth/login`, {
+  const res = await apiFetch('/auth/login', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -128,14 +225,13 @@ export async function loginUser(input: { phone?: string; name?: string; email?: 
 }
 
 export async function signupUser(input: { phone?: string; name?: string; email?: string; password: string }) {
-  const email = input.email?.trim();
+  const email = assertValidEmail(input.email);
   const phone = (input.phone?.trim() || email || '').trim();
   const name = (input.name?.trim() || 'User').trim();
-  if (!email) throw new Error('Email is required');
   if (!phone) throw new Error('Phone is required');
   if (!input.password?.trim()) throw new Error('Password is required');
 
-  const res = await fetch(`${API_BASE_URL}/auth/signup`, {
+  const res = await apiFetch('/auth/signup', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -163,13 +259,12 @@ export async function signupUser(input: { phone?: string; name?: string; email?:
 }
 
 export async function loginDispatcher(input: { phone?: string; name?: string; email?: string; password: string }) {
-  const email = input.email?.trim();
+  const email = assertValidEmail(input.email);
   const phone = (input.phone?.trim() || email || '').trim();
   const name = (input.name?.trim() || 'Dispatcher').trim();
-  if (!email) throw new Error('Email is required');
   if (!input.password?.trim()) throw new Error('Password is required');
 
-  const res = await fetch(`${API_BASE_URL}/auth/login`, {
+  const res = await apiFetch('/auth/login', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -194,14 +289,13 @@ export async function loginDispatcher(input: { phone?: string; name?: string; em
 }
 
 export async function signupDispatcher(input: { phone?: string; name?: string; email?: string; password: string }) {
-  const email = input.email?.trim();
+  const email = assertValidEmail(input.email);
   const phone = (input.phone?.trim() || email || '').trim();
   const name = (input.name?.trim() || 'Dispatcher').trim();
-  if (!email) throw new Error('Email is required');
   if (!phone) throw new Error('Phone is required');
   if (!input.password?.trim()) throw new Error('Password is required');
 
-  const res = await fetch(`${API_BASE_URL}/auth/signup`, {
+  const res = await apiFetch('/auth/signup', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -287,7 +381,7 @@ async function dispatcherAuthHeaders(dispatcherId: string) {
 }
 
 export async function apiGet<T>(path: string, userId: string): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await apiFetch(path, {
     headers: await userAuthHeaders(userId),
   });
   if (res.status === 401) throw new Error('Not authenticated');
@@ -296,7 +390,7 @@ export async function apiGet<T>(path: string, userId: string): Promise<T> {
 }
 
 export async function apiPost<T>(path: string, userId: string, body: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await apiFetch(path, {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...(await userAuthHeaders(userId)) },
     body: JSON.stringify(body),
@@ -310,7 +404,7 @@ export async function apiPost<T>(path: string, userId: string, body: unknown): P
 }
 
 export async function apiDelete<T>(path: string, userId: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await apiFetch(path, {
     method: 'DELETE',
     headers: { 'content-type': 'application/json', ...(await userAuthHeaders(userId)) },
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -324,7 +418,7 @@ export async function apiDelete<T>(path: string, userId: string, body?: unknown)
 }
 
 export async function apiPatch<T>(path: string, userId: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await apiFetch(path, {
     method: 'PATCH',
     headers: { 'content-type': 'application/json', ...(await userAuthHeaders(userId)) },
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -348,7 +442,7 @@ function guessImageMime(uri: string) {
 export async function apiUploadProfileImage(userId: string, fileUri: string): Promise<{ url: string }> {
   const form = new FormData();
   form.append('file', { uri: fileUri, type: guessImageMime(fileUri), name: 'profile.jpg' } as unknown as Blob);
-  const res = await fetch(`${API_BASE_URL}/media/upload/profile`, {
+  const res = await apiFetch('/media/upload/profile', {
     method: 'POST',
     headers: await userAuthHeaders(userId),
     body: form,
@@ -364,7 +458,7 @@ export async function apiUploadProfileImage(userId: string, fileUri: string): Pr
 export async function dispatcherUploadVehicleImage(dispatcherId: string, fileUri: string): Promise<{ url: string }> {
   const form = new FormData();
   form.append('file', { uri: fileUri, type: guessImageMime(fileUri), name: 'vehicle.jpg' } as unknown as Blob);
-  const res = await fetch(`${API_BASE_URL}/media/upload/vehicle`, {
+  const res = await apiFetch('/media/upload/vehicle', {
     method: 'POST',
     headers: await dispatcherAuthHeaders(dispatcherId),
     body: form,
@@ -380,7 +474,7 @@ export async function dispatcherUploadVehicleImage(dispatcherId: string, fileUri
 export async function dispatcherUploadProfileImage(dispatcherId: string, fileUri: string): Promise<{ url: string }> {
   const form = new FormData();
   form.append('file', { uri: fileUri, type: guessImageMime(fileUri), name: 'profile.jpg' } as unknown as Blob);
-  const res = await fetch(`${API_BASE_URL}/media/upload/profile`, {
+  const res = await apiFetch('/media/upload/profile', {
     method: 'POST',
     headers: await dispatcherAuthHeaders(dispatcherId),
     body: form,
@@ -394,7 +488,7 @@ export async function dispatcherUploadProfileImage(dispatcherId: string, fileUri
 }
 
 export async function dispatcherGet<T>(path: string, dispatcherId: string): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await apiFetch(path, {
     headers: await dispatcherAuthHeaders(dispatcherId),
   });
   if (res.status === 401) throw new Error('Not authenticated');
@@ -406,7 +500,7 @@ export async function dispatcherGet<T>(path: string, dispatcherId: string): Prom
 }
 
 export async function dispatcherPost<T>(path: string, dispatcherId: string, body: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await apiFetch(path, {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...(await dispatcherAuthHeaders(dispatcherId)) },
     body: JSON.stringify(body),
@@ -420,7 +514,7 @@ export async function dispatcherPost<T>(path: string, dispatcherId: string, body
 }
 
 export async function dispatcherDelete<T>(path: string, dispatcherId: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await apiFetch(path, {
     method: 'DELETE',
     headers: { 'content-type': 'application/json', ...(await dispatcherAuthHeaders(dispatcherId)) },
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -434,7 +528,7 @@ export async function dispatcherDelete<T>(path: string, dispatcherId: string, bo
 }
 
 export async function dispatcherPatch<T>(path: string, dispatcherId: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await apiFetch(path, {
     method: 'PATCH',
     headers: { 'content-type': 'application/json', ...(await dispatcherAuthHeaders(dispatcherId)) },
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -517,11 +611,34 @@ async function safeReadError(res: Response) {
 
 function resolveApiBaseUrl() {
   const fromEnv = process.env.EXPO_PUBLIC_API_URL;
-  if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) return fromEnv.trim();
-  const hostUri = Constants.expoConfig?.hostUri ?? (Constants as any).manifest?.hostUri ?? (Constants as any).manifest2?.extra?.expoClient?.hostUri;
-  if (typeof hostUri === 'string' && hostUri.length > 0) {
-    const host = hostUri.split(':')[0];
-    if (host && host !== 'localhost') return `http://${host}:3001`;
+  if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) {
+    const url = fromEnv.trim();
+    assertHttpsInProduction(url);
+    return url;
+  }
+  if (__DEV__) {
+    const hostUri =
+      Constants.expoConfig?.hostUri ??
+      (Constants as { manifest?: { hostUri?: string } }).manifest?.hostUri ??
+      (Constants as { manifest2?: { extra?: { expoClient?: { hostUri?: string } } } }).manifest2?.extra
+        ?.expoClient?.hostUri;
+    if (typeof hostUri === 'string' && hostUri.length > 0) {
+      const host = hostUri.split(':')[0];
+      if (host && host !== 'localhost') return `http://${host}:3001`;
+    }
   }
   return DEPLOYED_API_URL;
+}
+
+function assertHttpsInProduction(url: string) {
+  if (__DEV__) return;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:') {
+      throw new Error('EXPO_PUBLIC_API_URL must use HTTPS in production builds');
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('HTTPS')) throw e;
+    throw new Error('EXPO_PUBLIC_API_URL must be a valid HTTPS URL in production builds');
+  }
 }

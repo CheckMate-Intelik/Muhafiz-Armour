@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { PUBLIC_API_BASE_URL, apiPost, ensureUserSession } from '@/lib/api';
+import { apiPost, ensureUserSession, publicGet } from '@/lib/api';
 import { paramString } from '@/lib/routeParams';
 import { BackButton } from '@/components/BackButton';
 import { useTripDraftStore } from '@/store/tripDraft';
@@ -76,9 +76,7 @@ export default function BookConfirmScreen() {
     async function loadRate() {
       if (!vehicleId) return;
       try {
-        const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/${vehicleId}`);
-        if (!res.ok) return;
-        const data = (await res.json()) as { vehicle?: { baseRatePerHour?: number } | null };
+        const data = await publicGet<{ vehicle?: { baseRatePerHour?: number } | null }>(`/vehicles/${vehicleId}`);
         if (cancelled) return;
         setRate(typeof data.vehicle?.baseRatePerHour === 'number' ? data.vehicle.baseRatePerHour : null);
       } catch {

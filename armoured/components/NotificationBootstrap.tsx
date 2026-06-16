@@ -8,6 +8,7 @@ import {
   recordSessionNotification,
   syncPushTokensWithServer,
 } from '@/lib/notifications';
+import { canNavigateFromNotification } from '@/lib/notificationNavigation';
 import { safePush } from '@/lib/safeRouter';
 
 export function NotificationBootstrap() {
@@ -27,16 +28,20 @@ export function NotificationBootstrap() {
     const removeReceivedListener = addNotificationReceivedListener();
 
     const removeNavListener = addNotificationResponseListener(({ bookingId, status, role }) => {
-      if (!bookingId) return;
-      if (status === 'IN_PROGRESS' && role === 'DISPATCHER') {
-        safePush('/dispatcher-ongoing-trip');
-        return;
-      }
-      if (status === 'IN_PROGRESS' && role === 'USER') {
-        safePush('/ongoing-trip');
-        return;
-      }
-      safePush({ pathname: '/booking-details', params: { id: bookingId } });
+      void (async () => {
+        if (!bookingId) return;
+        const allowed = await canNavigateFromNotification({ bookingId, status, role });
+        if (!allowed) return;
+        if (status === 'IN_PROGRESS' && role === 'DISPATCHER') {
+          safePush('/dispatcher-ongoing-trip');
+          return;
+        }
+        if (status === 'IN_PROGRESS' && role === 'USER') {
+          safePush('/ongoing-trip');
+          return;
+        }
+        safePush({ pathname: '/booking-details', params: { id: bookingId } });
+      })();
     });
 
     return () => {

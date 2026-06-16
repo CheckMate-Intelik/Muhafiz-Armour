@@ -6,7 +6,7 @@ import { Alert, Modal, Platform, Pressable, ScrollView, Text, View } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/BackButton';
-import { PUBLIC_API_BASE_URL } from '@/lib/api';
+import { publicGet } from '@/lib/api';
 
 type PickerMode = 'startDate' | 'startTime' | 'endDate' | 'endTime';
 
@@ -94,15 +94,12 @@ export default function BookVehicleScheduleScreen() {
       setSubmitting(true);
       let amount = 0;
       try {
-        const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/${vehicleId}`);
-        if (res.ok) {
-          const data = (await res.json()) as { vehicle?: { baseRatePerHour?: number } | null };
+        const data = await publicGet<{ vehicle?: { baseRatePerHour?: number } | null }>(`/vehicles/${vehicleId}`);
           const rate = data.vehicle?.baseRatePerHour;
           if (typeof rate === 'number') {
             const hours = (endAt.getTime() - startAt.getTime()) / (1000 * 60 * 60);
             amount = Math.round(rate * hours);
           }
-        }
       } catch {
         // use 0; payment screen still shows trip details
       }

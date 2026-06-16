@@ -9,6 +9,7 @@ import {
   AuthRoleToggle,
   AuthScreenShell,
 } from '@/components/AuthForm';
+import { emailValidationMessage } from '@/lib/emailValidation';
 import { AppRole, signupDispatcher, signupUser } from '@/lib/api';
 import { useStore } from '@/store/store';
 
@@ -19,12 +20,16 @@ export default function SignupScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = phone.trim().length > 0 && email.trim().length > 0 && password.length >= 8;
+  const canSubmit = phone.trim().length > 0 && email.trim().length > 0 && password.length >= 8 && !emailError;
 
   async function submit() {
-    if (!canSubmit || submitting) return;
+    const validationError = emailValidationMessage(email);
+    setEmailError(validationError);
+    if (validationError || !canSubmit || submitting) return;
+
     try {
       setSubmitting(true);
       if (role === 'DISPATCHER') {
@@ -73,10 +78,15 @@ export default function SignupScreen() {
       <AuthField
         label="Email"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(next) => {
+          setEmail(next);
+          if (emailError) setEmailError(emailValidationMessage(next));
+        }}
+        onBlur={() => setEmailError(emailValidationMessage(email))}
         placeholder="you@example.com"
         keyboardType="email-address"
         autoCapitalize="none"
+        error={emailError}
       />
       <AuthField
         label="Password"

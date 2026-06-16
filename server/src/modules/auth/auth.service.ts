@@ -5,17 +5,20 @@ import {
   OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
-import { randomBytes, scrypt as _scrypt, timingSafeEqual } from 'crypto';
+import { randomBytes, randomInt, scrypt as _scrypt, timingSafeEqual } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { AuthEventType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { EmailService } from '../email/email.service';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto, ResetPasswordDto } from './dto/password-reset.dto';
 import { SignupDto } from './dto/signup.dto';
 import { AuthRole, JwtPayload } from './auth.types';
 import { promisify } from 'util';
 
 const scrypt = promisify(_scrypt);
+const RESET_CODE_TTL_MS = 15 * 60 * 1000;
 
 type RequestMeta = {
   ipAddress?: string;
@@ -28,6 +31,7 @@ export class AuthService implements OnModuleInit {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly audit: AuditService,
+    private readonly email: EmailService,
   ) {}
 
   async onModuleInit() {
@@ -42,7 +46,7 @@ export class AuthService implements OnModuleInit {
     }
 
     const role = dto.role === 'DISPATCHER' ? 'DISPATCHER' : 'USER';
-    const email = dto.email?.trim();
+    const email = dto.email?.trim().toLowerCase();
     const password = dto.password ?? '';
 
     if (!email) {
@@ -99,7 +103,7 @@ export class AuthService implements OnModuleInit {
 
   async signup(dto: SignupDto, meta?: RequestMeta) {
     const phone = dto.phone?.trim() || dto.email?.trim();
-    const email = dto.email?.trim();
+    const email = dto.email?.trim().toLowerCase();
     const password = dto.password ?? '';
     const role = dto.role === 'DISPATCHER' ? 'DISPATCHER' : 'USER';
     const name = (dto.name?.trim() || (role === 'DISPATCHER' ? 'Dispatcher' : 'User')).slice(0, 80);
@@ -152,6 +156,117 @@ export class AuthService implements OnModuleInit {
       });
       throw e;
     }
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto, meta?: RequestMeta) {
+    const email = dto.email.trim().toLowerCase();
+    const role = dto.role;
+
+    const accountExists = await this.accountExistsForRole(email, role);
+    if (accountExists) {
+      const code = String(randomInt(100_000, 1_000_000));
+      const codeHash = await this.hashPassword(code);
+      const expiresAt = new Date(Date.now() + RESET_CODE_TTL_MS);
+
+      await this.prisma.passwordResetCode.updateMany({
+        where: { email, role, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+
+      await this.prisma.passwordResetCode.create({
+        data: { email, role, codeHash, expiresAt },
+      });
+
+      await this.email.sendPasswordResetCode(email, code);
+      await this.audit.logAuthEvent({
+        eventType: AuthEventType.PASSWORD_RESET_REQUESTED,
+        role,
+        email,
+        meta,
+      });
+    }
+
+    return {
+      ok: true,
+      message: 'If an account exists for that email, a verification code has been sent.',
+    };
+  }
+
+  async resetPassword(dto: ResetPasswordDto, meta?: RequestMeta) {
+    const email = dto.email.trim().toLowerCase();
+    const role = dto.role;
+    const code = dto.code.trim();
+    const password = dto.password;
+
+    try {
+      const resetRecord = await this.prisma.passwordResetCode.findFirst({
+        where: {
+          email,
+          role,
+          usedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (!resetRecord) {
+        throw new UnauthorizedException('Invalid or expired verification code');
+      }
+
+      const codeOk = await this.verifyPassword(code, resetRecord.codeHash);
+      if (!codeOk) {
+        throw new UnauthorizedException('Invalid or expired verification code');
+      }
+
+      const passwordHash = await this.hashPassword(password);
+      if (role === 'DISPATCHER') {
+        const dispatcher = await this.prisma.dispatcher.findUnique({ where: { email } });
+        if (!dispatcher) throw new UnauthorizedException('Invalid or expired verification code');
+        await this.prisma.dispatcher.update({
+          where: { id: dispatcher.id },
+          data: { passwordHash },
+        });
+      } else {
+        const user = await this.prisma.user.findUnique({ where: { email } });
+        if (!user) throw new UnauthorizedException('Invalid or expired verification code');
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { passwordHash },
+        });
+      }
+
+      await this.prisma.passwordResetCode.updateMany({
+        where: { email, role, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+
+      await this.audit.logAuthEvent({
+        eventType: AuthEventType.PASSWORD_RESET_SUCCESS,
+        role,
+        email,
+        meta,
+      });
+
+      return { ok: true, message: 'Password updated successfully' };
+    } catch (e) {
+      await this.audit.logAuthEvent({
+        eventType: AuthEventType.PASSWORD_RESET_FAILURE,
+        role,
+        email,
+        message: e instanceof Error ? e.message : 'Password reset failed',
+        meta,
+      });
+      throw e;
+    }
+  }
+
+  private async accountExistsForRole(email: string, role: 'USER' | 'DISPATCHER') {
+    if (role === 'DISPATCHER') {
+      const dispatcher = await this.prisma.dispatcher.findUnique({ where: { email } });
+      return Boolean(dispatcher?.passwordHash);
+    }
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    return Boolean(user?.passwordHash);
   }
 
   private async loginAdmin(dto: LoginDto, meta?: RequestMeta) {

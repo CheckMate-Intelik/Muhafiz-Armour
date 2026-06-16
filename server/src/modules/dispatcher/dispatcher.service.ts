@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { BookingAuditAction, BookingStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AuditService } from '../audit/audit.service';
 import { BookingService } from '../booking/booking.service';
 import { extensionRequestsInclude, serializeBookingWithExtension } from '../booking/booking-extension.util';
 import {
@@ -17,6 +18,7 @@ export class DispatcherService {
     private readonly prisma: PrismaService,
     private readonly bookings: BookingService,
     private readonly bookingNotifications: BookingNotificationsService,
+    private readonly audit: AuditService,
   ) {}
 
   async getById(id: string) {
@@ -65,7 +67,7 @@ export class DispatcherService {
   }
 
   async listMyRequests(dispatcherId: string) {
-    await expireStalePendingDispatcherBookings(this.prisma);
+    await expireStalePendingDispatcherBookings(this.prisma, { audit: this.audit });
     const rows = await this.prisma.booking.findMany({
       where: { dispatcherId, status: 'PENDING_DISPATCHER' },
       orderBy: { createdAt: 'desc' },
@@ -75,7 +77,7 @@ export class DispatcherService {
   }
 
   async listMyActive(dispatcherId: string) {
-    await expireStalePendingDispatcherBookings(this.prisma);
+    await expireStalePendingDispatcherBookings(this.prisma, { audit: this.audit });
     const rows = await this.prisma.booking.findMany({
       where: { dispatcherId, status: { in: ['CONFIRMED', 'IN_PROGRESS'] } },
       orderBy: { createdAt: 'desc' },
@@ -101,7 +103,7 @@ export class DispatcherService {
   }
 
   async respondToBooking(dispatcherId: string, bookingId: string, accept: boolean) {
-    await expirePendingBookingIfNeeded(this.prisma, bookingId);
+    await expirePendingBookingIfNeeded(this.prisma, bookingId, { audit: this.audit });
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.dispatcherId !== dispatcherId) throw new BadRequestException('Not your request');
@@ -131,6 +133,14 @@ export class DispatcherService {
         return row;
       });
       this.bookingNotifications.notifyStatusChange(updated, previousStatus, 'DISPATCHER');
+      await this.audit.logBookingAction({
+        bookingId,
+        actorRole: 'DISPATCHER',
+        actorId: dispatcherId,
+        action: BookingAuditAction.DISPATCHER_REJECTED,
+        fromStatus: previousStatus as BookingStatus,
+        toStatus: BookingStatus.REJECTED,
+      });
       return updated;
     }
 
@@ -232,6 +242,14 @@ export class DispatcherService {
       return row;
     });
     this.bookingNotifications.notifyStatusChange(updated, previousStatus, 'DISPATCHER');
+    await this.audit.logBookingAction({
+      bookingId,
+      actorRole: 'DISPATCHER',
+      actorId: dispatcherId,
+      action: BookingAuditAction.DISPATCHER_CANCELLED,
+      fromStatus: previousStatus as BookingStatus,
+      toStatus: BookingStatus.REJECTED,
+    });
     return updated;
   }
 

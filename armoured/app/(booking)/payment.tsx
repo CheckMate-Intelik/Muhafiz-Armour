@@ -3,11 +3,22 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useThrottledAsyncPress } from '@/hooks/useThrottledPress';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View, ViewStyle } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/BackButton';
-import { confirmExistingBookingAfterPayment, createBookingAfterPayment } from '@/lib/confirmBooking';
+import {
+  confirmExistingBookingAfterPayment,
+  createBookingAfterPayment,
+} from '@/lib/confirmBooking';
 import { ensureUserSession } from '@/lib/api';
 import { paramString } from '@/lib/routeParams';
 import { useBookingsStore } from '@/store/bookingsStore';
@@ -61,7 +72,7 @@ export default function PaymentScreen() {
       paramString(params.endTime) ||
       (draft.startTimeIso && draft.baseDurationHours != null
         ? new Date(
-            new Date(draft.startTimeIso).getTime() + draft.baseDurationHours * 60 * 60 * 1000,
+            new Date(draft.startTimeIso).getTime() + draft.baseDurationHours * 60 * 60 * 1000
           ).toISOString()
         : '');
 
@@ -90,11 +101,7 @@ export default function PaymentScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   const canPay = Boolean(
-    checkout.vehicleId &&
-      checkout.from &&
-      checkout.to &&
-      checkout.startTime &&
-      checkout.endTime,
+    checkout.vehicleId && checkout.from && checkout.to && checkout.startTime && checkout.endTime
   );
 
   async function payNow() {
@@ -125,7 +132,10 @@ export default function PaymentScreen() {
       }
       router.replace('/(tabs)' as any);
       useTripDraftStore.getState().reset();
-      await useBookingsStore.getState().refreshUserBookings().catch(() => null);
+      await useBookingsStore
+        .getState()
+        .refreshUserBookings()
+        .catch(() => null);
     } catch (e) {
       Alert.alert('Payment failed', e instanceof Error ? e.message : 'Could not complete booking');
     } finally {
@@ -136,10 +146,7 @@ export default function PaymentScreen() {
   const throttledPayNow = useThrottledAsyncPress(() => void payNow());
 
   return (
-    <LinearGradient
-      colors={[...gradients.screen]}
-      {...gradientProps.screen}
-      style={{ flex: 1 }}>
+    <LinearGradient colors={[...gradients.screen]} {...gradientProps.screen} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
@@ -157,29 +164,36 @@ export default function PaymentScreen() {
           </Text>
 
           <View className="mt-3 overflow-hidden rounded-2xl" style={listCardShadow}>
-            <LinearGradient
+            {/* <LinearGradient
               colors={['rgb(37, 37, 37)', 'rgb(0, 0, 0)']}
               start={{ x: 1, y: 0 }}
-              end={{ x: 1, y: 1 }}>
-              <View
-                className="border-b px-4 pb-3 pt-3.5"
-                style={{ borderBottomColor: 'rgba(255,255,255,0.06)' }}>
-                <Text
-                  className="text-[12px] font-extrabold"
-                  style={{ color: colors.gold, letterSpacing: 0.5 }}>
-                  CONFIRM & PAY
-                </Text>
-              </View>
-            </LinearGradient>
+              end={{ x: 1, y: 1 }}> */}
+            <View
+              className="mx-4 border-b pb-3 pt-3.5"
+              style={{ borderBottomColor: colors.borderGold }}>
+              <Text
+                className="text-[12px] font-extrabold"
+                style={{ color: colors.gold, letterSpacing: 0.5 }}>
+                CONFIRM & PAY
+              </Text>
+            </View>
+            {/* </LinearGradient> */}
 
             <View className="px-4 py-4" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
               <View className="flex-row">
                 <View className="mr-3 w-5 items-center">
                   <View
                     className="h-3 w-3 rounded-full"
-                    style={{ borderWidth: 2, borderColor: '#F59E0B', backgroundColor: 'transparent' }}
+                    style={{
+                      borderWidth: 2,
+                      borderColor: '#F59E0B',
+                      backgroundColor: 'transparent',
+                    }}
                   />
-                  <View className="my-2 w-[2px] flex-1" style={{ backgroundColor: 'rgba(34,197,94,0.7)' }} />
+                  <View
+                    className="my-2 w-[2px] flex-1"
+                    style={{ backgroundColor: 'rgba(34,197,94,0.7)' }}
+                  />
                   <View
                     className="h-3 w-3 rounded-full"
                     style={{ borderWidth: 2, borderColor: '#E5E7EB' }}
@@ -192,8 +206,13 @@ export default function PaymentScreen() {
                   <Text numberOfLines={2} className="mt-1 text-base font-extrabold text-gray-100">
                     {checkout.from || '—'}
                   </Text>
-                  <View className="mt-3 border-t" style={{ borderTopColor: 'rgba(255,255,255,0.06)' }} />
-                  <Text className="mt-3 text-[12px] font-bold" style={{ color: colors.textSecondary }}>
+                  <View
+                    className="mt-3 border-t"
+                    style={{ borderTopColor: 'rgba(255,255,255,0.06)' }}
+                  />
+                  <Text
+                    className="mt-3 text-[12px] font-bold"
+                    style={{ color: colors.textSecondary }}>
                     TO
                   </Text>
                   <Text numberOfLines={2} className="mt-1 text-base font-extrabold text-gray-100">
@@ -203,7 +222,9 @@ export default function PaymentScreen() {
               </View>
 
               <View className="mt-4 flex-row gap-3">
-                <View className="flex-1 rounded-xl px-3 py-2" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
+                <View
+                  className="flex-1 rounded-xl px-3 py-2"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
                   <Text className="text-[10px] font-bold" style={{ color: colors.textSecondary }}>
                     Start
                   </Text>
@@ -211,7 +232,9 @@ export default function PaymentScreen() {
                     {formatTripDateTime(checkout.startTime)}
                   </Text>
                 </View>
-                <View className="flex-1 rounded-xl px-3 py-2" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
+                <View
+                  className="flex-1 rounded-xl px-3 py-2"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
                   <Text className="text-[10px] font-bold" style={{ color: colors.textSecondary }}>
                     End
                   </Text>
@@ -328,7 +351,9 @@ function MethodRow({
       <View
         className="h-5 w-5 items-center justify-center rounded-full border-2"
         style={{ borderColor: active ? colors.gold : 'rgba(255,255,255,0.25)' }}>
-        {active ? <View className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colors.gold }} /> : null}
+        {active ? (
+          <View className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colors.gold }} />
+        ) : null}
       </View>
     </Pressable>
   );

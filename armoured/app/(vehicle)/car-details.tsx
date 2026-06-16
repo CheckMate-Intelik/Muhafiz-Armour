@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { BackButton } from '@/components/BackButton';
-import { PUBLIC_API_BASE_URL, dispatcherGet, ensureDispatcherSession } from '@/lib/api';
+import { dispatcherGet, ensureDispatcherSession, publicGet } from '@/lib/api';
 import { cardShadow, colors, gradientProps, gradients, listCardShadow } from '@/constants/theme';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -59,9 +59,7 @@ export default function CarDetailsScreen() {
             s.dispatcherId
           );
         } else {
-          const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/${vehicleId}`);
-          if (!res.ok) return;
-          data = (await res.json()) as { vehicle?: VehicleDetails | null };
+          data = await publicGet<{ vehicle?: VehicleDetails | null }>(`/vehicles/${vehicleId}`);
         }
         if (cancelled) return;
         setVehicle(data?.vehicle ?? null);

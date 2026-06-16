@@ -9,7 +9,7 @@ export class SignupDto {
   @MinLength(1)
   name!: string;
 
-  @IsEmail()
+  @IsEmail({}, { message: 'email must be a valid email address' })
   email!: string;
 
   @IsString()

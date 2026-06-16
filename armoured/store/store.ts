@@ -141,6 +141,7 @@ export const useStore = create<AuthState>((set, get) => ({
     if (state.activeRole === 'DISPATCHER') {
       const existingDispatcher = state.dispatcherSession;
       if (!existingDispatcher) throw new Error('Not authenticated');
+      const auth = await ensureDispatcherSession();
       const dispatcherProfile = await dispatcherGet<DispatcherProfile>(
         `/dispatcher/me`,
         existingDispatcher.dispatcherId,
@@ -148,6 +149,7 @@ export const useStore = create<AuthState>((set, get) => ({
       set({ dispatcherProfile });
       await setStoredDispatcherSession({
         dispatcherId: existingDispatcher.dispatcherId,
+        token: auth.token,
         email: dispatcherProfile.email ?? undefined,
         phone: dispatcherProfile.phone,
         name: dispatcherProfile.name,
@@ -165,10 +167,12 @@ export const useStore = create<AuthState>((set, get) => ({
 
     const existing = state.session;
     if (!existing) throw new Error('Not authenticated');
+    const auth = await ensureUserSession();
     const profile = await apiGet<UserProfile>(`/users/me`, existing.userId);
     set({ profile });
     await setStoredUserSession({
       userId: existing.userId,
+      token: auth.token,
       email: profile.email ?? undefined,
       phone: profile.phone,
       name: profile.name,

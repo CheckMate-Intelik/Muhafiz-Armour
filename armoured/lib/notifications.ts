@@ -65,7 +65,7 @@ export async function registerForPushNotificationsAsync(): Promise<PushRegistrat
     Constants.expoConfig?.extra?.eas?.projectId ??
     (Constants as { easConfig?: { projectId?: string } }).easConfig?.projectId;
   if (!projectId) {
-    console.warn('EAS projectId missing; cannot register for push notifications.');
+    if (__DEV__) console.warn('EAS projectId missing; cannot register for push notifications.');
     return null;
   }
 

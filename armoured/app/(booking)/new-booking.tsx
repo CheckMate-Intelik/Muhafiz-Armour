@@ -317,7 +317,7 @@ function LocationCard({
             <Text
               numberOfLines={2}
               className="mt-1 text-[14px] font-bold"
-              style={{ color: locationReady ? undefined : colors.textSecondary }}>
+              style={{ color: locationReady ? colors.textPrimary : colors.textSecondary }}>
               {locationReady ? address : hasCity ? 'Pick on map…' : 'Choose a city first'}
             </Text>
           </View>

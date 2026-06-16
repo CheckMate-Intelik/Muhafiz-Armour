@@ -36,6 +36,9 @@ enum AuthEventType {
   LOGIN_FAILURE
   SIGNUP_SUCCESS
   SIGNUP_FAILURE
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_SUCCESS
+  PASSWORD_RESET_FAILURE
 }
 
 enum AdminActionType {
@@ -55,7 +58,12 @@ enum BookingAuditAction {
   VEHICLE_SELECTED
   STATUS_CHANGED
   EXTENSION_REQUESTED
-  EXTENSION_RESOLVED
+  EXTENSION_APPROVED
+  EXTENSION_REJECTED
+  EXTENSION_CANCELLED
+  EXPIRED
+  DISPATCHER_REJECTED
+  DISPATCHER_CANCELLED
   CANCELLED
 }
 
@@ -115,6 +123,19 @@ model BookingAuditLog {
 
   @@index([bookingId])
   @@index([createdAt])
+}
+
+model PasswordResetCode {
+  id        String    @id @default(uuid()) @db.Uuid
+  email     String
+  role      String
+  codeHash  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email, role])
+  @@index([expiresAt])
 }
 
 model User {

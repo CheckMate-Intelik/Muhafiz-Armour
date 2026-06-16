@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { BackButton } from '@/components/BackButton';
-import { PUBLIC_API_BASE_URL, dispatcherPost, dispatcherUploadVehicleImage, ensureDispatcherSession } from '@/lib/api';
+import { dispatcherPost, dispatcherUploadVehicleImage, ensureDispatcherSession, publicGet } from '@/lib/api';
 import { colors, gradientProps, gradients } from '@/constants/theme';
 
 const STEPS = 3;
@@ -47,12 +47,10 @@ export default function RegisterVehicleScreen() {
     let cancelled = false;
     async function loadOptions() {
       try {
-        const res = await fetch(`${PUBLIC_API_BASE_URL}/vehicles/options`);
-        if (!res.ok) return;
-        const data = (await res.json()) as {
+        const data = await publicGet<{
           armourLevels?: { code: string; label: string }[];
           vehicleTypes?: { code: string; label: string }[];
-        };
+        }>('/vehicles/options');
         if (cancelled) return;
         const nextArmours = Array.isArray(data.armourLevels) ? data.armourLevels : [];
         const nextVehicleTypes = Array.isArray(data.vehicleTypes) ? data.vehicleTypes : [];

@@ -1,12 +1,13 @@
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, ValidateIf } from 'class-validator';
 
 export class LoginDto {
   @IsOptional()
   @IsString()
   phone?: string;
 
-  @IsOptional()
-  @IsEmail()
+  @ValidateIf((o: LoginDto) => !o.username?.trim())
+  @IsNotEmpty({ message: 'email is required' })
+  @IsEmail({}, { message: 'email must be a valid email address' })
   email?: string;
 
   @IsOptional()

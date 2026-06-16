@@ -365,7 +365,7 @@ export class BookingService {
     const extensionRate = booking.vehicle.extensionRatePerHour ?? booking.vehicle.baseRatePerHour;
     const plannedPrice = baseTotal + Math.round(extensionRate * dto.hours);
 
-    await this.prisma.bookingExtensionRequest.create({
+    const extensionRequest = await this.prisma.bookingExtensionRequest.create({
       data: {
         bookingId,
         additionalHours: dto.hours,
@@ -373,6 +373,22 @@ export class BookingService {
         requestedEndTime: newEnd,
         proposedTotalPrice: plannedPrice,
         status: 'PENDING',
+      },
+    });
+
+    await this.audit.logBookingAction({
+      bookingId,
+      actorRole: 'USER',
+      actorId: userId,
+      action: BookingAuditAction.EXTENSION_REQUESTED,
+      fromStatus: booking.status,
+      toStatus: booking.status,
+      details: {
+        extensionRequestId: extensionRequest.id,
+        additionalHours: dto.hours,
+        previousEndTime: booking.endTime.toISOString(),
+        requestedEndTime: newEnd.toISOString(),
+        proposedTotalPrice: plannedPrice,
       },
     });
 
@@ -441,6 +457,22 @@ export class BookingService {
       include: { user: true, dispatcher: true, vehicle: true, ...extensionRequestsInclude },
     });
     if (!updated) throw new NotFoundException('Booking not found');
+    await this.audit.logBookingAction({
+      bookingId,
+      actorRole: 'DISPATCHER',
+      actorId: dispatcherId,
+      action: BookingAuditAction.EXTENSION_APPROVED,
+      fromStatus: booking.status,
+      toStatus: booking.status,
+      details: {
+        extensionRequestId: pending.id,
+        additionalHours: pending.additionalHours,
+        previousEndTime: pending.previousEndTime.toISOString(),
+        requestedEndTime: newEnd.toISOString(),
+        proposedTotalPrice: pending.proposedTotalPrice,
+        totalPrice: pending.proposedTotalPrice,
+      },
+    });
     this.bookingNotifications.notify('EXTENSION_APPROVED', updated);
     return serializeBookingWithExtension(updated);
   }
@@ -449,17 +481,38 @@ export class BookingService {
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.userId !== userId) throw new BadRequestException('Not your booking');
-    return this.rejectPendingExtensionRequest(bookingId, false);
+    return this.rejectPendingExtensionRequest(bookingId, {
+      notifyUser: false,
+      actorRole: 'USER',
+      actorId: userId,
+      action: BookingAuditAction.EXTENSION_CANCELLED,
+    });
   }
 
   async declineExtensionRequest(dispatcherId: string, bookingId: string) {
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.dispatcherId !== dispatcherId) throw new BadRequestException('Not your booking');
-    return this.rejectPendingExtensionRequest(bookingId, true);
+    return this.rejectPendingExtensionRequest(bookingId, {
+      notifyUser: true,
+      actorRole: 'DISPATCHER',
+      actorId: dispatcherId,
+      action: BookingAuditAction.EXTENSION_REJECTED,
+    });
   }
 
-  private async rejectPendingExtensionRequest(bookingId: string, notifyUser: boolean) {
+  private async rejectPendingExtensionRequest(
+    bookingId: string,
+    opts: {
+      notifyUser: boolean;
+      actorRole: string;
+      actorId: string;
+      action: BookingAuditAction;
+    },
+  ) {
+    const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
+    if (!booking) throw new NotFoundException('Booking not found');
+
     const pending = await this.prisma.bookingExtensionRequest.findFirst({
       where: { bookingId, status: 'PENDING' },
       orderBy: { createdAt: 'desc' },
@@ -471,19 +524,35 @@ export class BookingService {
       data: { status: 'REJECTED', resolvedAt: new Date() },
     });
 
+    await this.audit.logBookingAction({
+      bookingId,
+      actorRole: opts.actorRole,
+      actorId: opts.actorId,
+      action: opts.action,
+      fromStatus: booking.status,
+      toStatus: booking.status,
+      details: {
+        extensionRequestId: pending.id,
+        additionalHours: pending.additionalHours,
+        previousEndTime: pending.previousEndTime.toISOString(),
+        requestedEndTime: pending.requestedEndTime.toISOString(),
+        proposedTotalPrice: pending.proposedTotalPrice,
+      },
+    });
+
     const updated = await this.prisma.booking.findUnique({
       where: { id: bookingId },
       include: { user: true, dispatcher: true, vehicle: true, ...extensionRequestsInclude },
     });
     if (!updated) throw new NotFoundException('Booking not found');
-    if (notifyUser) {
+    if (opts.notifyUser) {
       this.bookingNotifications.notify('EXTENSION_DECLINED', updated);
     }
     return serializeBookingWithExtension(updated);
   }
 
   async listForUser(userId: string) {
-    await expireStalePendingDispatcherBookings(this.prisma);
+    await expireStalePendingDispatcherBookings(this.prisma, { audit: this.audit });
     const rows = await this.prisma.booking.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },

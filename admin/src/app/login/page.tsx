@@ -20,7 +20,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await api.loginAdmin(username, password);
-      setSession({ token: res.token, role: 'ADMIN' });
+      setSession({ role: res.role });
       router.replace('/admin');
     } catch (err) {
       if (err instanceof ApiError) setError(err.message);
