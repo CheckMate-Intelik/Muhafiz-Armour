@@ -1,7 +1,8 @@
 import { BackButton } from '@/components/BackButton';
 import { useThrottledPress } from '@/hooks/useThrottledPress';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -145,6 +146,9 @@ export function AuthField({
   onBlur?: () => void;
   editable?: boolean;
 }) {
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const isPassword = Boolean(secureTextEntry);
+
   return (
     <View
       className="mt-6 rounded-2xl border px-4 py-3"
@@ -155,18 +159,31 @@ export function AuthField({
       <Text className="text-md font-bold" style={{ color: '#9CA3AF' }}>
         {label}
       </Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#6B7280"
-        keyboardType={keyboardType}
-        secureTextEntry={secureTextEntry}
-        autoCapitalize={autoCapitalize ?? 'none'}
-        editable={editable}
-        onBlur={onBlur}
-        className="mt-1 text-md font-extrabold text-gray-100"
-      />
+      <View className="mt-1 flex-row items-center">
+        <TextInput
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor="#6B7280"
+          keyboardType={keyboardType}
+          secureTextEntry={isPassword && !passwordVisible}
+          autoCapitalize={autoCapitalize ?? 'none'}
+          editable={editable}
+          onBlur={onBlur}
+          className="flex-1 text-md font-extrabold text-gray-100"
+          style={isPassword ? { paddingRight: 8 } : undefined}
+        />
+        {isPassword ? (
+          <Pressable
+            onPress={() => setPasswordVisible((v) => !v)}
+            accessibilityRole="button"
+            accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}
+            hitSlop={8}
+            className="px-1 py-1">
+            <FontAwesome name={passwordVisible ? 'eye-slash' : 'eye'} size={18} color="#9CA3AF" />
+          </Pressable>
+        ) : null}
+      </View>
       {error ? (
         <Text className="mt-1 text-xs font-semibold" style={{ color: '#FCA5A5' }}>
           {error}

@@ -581,7 +581,6 @@ export class BookingService {
         data: {
           status: 'REJECTED',
           actualEndTime: booking.actualEndTime ?? (booking.status === 'IN_PROGRESS' ? new Date() : booking.actualEndTime),
-          ...(vid ? { vehicleId: null, dispatcherId: null } : {}),
         },
         include: { user: true, dispatcher: true, vehicle: true },
       });
@@ -605,6 +604,10 @@ export class BookingService {
       action: BookingAuditAction.CANCELLED,
       fromStatus: previousStatus as BookingStatus,
       toStatus: BookingStatus.REJECTED,
+      details: {
+        vehicleId: booking.vehicleId ?? undefined,
+        dispatcherId: booking.dispatcherId ?? undefined,
+      },
     });
     return updated;
   }

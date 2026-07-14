@@ -1,4 +1,5 @@
 import { clearSession } from './session';
+import { toQueryString } from './query';
 
 export class ApiError extends Error {
   status: number;
@@ -13,6 +14,52 @@ export type AdminMetrics = {
   dispatchers: { total: number; approved: number; blocked: number };
   vehicles: { total: number; approved: number; pending: number };
   bookings: { total: number; completed: number; active: number; pendingDispatcher: number };
+};
+
+export type OperationsQueue = {
+  pendingDispatchers: Array<{ id: string; name: string; phone: string; email: string | null; createdAt: string }>;
+  pendingVehicles: Array<any>;
+  expiringBookings: Array<any>;
+  pendingExtensions: Array<any>;
+  blockedUsersWithActivity: Array<{ id: string; name: string; phone: string; email: string | null }>;
+  blockedDispatchersWithActivity: Array<{ id: string; name: string; phone: string; email: string | null }>;
+  counts: Record<string, number>;
+};
+
+export type AuditPage<T> = { rows: T[]; total: number; take: number; skip: number };
+
+export type BookingListFilters = {
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+  pickupCity?: string;
+  dropCity?: string;
+  dispatcherId?: string;
+  armourLevel?: string;
+  isUnderReview?: string;
+  q?: string;
+};
+
+export type DispatcherListFilters = {
+  isApproved?: string;
+  isBlocked?: string;
+  q?: string;
+};
+
+export type VehicleListFilters = {
+  isApproved?: string;
+  city?: string;
+  q?: string;
+};
+
+export type AuditFilters = {
+  eventType?: string;
+  from?: string;
+  to?: string;
+  q?: string;
+  limit?: string;
+  offset?: string;
+  suspiciousOnly?: string;
 };
 
 async function readResponse<T>(res: Response): Promise<T> {
@@ -57,17 +104,41 @@ export const api = {
 
   metrics: () => request<AdminMetrics>('/admin/metrics'),
 
-  listBookings: () => request<any[]>('/admin/bookings'),
-  getBooking: (id: string) => request<any>(`/admin/bookings/lookup?id=${encodeURIComponent(id)}`),
+  operationsQueue: () => request<OperationsQueue>('/admin/operations-queue'),
 
-  listDispatchers: () => request<any[]>('/admin/dispatchers'),
+  globalSearch: (q: string) => request<any>(`/admin/search${toQueryString({ q })}`),
+
+  listAdminAudit: (filters: AuditFilters = {}) =>
+    request<AuditPage<any>>(`/admin/audit/admin${toQueryString(filters)}`),
+  listAuthAudit: (filters: AuditFilters = {}) =>
+    request<AuditPage<any>>(`/admin/audit/auth${toQueryString(filters)}`),
+  listBookingAudit: (bookingId: string) => request<any[]>(`/admin/audit/bookings/${bookingId}`),
+
+  listBookings: (filters: BookingListFilters = {}) =>
+    request<any[]>(`/admin/bookings${toQueryString(filters)}`),
+  getBooking: (id: string) => request<any>(`/admin/bookings/lookup?id=${encodeURIComponent(id)}`),
+  forceCancelBooking: (id: string, reason: string) =>
+    request<any>(`/admin/bookings/${id}/force-cancel`, { method: 'POST', body: JSON.stringify({ reason }) }),
+  reassignBooking: (id: string, vehicleId: string, reason: string) =>
+    request<any>(`/admin/bookings/${id}/reassign`, { method: 'POST', body: JSON.stringify({ vehicleId, reason }) }),
+  extendDispatcherDeadline: (id: string, reason: string, extraMinutes?: number) =>
+    request<any>(`/admin/bookings/${id}/extend-deadline`, {
+      method: 'POST',
+      body: JSON.stringify({ reason, ...(extraMinutes != null ? { extraMinutes } : {}) }),
+    }),
+  setBookingReview: (id: string, body: { isUnderReview: boolean; reason: string; note?: string }) =>
+    request<any>(`/admin/bookings/${id}/review`, { method: 'PATCH', body: JSON.stringify(body) }),
+
+  listDispatchers: (filters: DispatcherListFilters = {}) =>
+    request<any[]>(`/admin/dispatchers${toQueryString(filters)}`),
   getDispatcher: (id: string) => request<any>(`/admin/dispatchers/lookup?id=${encodeURIComponent(id)}`),
   approveDispatcher: (id: string, isApproved: boolean) =>
     request<any>(`/admin/dispatchers/${id}/approve`, { method: 'PATCH', body: JSON.stringify({ isApproved }) }),
   blockDispatcher: (id: string, isBlocked: boolean) =>
     request<any>(`/admin/dispatchers/${id}/block`, { method: 'PATCH', body: JSON.stringify({ isBlocked }) }),
 
-  listVehicles: () => request<any[]>('/admin/vehicles'),
+  listVehicles: (filters: VehicleListFilters = {}) =>
+    request<any[]>(`/admin/vehicles${toQueryString(filters)}`),
   getVehicle: (id: string) => request<any>(`/admin/vehicles/lookup?id=${encodeURIComponent(id)}`),
   approveVehicle: (id: string, isApproved: boolean) =>
     request<any>(`/admin/vehicles/${id}/approve`, { method: 'PATCH', body: JSON.stringify({ isApproved }) }),

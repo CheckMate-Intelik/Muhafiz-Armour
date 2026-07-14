@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, ApiError, type AdminMetrics } from '@/lib/api';
+import { OperationsQueuePanel } from '@/components/OperationsQueue';
+import { api, ApiError, type AdminMetrics, type OperationsQueue } from '@/lib/api';
 import { clearSession, getSession } from '@/lib/session';
 
 function MetricCard({
@@ -36,6 +37,7 @@ function MetricCard({
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [data, setData] = useState<AdminMetrics | null>(null);
+  const [queue, setQueue] = useState<OperationsQueue | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,8 +51,11 @@ export default function AdminDashboardPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await api.metrics();
-        if (!cancelled) setData(res);
+        const [metricsRes, queueRes] = await Promise.all([api.metrics(), api.operationsQueue()]);
+        if (!cancelled) {
+          setData(metricsRes);
+          setQueue(queueRes);
+        }
       } catch (e) {
         if (e instanceof ApiError && e.status === 401) {
           clearSession();
@@ -78,6 +83,8 @@ export default function AdminDashboardPage() {
       </div>
 
       {error ? <div className="error">{error}</div> : null}
+
+      <OperationsQueuePanel data={queue} loading={loading} />
 
       <div className="metrics-grid">
         {loading ? (

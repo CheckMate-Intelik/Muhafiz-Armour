@@ -20,6 +20,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <Link className="sidebar-link" href="/admin">
             Dashboard
           </Link>
+          <Link className="sidebar-link" href="/admin/search">
+            Search
+          </Link>
           <div className="sidebar-section-label">Operations</div>
           <Link className="sidebar-link" href="/admin/bookings">
             Bookings
@@ -32,6 +35,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </Link>
           <Link className="sidebar-link" href="/admin/users">
             Users
+          </Link>
+          <Link className="sidebar-link" href="/admin/audit">
+            Audit logs
           </Link>
           <div className="sidebar-section-label">Configuration</div>
           <Link className="sidebar-link" href="/admin/catalog">

@@ -51,7 +51,12 @@ export default function ForgotPasswordScreen() {
       } as any);
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Could not send verification code';
-      Alert.alert('Failed', message);
+      const notFound =
+        message.includes('No user account exists') || message.includes('No dispatcher account exists');
+      Alert.alert(
+        notFound ? (role === 'DISPATCHER' ? 'Dispatcher not found' : 'User not found') : 'Failed',
+        message,
+      );
     } finally {
       setSubmitting(false);
     }

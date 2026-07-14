@@ -1,28 +1,40 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { ListFilters } from '@/components/ListFilters';
 import { api, ApiError } from '@/lib/api';
 import { ThrottledButton } from '@/components/ThrottledButton';
 import { clearSession, getSession } from '@/lib/session';
 
-export default function AdminVehiclesPage() {
+function VehiclesPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!getSession()) router.replace('/login');
   }, [router]);
 
-  async function load() {
+  useEffect(() => {
+    const next: Record<string, string> = {};
+    for (const key of ['isApproved', 'city', 'q']) {
+      const v = searchParams.get(key);
+      if (v) next[key] = v;
+    }
+    setFilters(next);
+  }, [searchParams]);
+
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.listVehicles();
+      const data = await api.listVehicles(filters);
       setRows(data);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
@@ -34,12 +46,11 @@ export default function AdminVehiclesPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [filters, router]);
 
   useEffect(() => {
     void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [load]);
 
   async function toggleApprove(id: string, isApproved: boolean) {
     setBusyId(id);
@@ -51,14 +62,43 @@ export default function AdminVehiclesPage() {
     }
   }
 
+  function applyFilters() {
+    const qs = new URLSearchParams();
+    for (const [k, v] of Object.entries(filters)) {
+      if (v.trim()) qs.set(k, v.trim());
+    }
+    router.push(`/admin/vehicles${qs.toString() ? `?${qs}` : ''}`);
+  }
+
   return (
     <>
       <div className="page-header">
         <div>
           <h1 className="h1">Vehicles</h1>
-          <div className="muted">Click a row for full vehicle details</div>
+          <div className="muted">Filter fleet by approval, city, plate, or model</div>
         </div>
       </div>
+
+      <ListFilters
+        fields={[
+          { name: 'q', label: 'Search', placeholder: 'Plate, reg, model, location, ID…' },
+          { name: 'city', label: 'City / location' },
+          {
+            name: 'isApproved',
+            label: 'Approved',
+            type: 'select',
+            options: [
+              { value: 'true', label: 'Approved' },
+              { value: 'false', label: 'Pending approval' },
+            ],
+          },
+        ]}
+        values={filters}
+        onChange={(name, value) => setFilters((prev) => ({ ...prev, [name]: value }))}
+        onSubmit={applyFilters}
+        onReset={() => router.push('/admin/vehicles')}
+      />
+
       {error ? <div className="error">{error}</div> : null}
       <div className="card">
         {loading ? (
@@ -116,7 +156,7 @@ export default function AdminVehiclesPage() {
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="muted">
-                    No vehicles.
+                    No vehicles match these filters.
                   </td>
                 </tr>
               ) : null}
@@ -128,3 +168,10 @@ export default function AdminVehiclesPage() {
   );
 }
 
+export default function AdminVehiclesPage() {
+  return (
+    <Suspense fallback={<div className="muted">Loading…</div>}>
+      <VehiclesPageInner />
+    </Suspense>
+  );
+}

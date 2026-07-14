@@ -5,6 +5,10 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { AdminService } from './admin.service';
+import { AdminBookingReassignDto } from './dto/admin-booking-reassign.dto';
+import { AdminBookingReviewDto } from './dto/admin-booking-review.dto';
+import { AdminExtendDeadlineDto } from './dto/admin-extend-deadline.dto';
+import { AdminReasonDto } from './dto/admin-reason.dto';
 import { UpdateApprovalDto } from './dto/update-approval.dto';
 import { UpdateBlockDto } from './dto/update-block.dto';
 import { CreateCatalogOptionDto } from './dto/create-catalog-option.dto';
@@ -22,6 +26,31 @@ export class AdminController {
     return this.admin.metrics();
   }
 
+  @Get('operations-queue')
+  async operationsQueue() {
+    return this.admin.operationsQueue();
+  }
+
+  @Get('search')
+  async search(@Query('q') q: string) {
+    return this.admin.globalSearch(q ?? '');
+  }
+
+  @Get('audit/admin')
+  async listAdminAudit(@Query() query: Record<string, string>) {
+    return this.admin.listAdminAuditLogs(query);
+  }
+
+  @Get('audit/auth')
+  async listAuthAudit(@Query() query: Record<string, string>) {
+    return this.admin.listAuthAuditLogs(query);
+  }
+
+  @Get('audit/bookings/:bookingId')
+  async listBookingAudit(@Param('bookingId') bookingId: string) {
+    return this.admin.listBookingAuditLogs(bookingId);
+  }
+
   @Get('bookings/lookup')
   async lookupBooking(@Query('id') id: string) {
     if (!id?.trim()) throw new BadRequestException('Missing id');
@@ -29,8 +58,28 @@ export class AdminController {
   }
 
   @Get('bookings')
-  async listBookings() {
-    return this.admin.listBookings();
+  async listBookings(@Query() query: Record<string, string>) {
+    return this.admin.listBookings(query);
+  }
+
+  @Post('bookings/:id/force-cancel')
+  async forceCancelBooking(@AuthUser() admin: JwtPayload, @Param('id') id: string, @Body() dto: AdminReasonDto) {
+    return this.admin.forceCancelBooking(admin.sub, id, dto.reason);
+  }
+
+  @Post('bookings/:id/reassign')
+  async reassignBooking(@AuthUser() admin: JwtPayload, @Param('id') id: string, @Body() dto: AdminBookingReassignDto) {
+    return this.admin.reassignBooking(admin.sub, id, dto.vehicleId, dto.reason);
+  }
+
+  @Post('bookings/:id/extend-deadline')
+  async extendDispatcherDeadline(@AuthUser() admin: JwtPayload, @Param('id') id: string, @Body() dto: AdminExtendDeadlineDto) {
+    return this.admin.extendDispatcherDeadline(admin.sub, id, dto.reason, dto.extraMinutes ?? 60);
+  }
+
+  @Patch('bookings/:id/review')
+  async setBookingReview(@AuthUser() admin: JwtPayload, @Param('id') id: string, @Body() dto: AdminBookingReviewDto) {
+    return this.admin.setBookingReview(admin.sub, id, dto.isUnderReview, dto.reason, dto.note);
   }
 
   @Get('dispatchers/lookup')
@@ -40,8 +89,8 @@ export class AdminController {
   }
 
   @Get('dispatchers')
-  async listDispatchers() {
-    return this.admin.listDispatchers();
+  async listDispatchers(@Query() query: Record<string, string>) {
+    return this.admin.listDispatchers(query);
   }
 
   @Patch('dispatchers/:id/approve')
@@ -61,8 +110,8 @@ export class AdminController {
   }
 
   @Get('vehicles')
-  async listVehicles() {
-    return this.admin.listVehicles();
+  async listVehicles(@Query() query: Record<string, string>) {
+    return this.admin.listVehicles(query);
   }
 
   @Patch('vehicles/:id/approve')

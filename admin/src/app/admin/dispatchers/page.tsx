@@ -1,28 +1,40 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { ListFilters } from '@/components/ListFilters';
 import { api, ApiError } from '@/lib/api';
 import { ThrottledButton } from '@/components/ThrottledButton';
 import { clearSession, getSession } from '@/lib/session';
 
-export default function AdminDispatchersPage() {
+function DispatchersPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!getSession()) router.replace('/login');
   }, [router]);
 
-  async function load() {
+  useEffect(() => {
+    const next: Record<string, string> = {};
+    for (const key of ['isApproved', 'isBlocked', 'q']) {
+      const v = searchParams.get(key);
+      if (v) next[key] = v;
+    }
+    setFilters(next);
+  }, [searchParams]);
+
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.listDispatchers();
+      const data = await api.listDispatchers(filters);
       setRows(data);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
@@ -34,12 +46,11 @@ export default function AdminDispatchersPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [filters, router]);
 
   useEffect(() => {
     void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [load]);
 
   async function toggleApprove(id: string, isApproved: boolean) {
     setBusyId(id);
@@ -61,14 +72,51 @@ export default function AdminDispatchersPage() {
     }
   }
 
+  function applyFilters() {
+    const qs = new URLSearchParams();
+    for (const [k, v] of Object.entries(filters)) {
+      if (v.trim()) qs.set(k, v.trim());
+    }
+    router.push(`/admin/dispatchers${qs.toString() ? `?${qs}` : ''}`);
+  }
+
   return (
     <>
       <div className="page-header">
         <div>
           <h1 className="h1">Dispatchers</h1>
-          <div className="muted">Click a row for details · Use actions without leaving the list</div>
+          <div className="muted">Filter and manage dispatcher accounts</div>
         </div>
       </div>
+
+      <ListFilters
+        fields={[
+          { name: 'q', label: 'Search', placeholder: 'Name, phone, email, ID…' },
+          {
+            name: 'isApproved',
+            label: 'Approved',
+            type: 'select',
+            options: [
+              { value: 'true', label: 'Approved' },
+              { value: 'false', label: 'Pending approval' },
+            ],
+          },
+          {
+            name: 'isBlocked',
+            label: 'Blocked',
+            type: 'select',
+            options: [
+              { value: 'true', label: 'Blocked' },
+              { value: 'false', label: 'Not blocked' },
+            ],
+          },
+        ]}
+        values={filters}
+        onChange={(name, value) => setFilters((prev) => ({ ...prev, [name]: value }))}
+        onSubmit={applyFilters}
+        onReset={() => router.push('/admin/dispatchers')}
+      />
+
       {error ? <div className="error">{error}</div> : null}
       <div className="card">
         {loading ? (
@@ -121,7 +169,7 @@ export default function AdminDispatchersPage() {
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="muted">
-                    No dispatchers.
+                    No dispatchers match these filters.
                   </td>
                 </tr>
               ) : null}
@@ -133,3 +181,10 @@ export default function AdminDispatchersPage() {
   );
 }
 
+export default function AdminDispatchersPage() {
+  return (
+    <Suspense fallback={<div className="muted">Loading…</div>}>
+      <DispatchersPageInner />
+    </Suspense>
+  );
+}

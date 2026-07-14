@@ -121,7 +121,7 @@ export class DispatcherService {
       const updated = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         const row = await tx.booking.update({
           where: { id: bookingId },
-          data: { status: 'REJECTED', vehicleId: null, dispatcherId: null },
+          data: { status: 'REJECTED' },
           include: { user: true, vehicle: true, dispatcher: true },
         });
         if (vid) {
@@ -140,6 +140,10 @@ export class DispatcherService {
         action: BookingAuditAction.DISPATCHER_REJECTED,
         fromStatus: previousStatus as BookingStatus,
         toStatus: BookingStatus.REJECTED,
+        details: {
+          vehicleId: booking.vehicleId ?? undefined,
+          dispatcherId,
+        },
       });
       return updated;
     }
@@ -228,8 +232,6 @@ export class DispatcherService {
         data: {
           status: 'REJECTED',
           actualEndTime: booking.actualEndTime ?? (booking.status === 'IN_PROGRESS' ? new Date() : booking.actualEndTime),
-          vehicleId: null,
-          dispatcherId: null,
         },
         include: { user: true, vehicle: true, dispatcher: true },
       });
@@ -249,6 +251,10 @@ export class DispatcherService {
       action: BookingAuditAction.DISPATCHER_CANCELLED,
       fromStatus: previousStatus as BookingStatus,
       toStatus: BookingStatus.REJECTED,
+      details: {
+        vehicleId: booking.vehicleId ?? undefined,
+        dispatcherId,
+      },
     });
     return updated;
   }

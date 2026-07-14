@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { AuditTimeline } from '@/components/AuditTimeline';
+import { BookingInterventions } from '@/components/BookingInterventions';
 import { api, ApiError } from '@/lib/api';
 import { segmentParam } from '@/lib/route-params';
 import { clearSession, getSession } from '@/lib/session';
@@ -159,7 +161,26 @@ export default function AdminBookingDetailPage() {
             <div className="grid2">
               <div className="stack">
                 <div className="h3">Status</div>
-                <StatusBadge status={row.status} />
+                <div className="stack-inline">
+                  <StatusBadge status={row.status} />
+                  {row.isUnderReview ? <span className="review-pill">Under review</span> : null}
+                </div>
+                {row.pendingExpiresAt ? (
+                  <div className="muted" style={{ marginTop: 6 }}>
+                    Dispatcher accept expires: {fmt(row.pendingExpiresAt)}
+                  </div>
+                ) : null}
+                {row.closureSummary ? (
+                  <div className="closure-banner" style={{ marginTop: 10 }}>
+                    <div className="h3">{row.closureSummary.label}</div>
+                    <div className="muted mono" style={{ marginTop: 4, fontSize: 11 }}>
+                      {fmt(row.closureSummary.at)}
+                      {row.closureSummary.actorRole && row.closureSummary.actorRole !== 'SYSTEM'
+                        ? ` · ${row.closureSummary.actorRole}`
+                        : ''}
+                    </div>
+                  </div>
+                ) : null}
               </div>
               <div className="stack">
                 <div className="h3">Total price</div>
@@ -185,6 +206,10 @@ export default function AdminBookingDetailPage() {
               <div style={{ marginTop: 4 }}>{row.dropLocation}</div>
             </div>
             <div className="divider" />
+            <div className="stack-inline" style={{ justifyContent: 'space-between' }}>
+              <div className="h3">Parties</div>
+              {row.partiesFromHistory ? <span className="muted">Assigned at time of booking (from history)</span> : null}
+            </div>
             <div className="grid2">
               <div className="stack">
                 <div className="h3">User</div>
@@ -208,9 +233,10 @@ export default function AdminBookingDetailPage() {
                       {row.dispatcher.name}
                     </Link>
                     <div className="mono muted">{row.dispatcher.phone}</div>
+                    {row.dispatcher.email ? <div className="muted">{row.dispatcher.email}</div> : null}
                   </>
                 ) : (
-                  '—'
+                  <div className="muted">No dispatcher was assigned</div>
                 )}
               </div>
             </div>
@@ -230,7 +256,7 @@ export default function AdminBookingDetailPage() {
                 </div>
               </div>
             ) : (
-              '—'
+              <div className="muted">No vehicle was assigned</div>
             )}
             <div className="divider" />
             <div className="grid2">
@@ -259,11 +285,27 @@ export default function AdminBookingDetailPage() {
             ) : (
               <div className="muted">No extension requests for this booking.</div>
             )}
+            <div className="divider" />
+            <div className="h3">Booking timeline</div>
+            <AuditTimeline rows={Array.isArray(row.auditLogs) ? row.auditLogs : []} emptyLabel="No timeline events recorded." />
           </div>
         ) : (
           <div className="muted">Not found.</div>
         )}
       </div>
+
+      {row ? (
+        <div className="card" style={{ marginTop: 14 }}>
+          <BookingInterventions
+            booking={row}
+            onUpdated={async () => {
+              if (!id) return;
+              const data = await api.getBooking(id);
+              setRow(data);
+            }}
+          />
+        </div>
+      ) : null}
     </>
   );
 }

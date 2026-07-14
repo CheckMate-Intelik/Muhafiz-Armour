@@ -6,6 +6,29 @@ import { api, ApiError } from '@/lib/api';
 import { useThrottledAction } from '@/hooks/useThrottledAction';
 import { setSession } from '@/lib/session';
 
+function PasswordInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <div className="password-input-wrap">
+      <input
+        className="input"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        type={visible ? 'text' : 'password'}
+        autoComplete="current-password"
+      />
+      <button
+        type="button"
+        className="password-toggle"
+        onClick={() => setVisible((v) => !v)}
+        aria-label={visible ? 'Hide password' : 'Show password'}>
+        {visible ? 'Hide' : 'Show'}
+      </button>
+    </div>
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('admin');
@@ -41,12 +64,7 @@ export default function LoginPage() {
           </label>
           <label className="label">
             Password
-            <input
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-            />
+            <PasswordInput value={password} onChange={setPassword} />
           </label>
           {error ? <div className="error">{error}</div> : null}
           <button className="button" type="submit" disabled={loading}>

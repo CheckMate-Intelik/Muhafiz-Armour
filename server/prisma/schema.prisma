@@ -50,6 +50,10 @@ enum AdminActionType {
   CREATE_CATALOG_OPTION
   UPDATE_CATALOG_OPTION
   DELETE_CATALOG_OPTION
+  FORCE_CANCEL_BOOKING
+  REASSIGN_BOOKING
+  EXTEND_DISPATCHER_DEADLINE
+  SET_BOOKING_REVIEW
 }
 
 enum BookingAuditAction {
@@ -65,6 +69,11 @@ enum BookingAuditAction {
   DISPATCHER_REJECTED
   DISPATCHER_CANCELLED
   CANCELLED
+  ADMIN_FORCE_CANCELLED
+  ADMIN_REASSIGNED
+  ADMIN_EXTENDED_DEADLINE
+  ADMIN_MARKED_REVIEW
+  ADMIN_UNMARKED_REVIEW
 }
 
 model Admin {
@@ -206,6 +215,8 @@ model Booking {
   pendingDispatcherAt  DateTime?
   totalPrice           Int?
   overtimeMinutes      Int?
+  isUnderReview        Boolean          @default(false)
+  adminReviewNote      String?
   createdAt            DateTime         @default(now())
 
   extensionRequests BookingExtensionRequest[]

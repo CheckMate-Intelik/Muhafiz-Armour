@@ -34,14 +34,22 @@ export function withPendingExpiryFields<T extends PendingTiming>(booking: T) {
   };
 }
 
-async function logBookingExpired(audit: AuditService, bookingId: string) {
+async function logBookingExpired(
+  audit: AuditService,
+  bookingId: string,
+  parties?: { vehicleId?: string | null; dispatcherId?: string | null },
+) {
   await audit.logBookingAction({
     bookingId,
     actorRole: 'SYSTEM',
     action: BookingAuditAction.EXPIRED,
     fromStatus: BookingStatus.PENDING_DISPATCHER,
     toStatus: BookingStatus.EXPIRED,
-    details: { reason: 'DISPATCHER_ACCEPT_TIMEOUT' },
+    details: {
+      reason: 'DISPATCHER_ACCEPT_TIMEOUT',
+      ...(parties?.vehicleId ? { vehicleId: parties.vehicleId } : {}),
+      ...(parties?.dispatcherId ? { dispatcherId: parties.dispatcherId } : {}),
+    },
   });
 }
 
@@ -50,14 +58,11 @@ export async function expirePendingBooking(
   bookingId: string,
   vehicleId: string | null,
   ctx?: ExpireAuditContext,
+  dispatcherId?: string | null,
 ) {
   await prisma.booking.update({
     where: { id: bookingId },
-    data: {
-      status: 'EXPIRED',
-      vehicleId: null,
-      dispatcherId: null,
-    },
+    data: { status: 'EXPIRED' },
   });
   if (vehicleId) {
     await prisma.vehicle.updateMany({
@@ -66,7 +71,7 @@ export async function expirePendingBooking(
     });
   }
   if (ctx?.audit) {
-    await logBookingExpired(ctx.audit, bookingId);
+    await logBookingExpired(ctx.audit, bookingId, { vehicleId, dispatcherId });
   }
 }
 
@@ -79,6 +84,7 @@ export async function expireStalePendingDispatcherBookings(
     select: {
       id: true,
       vehicleId: true,
+      dispatcherId: true,
       pendingDispatcherAt: true,
       createdAt: true,
       status: true,
@@ -88,7 +94,7 @@ export async function expireStalePendingDispatcherBookings(
   for (const row of rows) {
     if (!isPendingDispatcherExpired(row, now)) continue;
     await prisma.$transaction(async (tx) => {
-      await expirePendingBooking(tx, row.id, row.vehicleId, ctx);
+      await expirePendingBooking(tx, row.id, row.vehicleId, ctx, row.dispatcherId);
     });
   }
 }
@@ -104,6 +110,7 @@ export async function expirePendingBookingIfNeeded(
       id: true,
       status: true,
       vehicleId: true,
+      dispatcherId: true,
       pendingDispatcherAt: true,
       createdAt: true,
     },
@@ -111,7 +118,7 @@ export async function expirePendingBookingIfNeeded(
   if (!row || row.status !== 'PENDING_DISPATCHER') return false;
   if (!isPendingDispatcherExpired(row)) return false;
   await prisma.$transaction(async (tx) => {
-    await expirePendingBooking(tx, row.id, row.vehicleId, ctx);
+    await expirePendingBooking(tx, row.id, row.vehicleId, ctx, row.dispatcherId);
   });
   return true;
 }
